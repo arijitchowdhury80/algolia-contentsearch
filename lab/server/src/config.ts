@@ -47,6 +47,11 @@ function loadEnv(): Record<string, string> {
 
 const ENV = loadEnv();
 
+/** The merged env map (process.env + .env.local files). Used by the provider resolver. */
+export function getEnv(): Record<string, string | undefined> {
+  return ENV;
+}
+
 function req(key: string): string {
   const v = ENV[key];
   if (!v) throw new Error(`Missing required env var: ${key} (check .env.local)`);

@@ -16,10 +16,11 @@ import {
   type Artifact,
   type LlmComplete,
 } from "@lab/judge";
-import { loadConfig } from "./config.js";
+import { loadConfig, getEnv } from "./config.js";
 import { makeOpenAIComplete } from "./openai.js";
 import { makeGeminiComplete } from "./gemini.js";
 import { makeJudgeLlm } from "./judgeLlm.js";
+import { resolveActiveProvider } from "./provider.js";
 import {
   loadTranscript,
   saveScores,
@@ -160,10 +161,17 @@ export async function judgeRun(
 ): Promise<string> {
   const cfg = loadConfig();
   const transcript = loadTranscript(runId);
+
+  // SINGLE source of truth for the provider: prefer OpenAI, fall back to Gemini
+  // (consistent across the whole system — see provider.ts). Overrides the static
+  // config default so the judge always matches whatever the agents run.
+  const env = getEnv();
+  const spec = await resolveActiveProvider(env);
+  const apiKey = env[spec.keyVar] ?? "";
   const rawLlm =
-    cfg.judgeProvider === "gemini"
-      ? makeGeminiComplete({ apiKey: cfg.judgeApiKey, model: cfg.judgeModel })
-      : makeOpenAIComplete({ apiKey: cfg.judgeApiKey, model: cfg.judgeModel });
+    spec.provider === "gemini"
+      ? makeGeminiComplete({ apiKey, model: spec.judgeModel })
+      : makeOpenAIComplete({ apiKey, model: spec.judgeModel });
   // Normalise judge dimensionIds (model echoes labels, parser keys on ids).
   const llm = makeJudgeLlm(rawLlm, DEFAULT_JUDGE_CONFIG.rubric);
 
@@ -176,7 +184,7 @@ export async function judgeRun(
   }
 
   console.log(
-    `\n[judge] runId=${runId} provider=${cfg.judgeProvider} model=${cfg.judgeModel} rounds=${cfg.judgeRounds}`,
+    `\n[judge] runId=${runId} provider=${spec.provider} model=${spec.judgeModel} rounds=${cfg.judgeRounds}`,
   );
   console.log(
     `[judge] ${questions.length} question(s); judges are blind to panel identity\n`,

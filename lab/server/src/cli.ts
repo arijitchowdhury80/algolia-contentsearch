@@ -14,6 +14,8 @@ import { judgeRun } from "./judgeStep.js";
 import { summarize } from "./summary.js";
 import { setWebsiteCapture } from "./panels.js";
 import { liveWebsiteCapture } from "./website.js";
+import { getEnv } from "./config.js";
+import { resolveActiveProvider } from "./provider.js";
 
 interface Flags {
   limit?: number;
@@ -69,6 +71,54 @@ async function main(): Promise<void> {
       const runId = f.positional[0];
       if (!runId) throw new Error("usage: summary <runId>");
       summarize(runId);
+      break;
+    }
+    case "provider": {
+      // Resolve + report the ONE active provider (prefer OpenAI, fall back to
+      // Gemini). Everything — judge + all agents — must run this same provider.
+      const env = getEnv();
+      const spec = await resolveActiveProvider(env);
+      console.log(`\n[provider] policy: prefer OpenAI; fall back to Gemini only when OpenAI is over limit.`);
+      console.log(`[provider] ACTIVE = ${spec.provider.toUpperCase()}  (judge + agents must all use this)`);
+      console.log(`  judge model : ${spec.judgeModel}`);
+      console.log(`  agent model : ${spec.agentModel}`);
+
+      // CONSISTENCY CHECK (read-only): confirm every agent's model matches.
+      const appId = env["ARIJIT-TEST_APP_ID"] ?? env.VITE_OURS_APP_ID ?? "";
+      const adminKey = env["ARIJIT-TEST_ADMIN_API_KEY"] ?? "";
+      const agents: { label: string; id: string | undefined }[] = [
+        { label: "② mirror", id: env.VITE_AGENT_MIRROR_ID },
+        { label: "③ tuned", id: env.VITE_AGENT_TUNED_ID },
+      ];
+      console.log(`\n[provider] agent consistency check:`);
+      let allMatch = true;
+      for (const a of agents) {
+        if (!a.id) continue;
+        try {
+          const r = await fetch(
+            `https://${appId}.algolia.net/agent-studio/1/agents/${a.id}`,
+            {
+              headers: {
+                "X-Algolia-Application-Id": appId,
+                "X-Algolia-API-Key": adminKey,
+                "User-Agent": "visibility-agent-harness/1.0",
+              },
+            },
+          );
+          const j = (await r.json()) as { model?: string };
+          const ok = j.model === spec.agentModel;
+          if (!ok) allMatch = false;
+          console.log(`  ${a.label}: model=${j.model ?? "?"}  ${ok ? "✓ matches" : "✗ MISMATCH → " + spec.agentModel}`);
+        } catch (e) {
+          allMatch = false;
+          console.log(`  ${a.label}: could not read (${(e as Error).message})`);
+        }
+      }
+      console.log(
+        allMatch
+          ? `\n  ✓ CONSISTENT — all agents + judge on ${spec.provider}.`
+          : `\n  ⚠ INCONSISTENT — re-point the mismatched agent(s) to ${spec.provider} (model ${spec.agentModel}, provider ${spec.agentProviderId}) in Agent Studio before running.`,
+      );
       break;
     }
     case "pipeline": {
