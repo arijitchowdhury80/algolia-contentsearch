@@ -1,8 +1,36 @@
 # SESSION.md — Algolia-Central2 (Visibility Agents)
 
+_Last updated: 2026-06-12 ~7pm EDT (handoff)_
+
+## ▶▶▶ HANDOFF RESUME (2026-06-12 ~7pm) — START HERE (latest; supersedes the ~1pm block below)
+
+**This session shipped the project to GitHub + Vercel, then did local debugging. Single source of truth = this session (the parallel lane was stopped by Arijit earlier — see ~1pm block + [[feedback-multi-session-coordination]]).**
+
+### Live infrastructure now
+- **GitHub:** https://github.com/arijitchowdhury80/algolia-contentsearch (PUBLIC, branch `main`, 3 commits: initial / README / vercel-fix). ⚠ This session's later work is **UNCOMMITTED** (see "Uncommitted" below).
+- **Vercel:** https://algolia-contentsearch.vercel.app — LIVE + public, serves the `web/` app. Root `vercel.json` makes git-push auto-deploys build `web/` correctly (a push from the repo root previously 404'd; fixed). Env vars (`VITE_*`, search-only) set in production+development. Vercel CLI authed as `arijitchowdhury-5926`; redeploy via `cd web && npx vercel --prod`. ⚠ Playwright/judge backends CANNOT run on Vercel serverless — only ②/③ agents answer live in the deployed UI (~20s each, Gemini).
+
+### What this turn built/changed (all tsc-clean; NOT committed)
+1. **LLM PROVIDER STAGING (Arijit directive):** prefer OpenAI, fall back to Gemini ONLY on limits, and **fully consistent — judge + ALL agents same provider, no mixing**. Built: `lab/server/src/provider.ts` (`resolveActiveProvider`: probes OpenAI, uses it only if healthy, else Gemini; specs hold Agent Studio provider ids — OpenAI `ae943683…`/gpt-5.2, Gemini `730780db…`/gemini-2.5-pro). Judge auto-reads it (`judgeStep.ts`). New CLI: **`npx tsx src/cli.ts provider`** → resolves + READS every agent's model + reports ✓CONSISTENT / ✗MISMATCH. Verified: OpenAI quota-dead → **system on GEMINI**, both agents Gemini → ✓ consistent. Policy memory: [[feedback-llm-provider-policy]].
+   - **NOT done:** the auto-PATCH ENFORCER that re-points agents when the provider flips. Switching an agent's provider is an Agent Studio config write whose exact field I didn't confirm (would need a full agent dump) and can't test the OpenAI-direction while OpenAI is dead. TODAY consistency holds (all Gemini); when OpenAI billing returns, the resolver flips the JUDGE to OpenAI and `provider` will flag agents as ✗MISMATCH until re-pointed → inconsistency blocked by DETECTION, not yet auto-fixed.
+2. **② Ask AI FIXED (was "broken"):** it had started refusing/giving up. Root cause (diagnosed, not guessed): the agent model was switched gpt-5.2→gemini-2.5-pro (other lane), and **gemini under-reformulates the keyword query on the STRICT untuned index** → full sentence "set up faceted search…" returns **0 hits** (but keyword "faceted search" → 24 hits; content IS there). ③ is immune because the tuned index (`optionalWords:allOptional`) returns 2022 hits even for a full sentence — so part of ③'s win is "the tuned index forgives sloppy queries." FIX: strengthened the keyword-reformulation + mandatory-retry instruction in `scripts/setup/instructions_case2_askai_default.md`, redeployed to mirror agent `02852440`. **Verified ② now answers.** ⚠ **THE VERDICT IS NOW STALE** — ② was broken when measured (old ② mean 4.59); must re-run the judge for fair numbers.
+3. **① on-demand backend capture BUILT:** `lab/server/src/webserver.ts` (native node http, `POST /api/website {query}` → Playwright capture → `{answer,sources}`, CORS). Verified working (8 live algolia.com results). Run: `CAPTURE_PORT=8787 npx tsx src/webserver.ts`. **⚠ Still RUNNING in background on :8787 from this session — may need killing.** **NOT done: UI wiring** — `web/src/components/WebsiteColumn.tsx` is still the placeholder; it does NOT call the endpoint yet. Local-only (Playwright won't run on Vercel).
+4. **Judge panel mock — explained, not a bug:** the judges WORK (backend, produced the real verdict). The UI "Analysis & Synthesis" panel is mock because it was never wired to the backend. Same gap as ①. The capture API (`webserver.ts`) is the seed of the "lab backend" that should also serve live judging to the UI.
+
+### ▶ NEXT (pick up here — Arijit was offered these, no choice made yet)
+(a) Build the **lab backend** so the **judge panel + ①** go live in the UI (extend `webserver.ts` with a `/api/judge` that runs panels+judge for a typed query). (b) **Re-run the verdict** now that ② is fixed (`run-tests` + `judge` — judge auto-uses Gemini via the resolver). (c) Build the **agent auto-sync enforcer** (provider flip). (d) **Commit/push** today's uncommitted work. (e) Wire `WebsiteColumn` → the capture API. (f) Validate judge σ on Gemini; failure-class diagnosis of gated Qs.
+
+### Uncommitted at handoff (git status)
+Modified: `lab/server/src/{cli,config,judgeStep}.ts`, `scripts/setup/instructions_case2_askai_default.md`, `web/.gitignore`. New untracked (mine): `lab/server/src/provider.ts`, `lab/server/src/webserver.ts`. New untracked (other lane, leave alone): `scripts/setup/instructions_case3_{grounded_v1,live_snapshot}.md`. Nothing pushed since commit `35e4da3`.
+
+### Sanity checks (verified this session)
+`cd lab/judge && npx vitest run` (50) · `cd lab/autocorrect && ../judge/node_modules/.bin/vitest run` (16) · `cd lab/server && npx tsc --noEmit` (clean) · `cd web && ./node_modules/.bin/tsc -b && npm test` (27) · `cd lab/server && npx tsx src/cli.ts provider` (→ GEMINI, consistent).
+
+---
+
 _Last updated: 2026-06-12 ~1pm EDT (persist)_
 
-## ▶▶ UNIFIED RESUME (2026-06-12 ~1pm) — START HERE (supersedes all blocks below)
+## ▶▶ UNIFIED RESUME (2026-06-12 ~1pm) — (history; superseded by HANDOFF block above)
 
 **Context:** TWO Claude sessions ran in parallel today and collided; Arijit STOPPED the other lane (~12:30pm) and told this lane to "continue your plan as is." This session is now the SINGLE source of truth. The other lane's work (Gemini agent switch, v2 question set, Atlas+two-way plan) is recorded in memory `project-gemini-switch.md` / `project-atlas-and-twoway.md` and the older "▶ RESUME (~12:15pm)" block below — reconcile, don't assume.
 
