@@ -30,3 +30,6 @@ scripts/setup/current_instructions.txt
 # === misc ===
 *.tsbuildinfo
 .persisted_recently
+
+# vercel
+.vercel
