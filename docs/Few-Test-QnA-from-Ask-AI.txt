@@ -1,0 +1,169 @@
+1.1 What are Algolia's ranking criteria and how does tie-breaking work?
+
+I'll quickly explain Algolia's ranking criteria and tie-breaking approach based on the latest official guidance.
+
+---
+
+## Algolia's Ranking Criteria
+
+Algolia uses a specific sequence of criteria to rank search results. The default order (which you can customize) is:
+
+1. **Typo**: Fewer typos in the match ranks higher.
+2. **Geo (if applicable)**: Closer geographic distance ranks higher (only used if geo-search is enabled).
+3. **Words**: Records matching more query words rank higher.
+4. **Filters**: More filters matched, higher the rank.
+5. **Proximity**: Query words closer together within the record get ranked higher.
+6. **Attribute**: Matches in higher-priority attributes (as listed in your settings) rank higher.
+7. **Exact**: Exact matches (without typos) in the record are ranked higher.
+8. **Custom**: Custom ranking attributes you define (such as popularity, views, ratings).
+
+You can see detailed definitions and behavior of each criterion in Algolia's documentation ([The eight ranking criteria](https://www.algolia.com/doc/guides/managing-results/relevance-overview/in-depth/ranking-criteria)).
+
+---
+
+## Tie-Breaking in Ranking
+
+Algolia uses a *tie-breaking algorithm*, which means records are compared using the first criterion (e.g., Typo). If two or more records remain tied, Algolia moves to the next criterion in your ranking order. This process continues down your list of criteria until all records have a unique ranking. If all criteria are exhausted without a tie-breaker, the record's `objectID` is used for final ordering ([What does "This result is ranked based on objectID" mean?](https://support.algolia.com/hc/en-us/articles/13998838034321-What-does-This-result-is-ranked-based-on-objectID-mean)).
+
+For example:
+
+- Matches are first sorted by typo count.
+- If still tied, geo distance is used.
+- If still tied, the number of query words matched is used.
+- ...and so on, through all configured criteria.
+
+Custom ranking only applies after all standard criteria are exhausted ([Custom ranking - Algolia](https://www.algolia.com/doc/guides/managing-results/must-do/custom-ranking)).
+
+**Tip:** If your custom ranking is too fine-grained (e.g., too many decimal places), it can prevent meaningful tie-breaks. Consider reducing precision on custom attributes to allow later criteria to participate ([Precision of custom ranking metrics - Algolia](https://www.algolia.com/doc/guides/managing-results/must-do/custom-ranking/how-to/controlling-custom-ranking-metrics-precision)).
+
+---
+
+## Summary / Best Practice
+
+- Keep the default order unless you have a strong use case, as it is optimal for most needs.
+- Review your custom ranking attributes and their precision to ensure meaningful tie-breaking happens.
+- Use the Algolia dashboard's medal/badge icon to inspect why a record ranked where it did and see which criteria broke ties ([How can I troubleshoot relevancy using Algolia dashboard?](https://support.algolia.com/hc/en-us/articles/7964661896849-How-can-I-troubleshoot-relevancy-using-Algolia-dashboard)).
+
+Let me know if you would like to go deeper into custom ranking, attribute definition, or how to tune your ranking strategy!
+
+For more support or info, please feel free to browse our [support articles](https://support.algolia.com/hc/en-us/search) or [docs](https://algolia.com/docs). If you still need help, [submit a ticket](https://support.algolia.com/hc/en-us/requests/new) for customer support.
+
+
+1.2 How does the distinct setting deduplicate results?
+I'll quickly verify this for you. One moment, please.
+
+---
+
+## How does the `distinct` setting deduplicate results in Algolia?
+
+The `distinct` feature in Algolia deduplicates search results by grouping records that share the same value for a specified attribute. Here’s how it works:
+
+### Mechanism
+- You define an attribute (for example, `product_id`, `design`, or `url`) via `attributeForDistinct`. This attribute acts as the grouping key.
+- Setting `distinct` to `true` (or `1`) means only the most relevant record from each group is shown in search results. If you set `distinct` to a higher number (e.g., `2`, `3`), you get the top 2 or 3 records from each group.
+- If multiple records have the same value for the grouping attribute, only one or a limited number, ranked by relevance, are returned—helping deduplicate variants or repeated records in results ([Deduplicate results with distinct](https://www.algolia.com/doc/guides/managing-results/refine-results/grouping)).
+
+### Example Use Cases
+- **Item variations**: For product catalogs where each product has multiple color or size variants, you can show only one variant per product design in the results.
+- **Long documents**: When documents are broken into sections and each is indexed as a record, only the best-matching section per document is shown ([distinct - Algolia](https://www.algolia.com/doc/api-reference/api-parameters/distinct)).
+
+### Configuration
+- Use `attributeForDistinct` to specify the grouping attribute.
+- Use the `distinct` parameter to define how many representative records per group are shown.
+- If `attributeForDistinct` is not set, `distinct` has no effect.
+- When using `distinct`, facet counts may need special handling (using `afterDistinct` in `attributesForFaceting`) for accurate counts ([distinct - Algolia](https://www.algolia.com/doc/api-reference/api-parameters/distinct)).
+
+---
+
+**Summary:**  
+The `distinct` setting ensures search results contain a deduplicated list, by grouping on an attribute and returning only the most relevant or top N records per group. This reduces redundant entries and improves the diversity of results, especially for catalog variants and document search.
+
+For more support or info, please feel free to browse our [support articles](https://support.algolia.com/hc/en-us/search) or [docs](https://algolia.com/docs). If you still need help, [submit a ticket](https://support.algolia.com/hc/en-us/requests/new) for customer support.
+
+
+1.3 How does personalization re-ranking affect result order?
+
+I'll quickly verify this for you. One moment, please.
+
+---
+
+### How Personalization Re-Ranking Affects Result Order in Algolia
+
+Personalization re-ranking directly impacts the order in which search results are displayed to users. Here’s how:
+
+#### 1. Personalization Levels and Their Impact
+- You can set different levels for personalization re-ranking: None, Low, Medium, High, and Maximum.
+   - **None:** No personalization—every user sees results ranked the same way.
+   - **Low–High:** Gradually increases the amount of user-specific reordering, so individual preferences start influencing the results more.
+   - **Maximum:** Results are highly personalized, and the search experience is shaped almost entirely by user-specific preferences ([Set personalization re-ranking](https://www.algolia.com/doc/guides/personalization/advanced-personalization/configure/setup/personalization-reranking/)).
+
+#### 2. Result Reordering Logic
+- Personalization does not override the relevance algorithm; it runs after basic ranking criteria and business rules but changes the order of items in the result set to reflect user preferences ([What is Personalization?](https://www.algolia.com/doc/guides/personalization/classic-personalization/what-is-personalization/)).
+- At higher levels of personalization, items a user has shown preference for—via clicks or conversions—are more likely to appear towards the top.
+
+#### 3. Interaction with Other Ranking Features
+- If Personalization Re-Ranking is active, it may take priority over other business-specific ranking rules, especially at the "Maximum" setting ([Set personalization re-ranking](https://www.algolia.com/doc/guides/personalization/advanced-personalization/configure/setup/personalization-reranking/)).
+- Dynamic Re-Ranking (DRR) and Personalization do not normally run concurrently; you must configure settings specifically to combine their effects.
+
+#### 4. Summary Order of Operations
+Results are ranked in this typical order:
+1. Textual relevance (keyword and query matching)
+2. Custom (business) ranking
+3. Personalization (if enabled and enough user data is present)
+4. Merchandising rules
+
+If "Maximum" impact is set for personalization, user preferences overtake custom/business ranking. Lower levels mix user and business priorities ([What is Personalization?](https://www.algolia.com/doc/guides/personalization/classic-personalization/what-is-personalization/)).
+
+---
+
+**In summary:** Personalization re-ranking changes the order of your search results by adjusting how much user behavior and preferences influence which items appear at the top. The higher the personalization setting, the more tailored the results for each user.
+
+For more support or info, please feel free to browse our [support articles](https://support.algolia.com/hc/en-us/search) or [docs](https://algolia.com/docs). If you still need help, [submit a ticket](https://support.algolia.com/hc/en-us/requests/new) for customer support.
+
+
+
+2.1 How do I configure searchable attributes the right way?
+
+Here's how to configure searchable attributes the right way in Algolia:
+
+## Key Steps to Configure Searchable Attributes
+
+1. **Select and Prioritize Attributes**  
+   - Order matters: Attributes higher on the list are considered more relevant.
+   - Compare attributes in pairs to decide their importance. For example, in a movie database, you might put `title` first, then `actors`, and then `director`, based on what users search most often.
+
+2. **Minimum and Clearly Defined**  
+   - Keep your searchable attributes to a minimum to reduce search noise. Only make searchable those attributes users actually search, like product name or brand. Exclude attributes like image URLs or metadata that don’t provide real search value ([Searchable Attributes - Algolia](https://www.algolia.com/doc/guides/managing-results/must-do/searchable-attributes)).
+
+3. **Set Attribute Order or Equal Priority**  
+   - You can make two or more attributes equally important by listing them together (comma-separated) on the same priority level.
+   - Ordered attributes: The position of the match in the attribute affects ranking.
+   - Unordered attributes: The position does not affect ranking. Usually, unordered is recommended unless position is important (for example, if actor order matters in a "cast" attribute) ([Configure searchable attributes the right way](https://www.algolia.com/doc/guides/managing-results/must-do/searchable-attributes/how-to/configuring-searchable-attributes-the-right-way)).
+
+4. **Dashboard or API Configuration**  
+   - In the dashboard: Go to your index, open the Configuration tab, and use the Searchable Attributes section.
+   - With the API: Use the `searchableAttributes` setting with your preferred order. If two attributes need the same priority, separate them with a comma.
+
+5. **Be Consistent Across All Records**  
+   - If your data doesn’t have the same schema for every record, leaving `Searchable Attributes` empty can make search inconsistent. Always define `Searchable Attributes` explicitly to avoid unpredictability and to control which attributes are searchable and in what order ([Support Article](https://support.algolia.com/hc/en-us/articles/37905596422545-Why-isn-t-Algolia-searching-all-my-records-attributes)).
+
+## Best Practices
+
+- Run experiments using different configurations and review analytics to see what your users actually search.
+- Attributes that are filters (e.g., category or genre) can be prioritized if your use case justifies it.
+- Avoid making large, infrequent changes to these settings as it can significantly impact search results.
+
+For more detail and practical guidance, see:  
+- [Configure searchable attributes the right way](https://www.algolia.com/doc/guides/managing-results/must-do/searchable-attributes/how-to/configuring-searchable-attributes-the-right-way)
+- [Searchable Attributes - Dashboard/API](https://www.algolia.com/doc/guides/managing-results/must-do/searchable-attributes)
+- [Why isn't Algolia searching all my records' attributes?](https://support.algolia.com/hc/en-us/articles/37905596422545-Why-isn-t-Algolia-searching-all-my-records-attributes)
+
+Would you like tips on common mistakes to avoid, or are you interested in a specific use case?
+
+```
+For more support or info, please feel free to browse our [support articles](https://support.algolia.com/hc/en-us/search) or [docs](https://algolia.com/docs). If you still need help, [submit a ticket](https://support.algolia.com/hc/en-us/requests/new) for customer support.
+```
+
+
+
+

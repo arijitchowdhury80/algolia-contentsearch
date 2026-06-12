@@ -1,0 +1,65 @@
+{
+  "runId": "20260612T061622Z",
+  "createdAt": "2026-06-12T06:16:36.588Z",
+  "questionVersion": "locked-v1",
+  "panelOrder": [
+    "website",
+    "mirror",
+    "tuned"
+  ],
+  "questions": [
+    {
+      "questionId": "3.2",
+      "category": 3,
+      "split": "dev",
+      "prompt": "What is vector search?",
+      "isRefusalTest": false,
+      "panels": [
+        {
+          "panelId": "website",
+          "panelLabel": "① Website (incumbent Ask-AI)",
+          "kind": "website",
+          "answer": {
+            "answer": "[WEBSITE STUB] No live algolia.com Ask-AI capture wired yet for: \"What is vector search?\". This placeholder exists so the harness runs end-to-end; lab/capture will replace it.",
+            "sources": [],
+            "source": "website-stub"
+          },
+          "latencyMs": 7
+        },
+        {
+          "panelId": "mirror",
+          "panelLabel": "② Agent — faithful mirror",
+          "kind": "agent",
+          "agentId": "02852440-8f57-4383-98bc-bffa5b357516",
+          "index": "ALGOLIA_WWW_PROD_V2",
+          "answer": {
+            "answer": "",
+            "sources": [],
+            "source": "agent",
+            "error": "Agent Studio 503: {\"message\":\"Failed to fetch application features.\",\"requestId\":\"141124766911613854769863208261966741452\"}"
+          },
+          "latencyMs": 5657
+        },
+        {
+          "panelId": "tuned",
+          "panelLabel": "③ Agent — tuned index",
+          "kind": "agent",
+          "agentId": "b5c4de23-769b-4b38-9051-a19add9dee06",
+          "index": "visibility_www_tuned",
+          "answer": {
+            "answer": "Vector search is a way to retrieve results based on *conceptual/semantic similarity* rather than only matching keywords.\n\nIn Algolia’s terms (as described for NeuralSearch), a **semantic score** reflects “how well a record matches the query from a **vector search** against other vector-retrieved results,” and it’s based on **neural hash similarity**. This complements classic keyword matching, which scores results based on how well text matches the query.  \n\nWhat kind of content are you trying to search with vector search (products, articles, support docs, something else)?",
+            "sources": [
+              {
+                "id": "S1",
+                "text": "How does NeuralSearch rank results?\nSearch with NeuralSearchSearching with NeuralSearch works the same as classic search, except with an increased understanding of the query. Now, instead of matching only keywords in the text, the search engine also returns results matching the concept of what the searcher is looking for.NeuralSearch is an association based AI model that is trained by your own click and conversion events, and uses vectors in order to rank results.How NeuralSearch ranks resultsNeuralSearch results have a neural score composed of a keyword score, a semantic score, or both.Due to the number of criteria used to rank each specific result, it's not possible to definitively describe why a result is ranked on a specific position.Keyword score\nThe keyword score represents how well a record matches the query from a keyword search against other keyword-retrieved results. At the base of this score is Algolia’s tie-breaking algorithm. A record has a keyword score if keyword search finds it.Semantic score\nThe semantic score represents how well a record matches the query from a vector search against other vector-retrieved results. At the basis of this score is neural hash similarity. A record has a semantic score if vector search finds it.Neural score\nThe neural score combines the keyword score and the semantic score. It measures how relevant the record is compared to the other records in the result set. The neural score answers the question: “Against this query, compared to these other results, how relevant is this result?”You can find an extended explanation of NeuralSearch on this blog article.",
+                "label": "https://support.algolia.com/hc/en-us/articles/17700562878481-How-does-NeuralSearch-rank-results"
+              }
+            ],
+            "source": "agent"
+          },
+          "latencyMs": 8585
+        }
+      ]
+    }
+  ]
+}

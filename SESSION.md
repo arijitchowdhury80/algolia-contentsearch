@@ -1,0 +1,208 @@
+# SESSION.md — Algolia-Central2 (Visibility Agents)
+
+_Last updated: 2026-06-12 ~1pm EDT (persist)_
+
+## ▶▶ UNIFIED RESUME (2026-06-12 ~1pm) — START HERE (supersedes all blocks below)
+
+**Context:** TWO Claude sessions ran in parallel today and collided; Arijit STOPPED the other lane (~12:30pm) and told this lane to "continue your plan as is." This session is now the SINGLE source of truth. The other lane's work (Gemini agent switch, v2 question set, Atlas+two-way plan) is recorded in memory `project-gemini-switch.md` / `project-atlas-and-twoway.md` and the older "▶ RESUME (~12:15pm)" block below — reconcile, don't assume.
+
+### 🎯 FIRST REAL VERDICT IS IN (the thing we were chasing)
+Ran the full **dev-set judge** on transcript `20260612T140037Z` (16 v1-dev Qs × 3 panels), **judge = gemini-2.5-pro, N=3**. Scores: `lab/server/output/scores/20260612T140037Z.json`. Summary:
+- **Means: ① Website 3.16 · ② Ask AI 4.59 · ③ Our System 7.44.** ③ beats ② by **+2.85** overall.
+- **BUT the win is a GROUNDING story, not a prose story:**
+  - On the 4 Qs where NEITHER gated (1.2,1.3,2.1,7.2): ② mean **9.83** vs ③ **9.75** — ② is *fractionally ahead*. Our optimized prompt does NOT beat Ask-AI-default on prose when both stay grounded.
+  - ③ wins because ② (default prompt) trips the grounding gate on **12/16** (leaks training data, e.g. 7.1 "Paris"). ③ gates **5/16**, ① gates 4/16.
+  - 🚩 **③ ("110% grounded") STILL gates 5/16** (Qs 2.2, 3.2, 4b, 6.3, 8.1 — on these BOTH ② and ③ fail). Contradicts our core promise → top thing to diagnose.
+- **⚠ Trust caveats (critical):** (1) judge stability was proven on gpt-5.2, **NOT re-validated on gemini-2.5-pro** — the gate (which drives the whole verdict) could be over-firing; (2) these answers were captured when agents ran **gpt-5.2** (before the agent→Gemini switch), so it's the gpt-5.2-era comparison; (3) N=3 (coarser gate vote than report-grade N=5); (4) this is the **v1 16-Q** set — the locked set is now **v2 27-Q** (other lane), so it must be re-run on v2 for a comparable official number.
+
+### NEXT ACTION (what I offered Arijit, pending his yes — the immediate gate)
+**Diagnose the gated questions** — for the 5 ③-failures + 5 both-fail Qs, read each answer + its retrieved hits + the judge rationale and classify: (a) genuine leakage by ③, (b) retrieval gap (tuned index returned no/poor hits → agent answered instead of refusing), or (c) the **Gemini judge over-gating**. This IS the "failure-class diagnosis → Atlas verdict" gate the other lane also flagged. **Blocker for trusting any number: first re-validate judge σ on gemini-2.5-pro** (re-run the stability check on Gemini before believing the gate counts). No new code needed to diagnose — it's reading transcript+scores.
+
+### Resume steps (in order)
+1. Read this block + memory `project-answer-quality-lab.md`, `project-gemini-switch.md`, `project-atlas-and-twoway.md`.
+2. Sanity: `cd lab/judge && npx vitest run` (**50 pass**); `cd lab/autocorrect && ../judge/node_modules/.bin/vitest run` (**16 pass**); `cd lab/server && npx tsc --noEmit` (clean); `cd web && ./node_modules/.bin/tsc -b && npm test` (27 pass).
+3. **Validate judge σ on Gemini** (was only proven on gpt-5.2): re-judge a couple fixed answers twice, confirm low cross-run Δ. If unstable, the verdict's gate counts are suspect → fix before trusting.
+4. **Failure-class diagnosis** of the gated Qs (see NEXT ACTION). Produce the verdict on whether ③'s grounding holes are real / retrieval / judge-artifact.
+5. THEN decide: re-run the comparison on v2 27-Q + current Gemini agents for an official number; and/or build the WS-G orchestrator (decision core already built+tested).
+
+### What this session BUILT/CHANGED (all verified unless noted)
+- **Judge stability hardened** (proven on gpt-5.2, Δ=0.15 vs ±3-5): `lab/judge/src/synthesis.ts` `aggregateRounds` — averages stable PRE-gate score + **supermajority (≥2/3) gate vote**, ambiguous 1/3..2/3 = `borderline` (not capped). Root cause was gate-flicker, NOT temperature (gpt-5.2 honors temp; the openai.ts comment was wrong). Default N=5 (JUDGE_ROUNDS env). See memory `feedback-grounding-supermajority-vote`.
+- **Judge resilience** (`lab/judge/src/judge.ts`): retry a judge call up to 2× on unparseable JSON (gemini emits stray-token glitches); `lab/server/src/judgeStep.ts` isolates per-panel failures so one bad answer never crashes a run. Judge tests **50 pass**.
+- **JUDGE switched to Gemini** (`lab/server/src/gemini.ts` adapter w/ 429/5xx retry; `config.ts` `JUDGE_PROVIDER` default=gemini, model `gemini-2.5-pro`; `judgeStep.ts` picks provider). Minimax token = dead (1004 login fail). `OPENAI_API_KEY` = quota-exhausted (429). Rollback: `JUDGE_PROVIDER=openai`.
+- **Live website capture WIRED into the harness** (`lab/server/src/website.ts` + `capture.d.ts`; cli registers it for run-tests/pipeline; `WEBSITE_STUB=1` to stub). Adapter maps capture.mjs results→{answer,sources}. Verified: 8 real algolia.com results/q.
+- **WS-G autocorrect DECISION CORE built+tested** (`lab/autocorrect/` NEW pkg, **16 tests** via judge's vitest binary): pure `splitMargin/decideKeep/isWin/shouldStop/diagnoseWeakest` + `summarizeSplit` adapter. Optimizes stable `meanScore`; grounding=hard constraint; held-out overfit guard; patience/maxRounds/win stop. Orchestrator NOT built.
+- **UI honesty fixed** (`web/src/config/columns.ts`): ② no longer mislabeled "placeholder/Wave 2" (it's the real Ask-AI-default agent); ① relabeled backend-captured.
+- **③ prompt formatting fixed + DEPLOYED**: `scripts/setup/instructions_case3_optimized_v0.md` line ~34 → clean anchor-text citations (no raw inline URLs). **This is live on the tuned agent b5c4de23** (model now gemini-2.5-pro per other lane). NOTE: other lane wanted Case-3 frozen at `instructions_case3_v0_baseline.md` for baseline — moot now (other lane stopped), but the LIVE Case-3 = optimized prompt.
+- **Methodology doc** `docs/experiment/ai-judge-methodology.md` §7 (stability) + §11 updated.
+- **Removed** temp probes (probe_stability/probe_compare/probe_providers).
+
+### NOT done (no false completion)
+- **dimensionMeans NOT persisted** in PanelScore → `diagnoseWeakest` can't run on real scores yet (needs a judge run that records per-dimension means; currently only per-judge weightedScore is stored).
+- Judge σ NOT re-validated on Gemini. WS-G orchestrator NOT built (loop can't run end-to-end). UI judge-score wiring NOT done (Analysis panel still MOCK). Live support Ask AI north-star NOT captured. Failure-class diagnosis NOT done (offered, pending Arijit's yes). Verdict is v1/16-Q/gpt-5.2-era — NOT yet re-run on v2/27-Q/Gemini-agents.
+
+---
+
+## Status — MAJOR PIVOT (2026-06-12): 3-panel lab + two reusable skills
+**Plan: `~/.claude/plans/i-think-the-whole-cheeky-moler.md` (APPROVED — read first).** The 4-column A/B was reframed by Arijit. Now:
+- **3 panels** (not 4; Beta dropped — its OpenAI key 401s, out of our control): **① Current Website Search** (Playwright capture of live algolia.com), **② Ask AI** (faithful Ask-AI-default Agent Studio agent on our www mirror = the quality FLOOR; + live support Ask AI captured **manually by Arijit** as north-star), **③ Our System** (our optimized index + optimized two-way agent: grounded-synthesis AND 110%-strict, adaptive personality).
+- **Two reusable skills extracted**, run in a closed loop: **AI Judge** (3 blind judges Skeptic/Referee/Advocate + Chief Synthesizer, grounding hard-gate) ⇄ **Autocorrect** (Karpathy AutoResearch loop: judge→diagnose→mutate Case 3 config→re-test→keep-if-better; held-out split; stop when ③ beats ② by ~+1.0/10 sustained, zero grounding violations, OR budget). Methodology docs → future skills.
+- **UX**: 60/40 — top 60% = 3 panels, bottom 40% = analysis/synthesis + config-diff.
+- **Win target**: ③ measurably beats ② (Ask AI) on the locked set. Deliverable: Algolia-branded run report + recommendations for improving algolia.com answers via the Visibility app.
+
+**Execution = big-bang parallel (multi-agent).** WAVE 1 DONE & verified (2026-06-12): WS-A webapp restructured to 3-panel 60/40 (`web/`, tsc+27 tests green), WS-F AI Judge module (`lab/judge/`, tsc+31 tests green), WS-H question set drafted. **Questions LOCKED v1**: `docs/experiment/test-questions-locked.md` (24 = 3/category, 16 dev / 8 held-out; cat 4 has BOTH high-fashion-luxury + fashion-ecommerce). WAVE 2 IN PROGRESS: WS-C Playwright capture + WS-B backend test-runner/judge harness (running as background agents). **Arijit-owned (Claude, by hand, next): WS-D Case-2 Ask-AI-default agent + WS-E Case-3 optimized agent+index (Algolia mutations + core IP), then WS-G autocorrect loop + WS-I run report.**
+
+### Tracking + Wave-2 progress (2026-06-12 cont.)
+Task list (TaskCreate) tracks WS-A…I. **DONE & verified:** WS-A, WS-F (AI Judge), WS-H (locked Qs), WS-C (Playwright website capture), WS-B (backend harness: run-tests→judge→summary, `lab/server/`), WS-D capture (live Ask AI Playwright `lab/capture/askai-capture.mjs` — works, full-24 ≈10-15min, NOT yet run for the north-star), WS-E partial (Case 2/3 agents DEPLOYED, index optimized).
+- **Agents deployed (reused existing IDs, just re-instructed):** mirror `02852440…` → **Case 2 Ask-AI-default** (`scripts/setup/instructions_case2_askai_default.md`, on ALGOLIA_WWW_PROD_V2 mirror); tuned `b5c4de23…` → **Case 3 optimized v0** (`scripts/setup/instructions_case3_optimized_v0.md`, on visibility_www_tuned). `agent_admin.mjs update` does PATCH+publish.
+- **Index optimized (v0):** `scripts/setup/optimize_index.mjs` applied to `visibility_www_tuned` — removeStopWords/ignorePlurals/queryLanguages=en, removeWordsIfNoResults=allOptional, +7 domain synonym groups. NL queries now retrieve (was 0 on strict).
+- **Judge fixes landed:** (1) label↔id resolver (strong models echo labels) — `lab/judge/src/parse.ts`; (2) **refusal-aware** policy "refusal wins decisively" (Arijit) — `expectedBehavior:'refuse'` on cat-7 artifacts → correct refusal scores HIGH, substantive OOS answer = grounding fail. `lab/judge/src/{types,prompt}.ts` + harness `judgeStep.ts`. 38 judge tests pass.
+- **Smoke baseline (4 Qs: 1.2,3.1,4a,7.1) findings:** refusal fix verified (7.1: Case3 refusal=9.37, Case2 "Paris" leak=2.25 gated). Judge was NOISY (±3-5 swing). **→ JUDGE-STABILITY GATE NOW DONE (2026-06-12 9:48am).**
+- **JUDGE STABILITY HARDENED & VERIFIED (2026-06-12):** Root-caused via 5-round probe (NOT assumed): (1) gpt-5.2 *honors* temperature+seed (HTTP 200) — the openai.ts "rejects temperature" comment was WRONG; pre-gate score was already stable (σ≈0.03-0.2). (2) **100% of the ±3-5 noise was the binary hard-gate flickering** on borderline answers (skeptic confidence wobbles around the 0.7 line → cap fires/doesn't). Fix = **`aggregateRounds`** (lab/judge/src/synthesis.ts): average the stable **pre-gate** score (the loop's quality metric) + decide the gate by a **supermajority vote (≥2/3 of rounds)**; ambiguous middle (1/3..2/3) = **`borderline`** flag, NOT capped (Arijit's chosen policy — "supermajority + flag"). Default **N=5 rounds** (JUDGE_ROUNDS env; 3 ok for quality-only). GROUNDING_NOTE tightened (no longer excuses empty/incomplete answers). **Proven:** 2 independent 5-round passes → worst cross-run Δ=**0.15** (was ±3-5). Paris-leak gates 100% stably; correct refusal stays ~8.8 (borderline, not capped); clean answers Δ~0.01. Judge **49 tests green**, judge+server+web tsc clean. New persisted fields: rounds/meanPreGateScore/stdDevPreGateScore/gateTripFraction/borderline.
+- **Pending:** ~~judge-stability hardening~~ DONE → **WS-G (autocorrect loop — NOW UNBLOCKED, stable metric ready)** → WS-I (report). Run live Ask-AI `--all` for north-star (anytime). Smoke transcript/scores: `lab/server/output/{transcripts,scores}/20260612T062806Z.json`.
+
+### Wave-1 artifacts
+- `docs/experiment/test-questions-{draft,locked}.md`; `docs/experiment/ai-judge-methodology.md`.
+- `lab/judge/` (AI Judge module + tests). `web/` restructured to 3 panels (config/columns.ts now website|mirror|tuned; AnalysisPanel.tsx added with mock data; KeywordColumn/useKeywordColumn removed; keywordSearch.ts kept as diagnostic util).
+- Manual TODO for Arijit: run the 24 locked questions on the LIVE support Ask AI (support.algolia.com) and paste answers (north-star capture).
+
+### Progress 2026-06-12 ~10:30am (post judge-stability)
+- **OpenAI quota EXHAUSTED (429 insufficient_quota)** on `OPENAI_API_KEY` → judge + autocorrect loop cannot RUN until billing topped up / key swapped. run-tests (agents+website) is unaffected.
+- **Dev-set transcript refreshed:** `run-tests --split dev` ran all 16 dev Qs through live website capture + current Case-2/Case-3 agents → transcript `20260612T140037Z` (judge step failed on the 429, so NO scores). Cleared the stale-agent caveat for dev.
+- **Live website capture WIRED (Case ①):** `lab/server/src/website.ts` adapter (capture.mjs results→{answer,sources}) + `capture.d.ts` + cli registers it for run-tests/pipeline (WEBSITE_STUB=1 to stub). Verified: real algolia.com results, 8 sources/q.
+- **UI honesty fixed:** `web/src/config/columns.ts` — ② no longer "placeholder/Wave 2" (it IS the real Ask-AI-default agent now); ① wording = backend-captured. web 27 tests green.
+- **③ formatting fixed:** `instructions_case3_optimized_v0.md` line ~34 → clean anchor-text citations (no raw inline URLs). Redeployed to tuned agent b5c4de23 (published, 5897 chars).
+- **WS-G decision core BUILT + TESTED (offline):** new package `lab/autocorrect/` — pure decision functions `splitMargin/decideKeep/isWin/shouldStop/diagnoseWeakest` (keep-if-better, grounding=hard constraint, held-out overfit guard, patience/maxRounds/win stop). **13 tests pass** (run via judge's vitest binary: `cd lab/autocorrect && ../judge/node_modules/.bin/vitest run`); src tsc clean. Optimizes the stable `meanScore` (=judge meanPreGateScore); grounding is a constraint (gatedCount===0).
+- **STILL TODO for WS-G to RUN:** (a) ScoreSet→SplitMetrics adapter (pure, buildable now); (b) orchestrator wiring runTests→judge→diagnose→mutate(LLM proposer)→deploy→re-test→decideKeep/rollback→loop (needs OpenAI quota); (c) Autocorrect methodology doc → skill. Also TODO: wire real judge scores into the web UI (Analysis panel still MOCK; note live-query vs batch-score design wrinkle).
+
+## ▶ RESUME HERE (2026-06-12 ~12:15pm EDT) — LATEST, do these first
+
+**BIG CHANGES THIS SESSION (PM):** (a) **LLM provider switched to Gemini 2.5 Pro** — OpenAI quota was dead (429 insufficient_quota); tested added keys → Gemini works, Minimax token 401-dead. Both agents (`google_genai` provider `730780db-5c7f-4350-aef4-e9632af57aed`, model `gemini-2.5-pro`, verified) + the judge (`lab/server/src/gemini.ts`, default provider=gemini) now run Gemini. (b) Approved **Atlas + two-way plan** `~/.claude/plans/in-rc2-and-rc3-warm-scone.md`. (c) **Part D offline prep done.** Memory: `project-gemini-switch.md`, `project-atlas-and-twoway.md`.
+
+1. **Check baseline run-tests** (background this session): `runId=20260612T161131Z`, 27 v2 Qs × 3 panels on Gemini, website stubbed → `lab/server/output/transcripts/20260612T161131Z.json`. If interrupted: `cd lab/server && WEBSITE_STUB=1 ./node_modules/.bin/tsx src/cli.ts run-tests`.
+2. **DO NOT run the judge here** — a 2nd session owns it (was running a 16-Q judge). Consume its scores + Gemini stability σ (task #6). If that lane is gone: `JUDGE_ROUNDS=5 tsx src/cli.ts judge 20260612T161131Z`.
+3. **NEXT GATE (this lane) → diagnose retrieval failure classes** straight from the run-tests transcript (each answer + its retrieved hits): citation/URL · entity disambiguation · authority misranking · zero/wrong-on-known-entity. → produces the **ATLAS VERDICT** (build Atlas/Rules only if a class recurs that tuning can't fix; see plan). No judge needed.
+4. **Two-way deploy is PENDING the baseline:** live Case 3 runs the FROZEN `scripts/setup/instructions_case3_v0_baseline.md`; the deepened two-way version sits in `scripts/setup/instructions_case3_optimized_v0.md` (authored, undeployed). Capture baseline FIRST, then deploy as a measured mutation. Harness gap (task #5): turn-1 answer is discarded → blocks proper two-way measurement.
+5. **Question set is now v2** (27 Qs, 18 dev/9 held-out; Cat 8 = 6). `docs/experiment/test-questions-locked.md`. Scores only comparable within v2.
+6. Rollback to OpenAI if billing returns: `JUDGE_PROVIDER=openai` (judge) + PATCH agents back to provider `ae943683-905b-403c-b16f-c1525fc9b7a8` + `gpt-5.2`. Re-validate judge σ on whichever model (task #6 — stability was proven on gpt-5.2, NOT yet on Gemini).
+7. **⚠ Coordination:** a 2nd session edits judge code + runs the judge — reconcile before assuming single source of truth. **⚠ Latency:** Gemini agents ~20-26s/answer (thinking) vs sub-second on gpt.
+
+### (superseded) ▶ RESUME (2026-06-12 9:48am) — older block below
+1. Read the Status + Wave-2 progress blocks above + `~/.claude/plans/i-think-the-whole-cheeky-moler.md` (approved plan). The OLD "## Resume action" further down is from the superseded 4-column build — ignore it.
+2. Sanity-check: `cd web && ./node_modules/.bin/tsc -b && npm test` (27 pass); `cd lab/judge && npx vitest run` (**49 pass**); `cd lab/server && npx tsc --noEmit` (clean).
+3. ~~harden judge stability~~ **DONE & verified (2026-06-12 9:48am)** — see the "JUDGE STABILITY HARDENED" bullet above. The judge metric is now stable (cross-run Δ=0.15); WS-G is unblocked. Methodology doc updated (`docs/experiment/ai-judge-methodology.md` §7).
+4. **NEXT GATE → build WS-G (autocorrect loop)** per plan. The judge gives the stable fitness signal: use `judgeRun` (multi-round, N=5) → read `meanPreGateScore` (quality, the thing to MAXIMIZE) + `gateTripped`/`borderline` (grounding CONSTRAINT — must stay clean) per panel from the scores JSON. Loop: locked set → judge → diagnose Case-3 weakest dims from rationales → mutate Case-3 config (`scripts/setup/instructions_case3_optimized_v0.md` and/or `optimize_index.mjs`) → re-test → keep-if-better-on-pre-gate/rollback; 16 dev / 8 held-out; stop when ③ ≥ ② by ~+1.0/10 sustained 2 rounds, zero reproducible grounding violations, OR budget. Write Autocorrect methodology doc → future skill.
+5. Build **WS-I** (Algolia run report). Run live Ask-AI north-star: `cd lab/capture && node askai-capture.mjs --all` (~10-15min).
+6. Note: the smoke transcript `20260612T062806Z` panels are still the OLD mirror/tuned agents (pre Case2/Case3 re-instruction parity check). Before trusting loop numbers, run a FRESH `run-tests` so transcripts reflect the current Case2/Case3 agents.
+
+### Key IDs / commands (carry-over)
+- Case 2 (Ask-AI-default) = mirror agent `02852440-8f57-4383-98bc-bffa5b357516` on `ALGOLIA_WWW_PROD_V2`; Case 3 (optimized) = tuned agent `b5c4de23-769b-4b38-9051-a19add9dee06` on `visibility_www_tuned` (both on our app VVKSSPDMJX). Re-instruct: `node scripts/setup/agent_admin.mjs update <id> <file>`.
+- Locked Qs: `docs/experiment/test-questions-locked.md` (24, v1). Prompts: `scripts/setup/instructions_case2_askai_default.md`, `instructions_case3_optimized_v0.md`. Index opt: `scripts/setup/optimize_index.mjs`. Methodology: `docs/experiment/ai-judge-methodology.md`.
+
+### (Superseded) prior 4-column build — what was built (web/src/)
+
+### Task 15/16 — what was built (web/src/)
+- `config/columns.ts` — 4 ColumnConfig from VITE_* env (app/index/agent/pipeline/accent/proves). `EXAMPLE_QUERIES`.
+- `hooks/`: `useComparison` (shared submission seq + clearSeq + transcript registry/export), `useKeywordColumn` (algoliasearch v5), `useAgentColumn` (callCompletions streaming, sources from hits, refusal heuristic, error-frame→error state).
+- `components/`: AppHeader, QueryBar (hero+chips), ComparisonKey, ColumnGrid (responsive 4→2×2→1 + mobile tab switcher; all lanes stay mounted), ColumnHeader (App/Index/Engine/pipeline/proves + READ-ONLY badge + status pill), KeywordColumn, AgentColumn (autoscroll), ChatMessage (user/answer/refusal/error variants + streaming caret), SourceList, ResultHit, **Markdown** (dependency-free, recursion-fixed, XSS-safe; `Markdown.test.tsx` 10 tests).
+- `styles/ab.css` — comparison grid + chat bubbles + lane states + responsive (tokens only, no hardcoded hex).
+- `vite.config.ts` test include widened to `*.test.{ts,tsx}`. Removed scaffold `App.css`/`index.css`; `main.tsx` loads tokens+dashboard+ab.css. `vite-env.d.ts` types the VITE_* env.
+- **⚠ OPEN FLAG for Arijit:** `components/Markdown.tsx` is custom display glue (~110 lines, 0 deps) — added so the quality-comparison answers are readable. Veto allowed per minimise-custom-code steer; fallback = raw text.
+- Workspace/design-thinking docs: `docs/workspace/ab-webapp/{_status,01-design-thinking,07-aesthetic,07b-uiux-constraints}.md`.
+
+## Resume action (do these first, in order)
+1. Read this file, `docs/project-overview.md` (the plan), and `~/.claude/plans/toasty-meandering-robin.md` (approved build spec).
+2. `cd web && npm test` (22 pass, 1 live test skipped) + `./node_modules/.bin/tsc -b` (clean) to confirm libs intact.
+3. ~~**Task 14 — port libs**~~ **DONE (2026-06-10).** Ported + tested in `web/src/`:
+   - `lib/agentStudioClient.ts` — pure `parseSSELine` + `parseCompletionStream` (0:/9:/a:/3: frames) + browser-direct `callCompletions` (fetch + stream, `onText` callback, search-key headers; `User-Agent` set only in node — browsers forbid it & CORS works without it). **Tool loop deliberately NOT built**: our agents run `searchIndex` server-side, hits arrive via `a:` frames in one call. Add a client loop only if a live stream shows a client-side tool request.
+   - `lib/keywordSearch.ts` — `buildKeywordFilters()` (exact Appendix-A string) + `keywordSearch()` over `algoliasearch` v5 `searchSingleIndex`.
+   - `lib/conversation.ts` — `buildConversationHistory()` (last 16 msgs ≈ 8 turns). `types/chat.ts` — trimmed Message/Source/HistoryEntry.
+   - ~~`lib/grounding/`~~ **REMOVED 2026-06-10.** Per the "minimise custom code / native-Algolia-only" steer, the custom rc2 grounding auditor was deleted. **Grounding is now enforced in the Agent Studio agent itself** (hardened instructions) + verified by bait queries. Re-portable from rc2 if Stage-2 ever needs a server-side check.
+3b. **GROUNDING HARDENED (2026-06-10) — done before UI, per Arijit.** Authored `scripts/setup/instructions_v2.md` (strict: answer only from index hits; else refuse+route; no training-data facts; no invented customers/metrics/quotes/URLs; URLs only if in a hit). PATCH-applied + published to BOTH our agents (mirror + tuned) via `agent_admin.mjs update`. **Proven** with `agent_admin.mjs bait`: baseline Beta answered "capital of France?"→"Paris" (training-data leak); v2 declines off-topic, refuses fabrication/absent-feature/exact-price baits, keeps in-index answer quality. `create_agents.py` now loads v2 (reproducible).
+4. **Task 15 (NEXT) — frontend design-thinking** (invoke `frontend-builder` → `algolia-design`) to finalize the chat + 4-column layout BEFORE writing UI; then build components (DS port map = overview §7c). DS files already in `web/src/styles/{tokens,dashboard}.css` + `web/src/assets/`. Libs above are ready to wire.
+5. **Task 16 — wire** the single query bar → fan out to 4 columns (env IDs below), stream cols 2-4, results-list col 1, apply grounding auditor to agent columns, render `Index | Agent` headers; E2E verify; capture transcripts (JSON) for later eval.
+6. Hold: data-first rule; namespacing; live `ALGOLIA_WWW_PROD_V2` on `1QDAWL72TQ` stays READ-ONLY.
+
+## Live infrastructure (all verified working unless noted)
+- **Build app `VVKSSPDMJX`** (`ARIJIT-TEST_APP_ID` / `ARIJIT-TEST_ADMIN_API_KEY` in `.env.local` — hyphenated names NOT shell-valid, read literally). Full admin incl. `editSettings`. Agent Studio ENABLED.
+  - Indices: `ALGOLIA_WWW_PROD_V2` (faithful untuned mirror, 15,168 — A/B col 3) + `visibility_www_tuned` (15,168, `removeWordsIfNoResults:lastWords` — col 4).
+  - OpenAI provider id `ae943683-905b-403c-b16f-c1525fc9b7a8` (from `OPENAI_API_KEY`).
+  - Agents (published, answering): **mirror `02852440-8f57-4383-98bc-bffa5b357516`** (→`ALGOLIA_WWW_PROD_V2`, col 3); **tuned `b5c4de23-769b-4b38-9051-a19add9dee06`** (→`visibility_www_tuned`, col 4).
+  - Browser search key: `11ad0f071ac3cc9be1d1951c17dbc64b` (search-only).
+- **Incumbent app `1QDAWL72TQ`** (READ-ONLY to us; we lack `editSettings` there). A/B col 1 = keyword search on `ALGOLIA_WWW_PROD_V2`; col 2 = Beta agent `ebff018c-66e1-44df-b33a-2a58a0188840` (⚠️ its prod model-provider returns **401** — col 2 not measurable until the other team fixes it). Client key = `VISIBILITY_API_KEY`.
+- **`web/.env.local`** holds all the above as `VITE_*` vars (search keys only; admin/OpenAI keys live in root `.env.local`, never bundled).
+
+## Gotchas (hard-won)
+- Agent **publish** is a separate action: `POST /agent-studio/1/agents/{id}/publish` (the `status` field on create does NOT stick).
+- **urllib** needs an explicit `User-Agent` header for `/agent-studio/*` (WAF 4xx otherwise); curl is fine.
+- Provider registration validates the LLM key by calling the provider → can transiently 400 "timed out"; retry.
+- The `1QDAWL72TQ` `visibility-www-prod` copy (made early) is **SUPERSEDED** — ignore it; the real work is on `VVKSSPDMJX`.
+- `.env.local` `VISIBILITY_INDEX_NAME` was fixed lowercase→`ALGOLIA_WWW_PROD_V2`.
+
+## Decisions locked (full rationale: docs/project-overview.md)
+1. **Win condition** — LLM-judge harness (reuse Central's) + blind human/SME panel (authoritative).
+2. **Build home (REVISED)** — we lack `editSettings` on live `1QDAWL72TQ`, so OUR agents + tunable indices live on **`VVKSSPDMJX`** (full admin); incumbents (col 1 keyword, col 2 Beta) are called READ-ONLY on `1QDAWL72TQ`. Effectively the read-prod/build-sandbox hybrid; content is copied so the A/B stays fair.
+3. **Coordinator path** — prototype in Agent Studio (DONE) → harden in code (Stage 2).
+4. **A/B = 4-col ablation** — col1 live keyword, col2 Beta `ebff018c`, col3 our agent/mirror index, col4 our agent/tuned index. (2v3 = agent effect; 3v4 = index effect; 1v4 = old-vs-new.)
+5. **Discovery** — intent-first adaptive.
+6. **Grounding edge** — strict refuse + route; no adjacent fallback; never training-data facts. **Enforcement REVISED 2026-06-10:** done in the Agent Studio agent (hardened instructions `instructions_v2.md`) + verified by bait queries — NOT custom client code (the rc2 mechanical auditor was removed; custom code minimised, native-Algolia-only). Mechanical code check returns at Stage-2 only if bait data shows leakage.
+7. **Start-point** — DECIDED: **clone-and-improve the Beta `ebff018c`** (Stage-0 audit). Surgical fixes: strip `---collect`; add empty-retrieval retry; add two-way behavior; widen synonyms.
+8. **Webapp** — fresh **React+Vite+TS** (resolved from DS), browser-direct (Stage 1) → backend at Stage 2; ~~grounding client-side~~ **grounding now in the agent (see #6); port-don't-rebuild superseded for grounding (removed)**.
+9. **Guiding principle** — every architectural choice is data-proven by answer quality, never assumed.
+10. **Custom code minimised / native-Algolia-only (Arijit steer 2026-06-10).** Keep custom code to unavoidable native-Algolia glue. Runtime deps = `algoliasearch` + React only. No redis/logger/SDKs. See memory [[feedback-minimise-custom-code-native-algolia]].
+11. **Conversation memory model — INVESTIGATED & DECIDED (evidence-grounded, primary Algolia docs read):**
+    - **Multi-turn context** = the `messages` array we send each turn (client holds the thread; `conversation.ts` slices last ~8 turns, `callCompletions` prepends). The server NEVER auto-injects prior turns — true even with memory ON. This small thread-glue is unavoidable for our custom UI.
+    - **Agent Studio "memory"/Conversations toggle** = server-side STORAGE/retrieval only (persist Q/A/tool-calls/metadata; list/retrieve/export/delete; per-user via JWT; retention 0/30/60/90). It does NOT feed context back to the model. Source: `algolia.com/doc/guides/algolia-ai/agent-studio/how-to/conversations` (mirror: rc3 `docs/research/agent-studio-docs/03-capabilities.md:58-150`). It's currently OFF (ephemeral) — **correct for Stage-1 A/B** (we capture transcripts ourselves). **Turn ON at Stage-2** (authenticated/JWT mode; send `id:"alg_cnv_…"` + `messages[].id:"alg_msg_…"`).
+    - **OOTB `<Chat>` widget** (`import { Chat } from 'react-instantsearch'`) gives zero-code single-agent chat (manages its own thread). **CANNOT be used for our 4-column A/B** — verified against the API ref (`algolia.com/doc/api-reference/widgets/chat/react`): no programmatic `sendMessage`, can't hide its input box, no messages-array access for transcript capture; props are only `initialMessages`/`onFinish`/`onToolCall`. So one-box-driving-4-widgets is NOT possible. The raw Vercel **AI SDK 5 `useChat`** (what `<Chat>` wraps) DOES expose `sendMessage`+`messages`, but adopting it adds the AI-SDK dependency + a transport adapter — heavier than our ~50-line `callCompletions`, so rejected for Stage-1. **`<Chat>` is the candidate for a Stage-2 single-agent production chat.**
+
+## Key findings
+- **Keyword retrieval is the core risk, CONFIRMED:** full-NL queries → 0 hits on the strict AND-match index (`removeWordsIfNoResults: none`); 3–5 keyword terms → 7–14 hits. Agent keyword-reformulation is the PRIMARY fix; index `removeWordsIfNoResults` relax alone is marginal (0→1 poor hit) — iterate (`allOptional`, synonyms) by data.
+- **Live demo of the thesis:** same query — untuned index → grounded REFUSAL; tuned index → grounded answer. Index effect + zero-hallucination both shown.
+- **rc2 = quality bar** (coded coordinator: deterministic discovery + mechanical grounding auditor + Redis); rc3 = Agent Studio patterns + reusable `eval/` harness. Both NeuralSearch — their full-NL-query assumption doesn't port to keyword.
+- The Visibility app has 15 Agent Studio agents (a team owns the Beta); the docs-site "Ask AI" (`askai.algolia.com`, different app/index) is a separate product, not our incumbent.
+
+## Remaining work (order)
+1. **Task 14** — port libs (agentStudioClient, keywordSearch, grounding auditor, chat types) + Vitest tests.
+2. **Task 15** — frontend design-thinking → UI components (Algolia-branded chat + 4-col comparison).
+3. **Task 16** — wire 4-col A/B fan-out + chat + grounding; E2E; transcript capture.
+4. Index tuning iteration on `visibility_www_tuned` (`allOptional`, synonyms) — data-driven.
+5. Get Beta col-2 provider 401 fixed (external) to measure the incumbent agent.
+6. **Stage 2 (later):** backend proxy → coded coordinator + mechanical grounding auditor + persistent memory; port rc2 `eval/{judge,harness,compare}`; human panel.
+7. **Phase 1b:** index-architecture experiment (single vs Atlas) — ADR.
+8. **Gate → Phase 2** (multi-agent A2A) only if Phase 1 wins.
+
+## What has NOT been done (no false completion)
+- Task 14 libs DONE & tested, but: NO UI; NO wiring; no hooks (useAgentColumn/useKeywordColumn/useChatThread). `App.tsx` is still the empty scaffold.
+- `callCompletions` streaming loop verified by unit tests + a node live call (real agent answered) + a browser CORS probe (raw fetch). The full streaming-read loop has NOT been exercised end-to-end inside a React component yet.
+- No functional A/B in the app yet; no transcripts captured.
+- No eval harness ported; no golden question set; no scoring; no human panel.
+- No Stage-2 backend / coded coordinator / mechanical grounding auditor yet (Stage-1 is Agent-Studio prototype only).
+- Index tuning is minimal (only `removeWordsIfNoResults:lastWords`); not yet optimized.
+- Beta col-2 not measurable (its prod provider 401s).
+- Phase 1b (Atlas) not started; Phase 2 not started.
+- Overview §12 open questions still open (model choice locked-ish to gpt-5.2 for parity; win-margin, golden set, human panel, team coordination unresolved).
+
+## Reference files
+- `docs/project-overview.md` — the plan (source of truth). `docs/algolia-api/` — local Algolia API ref. `docs/recon/` — Ask-AI recon screenshots.
+- `~/.claude/plans/toasty-meandering-robin.md` — approved build spec.
+- `CLAUDE.md` — lean project router. `.env.local` — all creds (VISIBILITY 1QDAWL72TQ, CENTRAL 0EXRPAXB56, ARIJIT-TEST VVKSSPDMJX, OPENAI_API_KEY).
+- `scripts/setup/migrate_corpus.py`, `scripts/setup/create_agents.py` — repeatable setup.
+- `web/` — the React+Vite+TS app. DS source: `/Users/arijitchowdhury/AI-Development/Algolia-Design-System`.
+- rc2 quality-bar code: `…/AlgoliaRAG-Google/rc2-algolia` (`lib/search/{orchestrator,content_auditor,audit,discovery_analyzer}.ts`, `eval/`). rc3: `…/rc3-phoenix` (`src/hooks/chat/useAgentStudioMaverick.ts`).
+
+## Files written/updated this session
+- `docs/algolia-api/` (10 files), `docs/project-overview.md` (+§3.5/§3.6/decisions/Appendix A), `docs/recon/` (3 PNGs).
+- `CLAUDE.md` (lean), `~/.claude/plans/toasty-meandering-robin.md` (build spec).
+- `scripts/setup/migrate_corpus.py`, `scripts/setup/create_agents.py`.
+- `web/` scaffold: `web/.env.local`, `web/vite.config.ts` (vitest), `web/src/main.tsx` (token imports), `web/index.html` (fonts), `web/src/styles/{tokens,dashboard}.css`, `web/src/assets/` (logos).
+- `.env.local` (root): fixed `VISIBILITY_INDEX_NAME`; user added `ARIJIT-TEST_*` + `OPENAI_API_KEY`.
+- Vault: `…/ArijitOS-Brain/Projects/Algolia-Central2/project-overview.md` (raw copy).
+- Memory: `MEMORY.md` + `project-visibility-agents.md` + `feedback-data-driven-decisions.md` + `user-arijit-visibility.md` + `session_pointer.md`.
+- `SESSION.md` (this file).
+
+### Session 2026-06-10 (cont.) — Task 14 + grounding pivot
+- **web/src/lib/**: `agentStudioClient.ts` (+`.test.ts` 10 tests, +`.live.test.ts` gated), `keywordSearch.ts` (+`.test.ts` 3), `conversation.ts` (+`.test.ts` 4). **web/src/types/chat.ts**. `web/package.json` (+`test`/`test:watch` scripts).
+- **REMOVED** `web/src/lib/grounding/{audit.ts,inlineStreamAuditor.ts,inlineStreamAuditor.test.ts}` (custom auditor deleted per minimise-custom-code steer; re-portable from rc2).
+- **scripts/setup/**: `agent_admin.mjs` (node admin: `get`/`update`/`bait` — trusts cert chain; python urllib hit SSL self-signed-cert-in-chain, do NOT weaken TLS, use node), `instructions_v2.md` (hardened grounding prompt, 7180 chars, now live+published on BOTH agents), `current_instructions.txt` (old Beta-inherited baseline dump), `inspect_agent.py` (python GET — blocked by SSL, superseded by agent_admin.mjs). `create_agents.py` now loads `instructions_v2.md` (reproducible).
+- **CLAUDE.md** (project): Non-negotiable grounding-enforcement clause rewritten (agent-config + bait-verify, not custom code).
+- **Memory**: +`feedback-minimise-custom-code-native-algolia.md` (+MEMORY.md index line).
+- **Verified**: `tsc -b` clean; `vitest run` 17 pass / 1 skipped; CORS browser-direct works from localhost (200, 17KB SSE); bait set proves v2 fixes the "Paris" training-data leak.

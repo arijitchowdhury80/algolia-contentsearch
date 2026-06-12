@@ -1,0 +1,214 @@
+{
+  "runId": "20260612T060901Z",
+  "createdAt": "2026-06-12T06:10:36.843Z",
+  "questionVersion": "locked-v1",
+  "panelOrder": [
+    "website",
+    "mirror",
+    "tuned"
+  ],
+  "questions": [
+    {
+      "questionId": "1.2",
+      "category": 1,
+      "split": "dev",
+      "prompt": "What are Algolia's ranking criteria and how does tie-breaking work?",
+      "isRefusalTest": false,
+      "panels": [
+        {
+          "panelId": "website",
+          "panelLabel": "① Website (incumbent Ask-AI)",
+          "kind": "website",
+          "answer": {
+            "answer": "[WEBSITE STUB] No live algolia.com Ask-AI capture wired yet for: \"What are Algolia's ranking criteria and how does tie-breaking work?\". This placeholder exists so the harness runs end-to-end; lab/capture will replace it.",
+            "sources": [],
+            "source": "website-stub"
+          },
+          "latencyMs": 4
+        },
+        {
+          "panelId": "mirror",
+          "panelLabel": "② Agent — faithful mirror",
+          "kind": "agent",
+          "agentId": "02852440-8f57-4383-98bc-bffa5b357516",
+          "index": "ALGOLIA_WWW_PROD_V2",
+          "answer": {
+            "answer": "Algolia ranks results using a **tie-breaking algorithm**: it evaluates ranking criteria **sequentially, in the order of your “Ranking and Sorting” configuration, and stops as soon as one criterion differentiates records**. If a criterion doesn’t separate two records, Algolia moves to the next one. (This is also why the order matters, and why Algolia notes the out-of-the-box order is best for most use cases.)  \nSource: https://support.algolia.com/hc/en-us/articles/7964661896849-How-can-I-troubleshoot-relevancy-using-Algolia-dashboard\n\n## Ranking criteria (as shown in the Ranking Criteria panel)\nThe dashboard’s Ranking Criteria panel lists criteria you may encounter, including:\n- **Number of typos** (typos required to match the query)\n- **Geolocation** (distance from the search location)\n- **Matching words** (number of query words matched)\n- **Matching filters** (number of filters matched)\n- **Proximity distance** (distance between matched words)\n- **Best matching attribute** (attribute matched, by priority)\n- **Position** (position of matched words in the attribute)\n- **Exact word count** (number of exact (no-typo) matches)\n- **Custom ranking** (custom ranking value defined by business metrics, e.g., popularity/ratings)  \nSource: https://support.algolia.com/hc/en-us/articles/7964661896849-How-can-I-troubleshoot-relevancy-using-Algolia-dashboard\n\n## How tie-breaking works (including the final fallback)\nBy default, tie-breaking works like this:\n1. Order matching records by the **first** criterion (example given: **number of typos**, so exact matches rank first).\n2. For tied records, order by the **second** criterion (example: **geolocation**, if applicable).\n3. Continue through the criteria (example mentions the **third** can be **filters**) “and so on”.\n4. If there are still ties after the initial criteria, Algolia uses your **custom ranking attributes** to break ties.\n5. If there are *still* ties even after custom ranking, Algolia ranks the items based on their **objectID**.  \nSource: https://support.algolia.com/hc/en-us/articles/13998838034321-What-does-This-result-is-ranked-based-on-objectID-mean\n\nRelated nuance: criteria like **filters** (including “boost and bury” via `optionalFilters`) only affect ranking **when earlier/precedence criteria don’t break the tie**.  \nSource: https://support.algolia.com/hc/en-us/articles/9821011449233-Why-is-the-boost-and-bury-feature-not-applied\n\nWhat’s your use case—are you trying to understand a specific unexpected ordering (for a particular query), or are you designing a custom ranking strategy?",
+            "sources": [
+              {
+                "id": "S1",
+                "text": "Why is the 'boost and bury' feature not applied?\nThe boost and bury features from Rules are based on the optionalFilters parameter. The are two main reasons you may not see items being boosted or buried when you apply a Rule to do so.\nThese apply to both Rules and Recommend Rules.\n1. Ranking and Sorting Configuration\nOptional filters are evaluated at the \"filters\" ranking criterion within the default ranking criteria. \nBecause Algolia uses the tie-breaking algorithm, the filters criterion affects the ranking only when precedence criteria do not break the tie.\nSo for example, if there is a sort-by attribute that is ranked higher than the filters ranking criterion in the Ranking and sorting configuration, boost and bury features will not take effect because the sort by attribute has precedence over any other ranking criterion:\n\n \nIn this case it is advised to only add a sort-by attribute to replica indices. Otherwise, lowering the custom ranking criteria below the standard default ranking criteria would enable the proper functioning of boost and bury features.\n \n2. Declaring your attribute for faceting\nTo use an attribute in a Rule that boosts or buries items, you must first declare it as an attributesForFaceting. You can do this either via the:\n\nAPI: https://www.algolia.com/doc/guides/managing-results/refine-results/faceting/how-to/declaring-attributes-for-faceting/\n\nDashboard: https://www.algolia.com/doc/guides/managing-results/refine-results/faceting/how-to/declaring-attributes-for-faceting-with-dashboard/\n\n",
+                "label": "https://support.algolia.com/hc/en-us/articles/9821011449233-Why-is-the-boost-and-bury-feature-not-applied"
+              },
+              {
+                "id": "S2",
+                "text": "Why is my search being sorted by geo and not taking into account other ranking criteria?\nWhen ranking hits, geo distances are grouped into ranges of aroundPrecision size. All hits within the same range are considered equal with respect to the geo ranking parameter. For example, if you set aroundPrecision to 100, any two objects lying in the range [0, 99] from the searched location will be considered equal; same for [100, 199], [200, 299], etc. This will allow items that are relatively close to be ranked the same in the \"geo\" criterion and let the textual criteria do the tie breaking.\nIn your current setting, aroundPrecision could be too small a number meaning that unless you move geo to the bottom, everything is effectively getting sorted by how far away it is on a meter by meter basis.  In general, we do not advise changing the default ranking formula so it would be preferable to change the aroundPrecision.",
+                "label": "https://support.algolia.com/hc/en-us/articles/4406216902929-Why-is-my-search-being-sorted-by-geo-and-not-taking-into-account-other-ranking-criteria"
+              },
+              {
+                "id": "S3",
+                "text": "How can I troubleshoot relevancy using Algolia dashboard?\nWhen debugging relevancy issues, the Algolia dashboard provides several visual tools to help you understand why records are ranked the way they are for a given query. This guide walks through how to use the Ranking Criteria panel, and explains each ranking criterion you may encounter.Using the Ranking Criteria panelIn the Browse tab on the Algolia dashboard, each record in the results list includes a small medal icon at the bottom-right corner.When you hover over this icon, a panel appears showing the ranking criteria and their values for that record.This panel explains exactly why a record is ranked in its current position relative to others, by displaying how it performed for each ranking criterion:The criteria are shown in the same order as your Ranking and Sorting configuration, which is important: Algolia ranks results using a tie-breaking algorithm that evaluates records sequentially across ranking criteria, stopping as soon as one criterion produces a difference between records. You can change the order of the default criteria, but you shouldn’t. The out-of-the-box ranking order is best for the majority of use cases. Below is a breakdown of what each Ranking criterion means and how to interpret its value in the ranking panel:\nNumber of typos: Typos required to match the query\nGeolocation: Distance from the search location\nMatching words: Number of query words matched\nMatching filters: Number of filters matched\nProximity distance: Distance between matched words\nBest matching attribute: Attribute matched, by priority\nPosition: Position of matched words in the attribute\nExact word count: Number of exact (no-typo) matches\nCustom ranking: Custom ranking value defined by your business metrics (e.g., popularity, ratings)\nThe ranking criteria panel helps you clearly understand why a record ranks where it does and pinpoint the source of any relevancy issues.Query Alternatives viewCombined with the Ranking Criteria panel, using the Query Alternatives view, gives you a more complete picture of how Algolia interprets queries and ranks results. If you toggle Query Alternatives on the dashboard, you can see how Algolia interprets the query you typed:For a detailed walkthrough, see How to use the Query Alternatives view in the Algolia Dashboard.",
+                "label": "https://support.algolia.com/hc/en-us/articles/7964661896849-How-can-I-troubleshoot-relevancy-using-Algolia-dashboard"
+              },
+              {
+                "id": "S4",
+                "text": "What does \"This result is ranked based on objectID\" mean?\nThe \"This result is ranked based on objectID\" message indicates that none of your ranking criteria differentiates those results in terms of relevancy.\nAlgolia uses a tie-breaking algorithm for ranking search results. By default, it works as follows (as described in this document):\n\nIt orders all matching records according to the first criterion (number of typos, so exact matches rank first).\nFor all tied records, it orders them according to the second criterion (geolocation - if applicable).\nIf there are still tied records (with the same geolocation), it orders them according to the third criterion (filters) and so on, until each record in the search results has a distinct ranking position.\nIf, after going through the first seven criteria, there are still tied records, Algolia uses each of your custom ranking attributes to break the tie.\n\nAfter going through all steps and if the custom ranking does not break the tie, Algolia ranks the items based on their objectID, which is the case that this message indicates.\n \nIf you'd like to avoid such situation and make your ranking criteria meaningful, we recommend reviewing your ranking strategy and consider adding or modifying custom rankings that can break the tie of such items.\nYou can also find the detail of the default ranking criterion in this document.",
+                "label": "https://support.algolia.com/hc/en-us/articles/13998838034321-What-does-This-result-is-ranked-based-on-objectID-mean"
+              },
+              {
+                "id": "S5",
+                "text": "Why is my custom ranking attribute not being used?\nAlgolia finds the best matches and ranks the search results with its default ranking strategy, using a tie-breaking algorithm. First, it orders ALL matching records using the first criterion (typo by default). For all tie matching records it orders them using the second criterion (geo by default) and if there are still tied matching records, then it orders them according to the third criterion (filters by default), and so on. After going through 8 ranking criteria, it uses any Custom Ranking to break the tie - the engine will go on until there’s no more ties to break.\n\nYou can hover your mouse over the little badge shaped icon in the bottom right of each record to check which tie breaker ranked the record in that specific position.\nYou can increase the importance of your custom ranking criteria by expanding the default ranking criteria and moving your custom criteria up the order. Be extremely careful when doing this - the default order is considered optimal in the majority of cases.",
+                "label": "https://support.algolia.com/hc/en-us/articles/10210296687761-Why-is-my-custom-ranking-attribute-not-being-used"
+              }
+            ],
+            "source": "agent"
+          },
+          "latencyMs": 29678
+        },
+        {
+          "panelId": "tuned",
+          "panelLabel": "③ Agent — tuned index",
+          "kind": "agent",
+          "agentId": "b5c4de23-769b-4b38-9051-a19add9dee06",
+          "index": "visibility_www_tuned",
+          "answer": {
+            "answer": "Algolia ranks results using a **tie-breaking algorithm**: it evaluates ranking criteria **sequentially, in order**, and as soon as one criterion produces a difference between records, that criterion determines the order for those records. If records are still tied, Algolia moves to the next criterion. (This order is the same as your **Ranking and Sorting** configuration.)  \n\n### Ranking criteria you may see (default / common criteria)\nFrom the Ranking Criteria panel explanation, the criteria include:\n- **Number of typos** (typos required to match the query)\n- **Geolocation** (distance from the search location)\n- **Matching words** (number of query words matched)\n- **Matching filters** (number of filters matched)\n- **Proximity distance** (distance between matched words)\n- **Best matching attribute** (attribute matched, by priority)\n- **Position** (position of matched words in the attribute)\n- **Exact word count** (number of exact (no-typo) matches)\n- **Custom ranking** (a custom ranking value you define, e.g., popularity/ratings)\n\n### How tie-breaking works (including the final fallback)\nBy default, tie-breaking proceeds like this:\n1. Order matching records by the **first criterion** (for example, **number of typos**—exact matches rank first).\n2. For records still tied, order them by the **second criterion** (for example, **geolocation**, if applicable).\n3. Continue criterion-by-criterion (for example, **filters**, and so on) until records are no longer tied.\n4. If records are still tied after the default criteria, Algolia uses your **custom ranking attributes** to break the tie.\n5. If nothing (including custom ranking) breaks the tie, Algolia ranks the tied items based on their **`objectID`**—this corresponds to the message: *“This result is ranked based on objectID”*.\n\nWhich part are you most interested in: the **default ranking order**, or how to make sure **custom ranking/filters** actually influence results when ties happen?",
+            "sources": [
+              {
+                "id": "S1",
+                "text": "Why is the 'boost and bury' feature not applied?\nThe boost and bury features from Rules are based on the optionalFilters parameter. The are two main reasons you may not see items being boosted or buried when you apply a Rule to do so.\nThese apply to both Rules and Recommend Rules.\n1. Ranking and Sorting Configuration\nOptional filters are evaluated at the \"filters\" ranking criterion within the default ranking criteria. \nBecause Algolia uses the tie-breaking algorithm, the filters criterion affects the ranking only when precedence criteria do not break the tie.\nSo for example, if there is a sort-by attribute that is ranked higher than the filters ranking criterion in the Ranking and sorting configuration, boost and bury features will not take effect because the sort by attribute has precedence over any other ranking criterion:\n\n \nIn this case it is advised to only add a sort-by attribute to replica indices. Otherwise, lowering the custom ranking criteria below the standard default ranking criteria would enable the proper functioning of boost and bury features.\n \n2. Declaring your attribute for faceting\nTo use an attribute in a Rule that boosts or buries items, you must first declare it as an attributesForFaceting. You can do this either via the:\n\nAPI: https://www.algolia.com/doc/guides/managing-results/refine-results/faceting/how-to/declaring-attributes-for-faceting/\n\nDashboard: https://www.algolia.com/doc/guides/managing-results/refine-results/faceting/how-to/declaring-attributes-for-faceting-with-dashboard/\n\n",
+                "label": "https://support.algolia.com/hc/en-us/articles/9821011449233-Why-is-the-boost-and-bury-feature-not-applied"
+              },
+              {
+                "id": "S2",
+                "text": "Why is my search being sorted by geo and not taking into account other ranking criteria?\nWhen ranking hits, geo distances are grouped into ranges of aroundPrecision size. All hits within the same range are considered equal with respect to the geo ranking parameter. For example, if you set aroundPrecision to 100, any two objects lying in the range [0, 99] from the searched location will be considered equal; same for [100, 199], [200, 299], etc. This will allow items that are relatively close to be ranked the same in the \"geo\" criterion and let the textual criteria do the tie breaking.\nIn your current setting, aroundPrecision could be too small a number meaning that unless you move geo to the bottom, everything is effectively getting sorted by how far away it is on a meter by meter basis.  In general, we do not advise changing the default ranking formula so it would be preferable to change the aroundPrecision.",
+                "label": "https://support.algolia.com/hc/en-us/articles/4406216902929-Why-is-my-search-being-sorted-by-geo-and-not-taking-into-account-other-ranking-criteria"
+              },
+              {
+                "id": "S3",
+                "text": "How can I troubleshoot relevancy using Algolia dashboard?\nWhen debugging relevancy issues, the Algolia dashboard provides several visual tools to help you understand why records are ranked the way they are for a given query. This guide walks through how to use the Ranking Criteria panel, and explains each ranking criterion you may encounter.Using the Ranking Criteria panelIn the Browse tab on the Algolia dashboard, each record in the results list includes a small medal icon at the bottom-right corner.When you hover over this icon, a panel appears showing the ranking criteria and their values for that record.This panel explains exactly why a record is ranked in its current position relative to others, by displaying how it performed for each ranking criterion:The criteria are shown in the same order as your Ranking and Sorting configuration, which is important: Algolia ranks results using a tie-breaking algorithm that evaluates records sequentially across ranking criteria, stopping as soon as one criterion produces a difference between records. You can change the order of the default criteria, but you shouldn’t. The out-of-the-box ranking order is best for the majority of use cases. Below is a breakdown of what each Ranking criterion means and how to interpret its value in the ranking panel:\nNumber of typos: Typos required to match the query\nGeolocation: Distance from the search location\nMatching words: Number of query words matched\nMatching filters: Number of filters matched\nProximity distance: Distance between matched words\nBest matching attribute: Attribute matched, by priority\nPosition: Position of matched words in the attribute\nExact word count: Number of exact (no-typo) matches\nCustom ranking: Custom ranking value defined by your business metrics (e.g., popularity, ratings)\nThe ranking criteria panel helps you clearly understand why a record ranks where it does and pinpoint the source of any relevancy issues.Query Alternatives viewCombined with the Ranking Criteria panel, using the Query Alternatives view, gives you a more complete picture of how Algolia interprets queries and ranks results. If you toggle Query Alternatives on the dashboard, you can see how Algolia interprets the query you typed:For a detailed walkthrough, see How to use the Query Alternatives view in the Algolia Dashboard.",
+                "label": "https://support.algolia.com/hc/en-us/articles/7964661896849-How-can-I-troubleshoot-relevancy-using-Algolia-dashboard"
+              },
+              {
+                "id": "S4",
+                "text": "What does \"This result is ranked based on objectID\" mean?\nThe \"This result is ranked based on objectID\" message indicates that none of your ranking criteria differentiates those results in terms of relevancy.\nAlgolia uses a tie-breaking algorithm for ranking search results. By default, it works as follows (as described in this document):\n\nIt orders all matching records according to the first criterion (number of typos, so exact matches rank first).\nFor all tied records, it orders them according to the second criterion (geolocation - if applicable).\nIf there are still tied records (with the same geolocation), it orders them according to the third criterion (filters) and so on, until each record in the search results has a distinct ranking position.\nIf, after going through the first seven criteria, there are still tied records, Algolia uses each of your custom ranking attributes to break the tie.\n\nAfter going through all steps and if the custom ranking does not break the tie, Algolia ranks the items based on their objectID, which is the case that this message indicates.\n \nIf you'd like to avoid such situation and make your ranking criteria meaningful, we recommend reviewing your ranking strategy and consider adding or modifying custom rankings that can break the tie of such items.\nYou can also find the detail of the default ranking criterion in this document.",
+                "label": "https://support.algolia.com/hc/en-us/articles/13998838034321-What-does-This-result-is-ranked-based-on-objectID-mean"
+              },
+              {
+                "id": "S5",
+                "text": "Why is my custom ranking attribute not being used?\nAlgolia finds the best matches and ranks the search results with its default ranking strategy, using a tie-breaking algorithm. First, it orders ALL matching records using the first criterion (typo by default). For all tie matching records it orders them using the second criterion (geo by default) and if there are still tied matching records, then it orders them according to the third criterion (filters by default), and so on. After going through 8 ranking criteria, it uses any Custom Ranking to break the tie - the engine will go on until there’s no more ties to break.\n\nYou can hover your mouse over the little badge shaped icon in the bottom right of each record to check which tie breaker ranked the record in that specific position.\nYou can increase the importance of your custom ranking criteria by expanding the default ranking criteria and moving your custom criteria up the order. Be extremely careful when doing this - the default order is considered optimal in the majority of cases.",
+                "label": "https://support.algolia.com/hc/en-us/articles/10210296687761-Why-is-my-custom-ranking-attribute-not-being-used"
+              }
+            ],
+            "source": "agent"
+          },
+          "latencyMs": 12139
+        }
+      ]
+    },
+    {
+      "questionId": "8.1",
+      "category": 8,
+      "split": "dev",
+      "prompt": "How does Algolia handle typo tolerance?",
+      "followUp": "Can I turn it off for a specific attribute or words?",
+      "isRefusalTest": false,
+      "panels": [
+        {
+          "panelId": "website",
+          "panelLabel": "① Website (incumbent Ask-AI)",
+          "kind": "website",
+          "answer": {
+            "answer": "[WEBSITE STUB] No live algolia.com Ask-AI capture wired yet for: \"Can I turn it off for a specific attribute or words?\". This placeholder exists so the harness runs end-to-end; lab/capture will replace it.",
+            "sources": [],
+            "source": "website-stub"
+          },
+          "latencyMs": 5
+        },
+        {
+          "panelId": "mirror",
+          "panelLabel": "② Agent — faithful mirror",
+          "kind": "agent",
+          "agentId": "02852440-8f57-4383-98bc-bffa5b357516",
+          "index": "ALGOLIA_WWW_PROD_V2",
+          "answer": {
+            "answer": "Algolia’s typo tolerance can be disabled **at the attribute level**: the Support article notes that if you want stricter exact matching, you can “disable typo tolerance for the attribute,” so that “results matching on the attribute’s value with typos will not be returned,” using the setting **`disableTypoToleranceOnAttribute`**. It also mentions **`disablePrefixOnAttributes`** if you want results only on **full-word** matches for that attribute (more “strict exact matching”).  \n(Reference: https://support.algolia.com/hc/en-us/articles/11908802578449-How-can-I-get-a-strict-full-word-exact-match-for-a-specific-attribute)\n\nI don’t have anything in the retrieved content that confirms you can turn typo tolerance off for **specific words** (as opposed to specific attributes).\n\nWhich attribute(s) do you want to be strict on (for example: SKU, brand, part number)?",
+            "sources": [
+              {
+                "id": "S1",
+                "text": "How can I get a strict full-word exact match for a specific attribute?\nBy default, Algolia is a prefix search based engine. Prefix search is usually better for relevance and performance. It enables the engine to start matching records based on partial words. This means that the engine doesn't wait for full-word match before displaying results.\nHowever, if you want to get a more strict exact matching for a specific attribute you can turn off prefixing on some attributes using:\n\ndisablePrefixOnAttributes\n\nThis parameter will ensure that the attribute's value is returned only if there is a full-word match. You can find more information and use cases for this setting here.Additionally, if you want to only return exact matches, you may also want to disable typo tolerance for the attribute. This will ensure that results matching on the attributes value with typos will not be returned. \n\ndisableTypoToleranceOnAttribute\n\n ",
+                "label": "https://support.algolia.com/hc/en-us/articles/11908802578449-How-can-I-get-a-strict-full-word-exact-match-for-a-specific-attribute"
+              },
+              {
+                "id": "S2",
+                "text": "How can I get a strict full-word exact match for a specific attribute?\nBy default, Algolia is a prefix search based engine. Prefix search is usually better for relevance and performance. It enables the engine to start matching records based on partial words. This means that the engine doesn't wait for full-word match before displaying results.\nHowever, if you want to get a more strict exact matching for a specific attribute you can turn off prefixing on some attributes using:\n\ndisablePrefixOnAttributes\n\nThis parameter will ensure that the attribute's value is returned only if there is a full-word match. You can find more information and use cases for this setting here.Additionally, if you want to only return exact matches, you may also want to disable typo tolerance for the attribute. This will ensure that results matching on the attributes value with typos will not be returned. \n\ndisableTypoToleranceOnAttribute\n\n ",
+                "label": "https://support.algolia.com/hc/en-us/articles/11908802578449-How-can-I-get-a-strict-full-word-exact-match-for-a-specific-attribute"
+              }
+            ],
+            "source": "agent"
+          },
+          "latencyMs": 32179
+        },
+        {
+          "panelId": "tuned",
+          "panelLabel": "③ Agent — tuned index",
+          "kind": "agent",
+          "agentId": "b5c4de23-769b-4b38-9051-a19add9dee06",
+          "index": "visibility_www_tuned",
+          "answer": {
+            "answer": "Algolia applies **typo-tolerant variants of the original search terms** when interpreting a query (you can inspect the variations it considers via the Dashboard’s **Query Alternatives** view, which includes “typo-tolerant variants of the original search terms”).  \n\nYes—you can turn typo tolerance off in a couple of targeted ways that are explicitly supported:\n\n## Turn off typo tolerance for a specific attribute\nIf you want “more strict exact matching for a specific attribute,” you can disable typo tolerance on that attribute with:\n\n- `disableTypoToleranceOnAttribute`\n\nThe same article notes this can be used alongside `disablePrefixOnAttributes` if you also want to require full-word matches (not prefix matches).\n\n## Turn off typo tolerance for specific words\nThere’s also a setting:\n\n- `disableTypoToleranceOnWords`\n\nOne caveat: there’s a documented limitation with **Rules**—if a rule condition matches a **typo** of a term that’s in `disableTypoToleranceOnWords`, the setting **doesn’t take precedence** and **the rule can still trigger**. To prevent rules from triggering on typos, you need to uncheck the rule option that applies the rule to “plurals, synonyms and typos.”\n\nWhich are you trying to constrain: typo tolerance on a specific **field** (like SKU/brand) or for specific **terms** (like acronyms, codes, or proper nouns)?",
+            "sources": [
+              {
+                "id": "S1",
+                "text": "How can I get a strict full-word exact match for a specific attribute?\nBy default, Algolia is a prefix search based engine. Prefix search is usually better for relevance and performance. It enables the engine to start matching records based on partial words. This means that the engine doesn't wait for full-word match before displaying results.\nHowever, if you want to get a more strict exact matching for a specific attribute you can turn off prefixing on some attributes using:\n\ndisablePrefixOnAttributes\n\nThis parameter will ensure that the attribute's value is returned only if there is a full-word match. You can find more information and use cases for this setting here.Additionally, if you want to only return exact matches, you may also want to disable typo tolerance for the attribute. This will ensure that results matching on the attributes value with typos will not be returned. \n\ndisableTypoToleranceOnAttribute\n\n ",
+                "label": "https://support.algolia.com/hc/en-us/articles/11908802578449-How-can-I-get-a-strict-full-word-exact-match-for-a-specific-attribute"
+              },
+              {
+                "id": "S2",
+                "text": "Does typo tolerance apply to synonyms?\nNo, it currently does not. Note that toggling on the \"Query alternatives\" option in the Dashboard will allow you to see which words are considered for a specific query.\n ",
+                "label": "https://support.algolia.com/hc/en-us/articles/4968240168977-Does-typo-tolerance-apply-to-synonyms"
+              },
+              {
+                "id": "S3",
+                "text": "Why is typoTolerance not working in Korean?\nTypo tolerance for logogram-based languages - Chinese, Japanese and Korean is currently not available as these languages use pictorial characters to represent partial or full words instead of single letters to represent sounds.\n ",
+                "label": "https://support.algolia.com/hc/en-us/articles/9468559590161-Why-is-typoTolerance-not-working-in-Korean"
+              },
+              {
+                "id": "S4",
+                "text": "Why is Typo Tolerance not applying on a Standard Replica?\nStandard Replica's with a sort-by attribute perform whats called Exhaustive Sorting. Exhaustive Sorting refers to strictly reordering results by an attribute. For example, you can exhaustively sort results from lowest to highest price, regardless of textual and business relevance.If a sort-by attribute is present, the engine first orders results by the sort-by attribute’s value. Once sorted by the sort-by attribute’s value, products with the same value for that attribute are ordered according to Algolia’s default textual ranking criteria. Textual ranking criteria is applied after your selected sort-by attribute.If you're not looking for strictly sorted results there is an alternative called Relevant Sorting that uses Virtual Replicas. With Relevant Sorting, Algolia’s ranking formula isn’t turned off when you sort by an attribute. Instead, the relevant sorting algorithm selects results as follows:\nSelects results matching the user’s query by using the primary index’s ranking formula.\nSelects only the most relevant results. This a threshold set by the relevancyStrictness setting. With relevancyStrictness, you instruct the engine to only return results with that relevancy score or better. At query time, the engine computes a relevancy score of 0-100 for each result (by comparing each hit to the best one, a score of 100).\nSorts the selected results based on the virtual replica’s customRanking sorting criteria.\nReturns the relevant results.\nFor more information on the difference between Standard Replicas and Virtual Replicas we recommend our guides on Understanding Replicas and Sorting Results.Relevant sorting is only available on Premium plans. ",
+                "label": "https://support.algolia.com/hc/en-us/articles/13001126305937-Why-is-Typo-Tolerance-not-applying-on-a-Standard-Replica"
+              },
+              {
+                "id": "S5",
+                "text": "Why isn't a feature  that works on search not working on browse?\nThere are several parameters that are applied automatically on browse. Please refer to the link for the latest information. As of this article, the params are\n\nadvancedSyntax: false\n\n\nattributesToHighlight: []\n\n\nattributesToSnippet: []\n\n\ndistinct: false\n\n\nenablePersonalization: false\n\n\nenableRules: false\n\n\nfacets: []\n\n\ngetRankingInfo: false\n\n\nignorePlurals: false\n\n\noptionalFilters: []\n\n\ntypoTolerance: true or false (min and strict evaluate to true)\nThis means that associated such as rules and personalization are not available on browse. Additionally, on querying the index with browse, you won't be able to apply more specific typo tolerance like min and strict, plurals can't be ignored, ranking information isn't returned, you can't include highlighting and snippeting information in the response, nor faceting information.  ",
+                "label": "https://support.algolia.com/hc/en-us/articles/44602891034385-Why-isn-t-a-feature-that-works-on-search-not-working-on-browse"
+              },
+              {
+                "id": "S6",
+                "text": "What settings are handled by the Magento dashboard vs Algolia dashboard?\nEach type of data -- products, categories, pages, query suggestions and additional sections -- controls a different set of settings when enabled for indexing.\nProducts\n\nsearchableAttributes\ncustomRanking\nunretrievableAttributes\nattributesForFaceting\nmaxValuesPerFacet\nremoveWordsIfNoResults\nhitsPerPage\n\nCategories\n\nsearchableAttributes\ncustomRanking\nunretrievableAttributes\n\nPages\n\n\nsearchableAttributes: unordered(slug), unordered(name), unordered(content)\n\n\nattributesToSnippet: content:7\n\n\nQuery Suggestions\n\n\nsearchableAttributes: unordered(query)\n\n\ncustomRanking: desc(popularity), desc(number_of_results)\n\n\ntypoTolerance: false\n\n\nattributesToRetrieve: query\n\n\nremoveWordsIfNoResults: lastWords\n\n\nAdditional Sections\n\n\nsearchableAttributes: unordered(value)\n\n\nAny settings that are not in this list can be managed through the Algolia dashboard. If you’re a developer, it’s also possible to push settings programmatically by hooking into the algolia_products_index_before_set_settings event.\nWARNING: Settings applied in the Algolia dashboard will overwrite any settings you do in Magento until a full reindex is performed through Magento. This will reset all the index settings to the settings set in the Magento Dashboard.",
+                "label": "https://support.algolia.com/hc/en-us/articles/16232380663697-What-settings-are-handled-by-the-Magento-dashboard-vs-Algolia-dashboard"
+              },
+              {
+                "id": "S7",
+                "text": "How to use the Query Alternatives view in the Algolia Dashboard\nThe Query Alternatives tool in the Algolia Dashboard helps you understand how Algolia interprets a query, behind the scenes. It's especially useful for debugging, optimizing relevance, and confirming that linguistic features like synonyms or typo tolerance are working correctly.The Query Alternatives panel shows all variations of a query that Algolia considers during a search. These alternatives include:\nSynonyms that are applied automatically\nDictionaries entries such as custom stop words or word corrections\nTypo-tolerant variants of the original search terms\nSegmented phrases that are broken apart for analysis (e.g., \"smartwatchband\" → \"smartwatch band\")\nYou can use the Query Alternatives view to:\nVerify that a synonym or dictionary entry is working\nDebug relevance issues for queries that aren’t behaving as expected\nUnderstand how a complex or compound query is parsed\nSee how typo tolerance is applied to each term\nVerify if a query word is being treated as optional\nYou can access the Query Alternatives view by:\nGoing to the Search page in your Algolia Dashboard\nLocate the Query Alternatives toggle\nSwitch it on to reveal the full list of interpreted query variations\nThis view can help you spot subtle issues in your query rules, synonyms, or indexing logic that may not be obvious from the raw query alone.",
+                "label": "https://support.algolia.com/hc/en-us/articles/37652380644625-How-to-use-the-Query-Alternatives-view-in-the-Algolia-Dashboard"
+              },
+              {
+                "id": "S8",
+                "text": "How do I prevent highlighting results with typos?\nHighlighting can still apply when a query contains typos.If you want to prevent typo matches from appearing at all, you can turn off typo tolerance. Keep in mind this can reduce the number of matches returned.If you’re building a custom UI, you can enable getRankingInfo and use _rankingInfo.nbTypos to inspect the typo count for each hit. You can then choose how to render those results in your interface, such as only applying custom highlighting when nbTypos is 0.Resources\n\nAlgolia’s features \n\n\nConfigure typo tolerance \n\n\ngetRankingInfo\n\n",
+                "label": "https://support.algolia.com/hc/en-us/articles/6558731269649-How-do-I-prevent-highlighting-results-with-typos"
+              },
+              {
+                "id": "S9",
+                "text": "Why is my rule still triggering on a typo with disableTypoToleranceOnWords enabled?\nThere is a limitation in how disableTypoToleranceOnWords and rules interact. Specifically, if a rule condition matches a typo of a query term that has disableTypoToleranceOnWords enabled, the setting does not take precedence and the rule will still trigger.To prevent a rule from triggering on typos, you’ll need to uncheck the option that applies the rule to plurals, synonyms and typos.",
+                "label": "https://support.algolia.com/hc/en-us/articles/36487305503761-Why-is-my-rule-still-triggering-on-a-typo-with-disableTypoToleranceOnWords-enabled"
+              }
+            ],
+            "source": "agent"
+          },
+          "latencyMs": 21115
+        }
+      ]
+    }
+  ]
+}

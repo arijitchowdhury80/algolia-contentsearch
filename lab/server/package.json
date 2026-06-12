@@ -1,0 +1,21 @@
+{
+  "name": "@lab/server",
+  "version": "0.1.0",
+  "description": "Harness for the Algolia answer-quality experiment: runs the locked question set through the panels and scores answers with the AI Judge.",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "run-tests": "tsx src/cli.ts run-tests",
+    "judge": "tsx src/cli.ts judge",
+    "summary": "tsx src/cli.ts summary",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@lab/judge": "file:../judge"
+  },
+  "devDependencies": {
+    "@types/node": "^22.19.21",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}

@@ -1,0 +1,68 @@
+{
+  "runId": "20260612T061622Z",
+  "createdAt": "2026-06-12T06:16:59.023Z",
+  "judgeModel": "gpt-5.2",
+  "questions": [
+    {
+      "questionId": "3.2",
+      "category": 3,
+      "split": "dev",
+      "panels": [
+        {
+          "panelId": "website",
+          "finalScore": 1.3333333333333333,
+          "preGateScore": 1.3333333333333333,
+          "gateTripped": false,
+          "panelSpread": 2.8571428571428577,
+          "rationale": "All three judges agreed the artifact is essentially a placeholder stub and does not actually answer the question “What is vector search?”, offering no definition, explanation, examples, or sources. They also aligned that it makes no unsupported factual claims (hence no grounding issues), but fails heavily on completeness, depth, and citation. The small divergence was in how much to credit its brevity and harmlessness—one judge scored it slightly higher for being concise and not misleading—yet the overwhelming driver of the very low final score (1.33/10) was the absence of substantive content.",
+          "judgeScores": [
+            {
+              "judgeId": "skeptic",
+              "weightedScore": 2.142857142857143
+            },
+            {
+              "judgeId": "referee",
+              "weightedScore": 4.714285714285714
+            },
+            {
+              "judgeId": "advocate",
+              "weightedScore": 2.2857142857142856
+            }
+          ]
+        },
+        {
+          "panelId": "mirror",
+          "finalScore": 0,
+          "preGateScore": 0,
+          "gateTripped": false,
+          "panelSpread": 0,
+          "rationale": "",
+          "judgeScores": [],
+          "error": "panel error: Agent Studio 503: {\"message\":\"Failed to fetch application features.\",\"requestId\":\"141124766911613854769863208261966741452\"}"
+        },
+        {
+          "panelId": "tuned",
+          "finalScore": 5.174603174603175,
+          "preGateScore": 5.174603174603175,
+          "gateTripped": false,
+          "panelSpread": 0.15873015873015905,
+          "rationale": "The panel converged that the answer is clear and accurate on Algolia NeuralSearch specifics—especially the distinction between semantic and keyword scoring and the idea of neural hash similarity—but only partially addresses the broader “what is vector search” question. All three judges noted a grounding/citation issue, since some general vector-search definitions are only indirectly supported by the provided source and no explicit citations were given. The score landed in the low‑mid range primarily because the response is strong within the Algolia context yet incomplete and underdeveloped as a general explanation, with limited depth beyond the source’s scope.",
+          "judgeScores": [
+            {
+              "judgeId": "skeptic",
+              "weightedScore": 5.714285714285714
+            },
+            {
+              "judgeId": "referee",
+              "weightedScore": 5.571428571428571
+            },
+            {
+              "judgeId": "advocate",
+              "weightedScore": 5.714285714285714
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,153 @@
+{
+  "runId": "20260612T060901Z",
+  "createdAt": "2026-06-12T06:15:55.943Z",
+  "judgeModel": "gpt-5.2",
+  "questions": [
+    {
+      "questionId": "1.2",
+      "category": 1,
+      "split": "dev",
+      "panels": [
+        {
+          "panelId": "website",
+          "finalScore": 1.4603174603174602,
+          "preGateScore": 1.4603174603174602,
+          "gateTripped": false,
+          "panelSpread": 3.015873015873016,
+          "rationale": "All three judges agreed the artifact is essentially a placeholder stub that fails to answer the question about Algolia ranking criteria and tie-breaking, offering no substantive guidance and no citations. They diverged only slightly in how harshly they scored it, with the referee giving a somewhat higher score for concision/format despite the missing content. The final 1.46/10 is driven primarily by incompleteness and lack of actionable details or references, making it unusable as an Algolia answer.",
+          "judgeScores": [
+            {
+              "judgeId": "skeptic",
+              "weightedScore": 2.4285714285714284
+            },
+            {
+              "judgeId": "referee",
+              "weightedScore": 4.857142857142857
+            },
+            {
+              "judgeId": "advocate",
+              "weightedScore": 2.142857142857143
+            }
+          ]
+        },
+        {
+          "panelId": "mirror",
+          "finalScore": 7.968253968253968,
+          "preGateScore": 7.968253968253968,
+          "gateTripped": false,
+          "panelSpread": 0.47619047619047716,
+          "rationale": "The panel converged that the answer clearly explains Algolia’s sequential ranking/tie‑breaking behavior and the main criteria, with solid citations—especially for the objectID final fallback and the nuance that filters/optionalFilters (and similar boosts) only influence ranking when earlier criteria don’t break ties. Judges differed mainly on a minor skepticism that the response slightly overgeneralized how universally those criteria appear across setups, which introduced a small grounding concern. Overall, strong clarity and sourcing drove the high score, with only modest penalties for that limited overstatement risk.",
+          "judgeScores": [
+            {
+              "judgeId": "skeptic",
+              "weightedScore": 8
+            },
+            {
+              "judgeId": "referee",
+              "weightedScore": 8.428571428571429
+            },
+            {
+              "judgeId": "advocate",
+              "weightedScore": 8.428571428571429
+            }
+          ]
+        },
+        {
+          "panelId": "tuned",
+          "finalScore": 7.1428571428571415,
+          "preGateScore": 7.1428571428571415,
+          "gateTripped": false,
+          "panelSpread": 0.7936507936507944,
+          "rationale": "The judges agreed the answer is clear and mostly correct about Algolia’s sequential tie‑breaking, the key ranking criteria, and the final fallback to `objectID`, which supports a solid but not top-tier score. They also converged on the same main weaknesses: missing citations and a small grounding overreach in describing the criteria as “default/common,” with some imprecision about the exact placement of custom ranking in the tie-break sequence. Where they diverged was mainly in how heavily to penalize omitted nuance from the sources (e.g., geo `aroundPrecision`/range grouping and other edge-case tie behavior). Overall, the score is driven by strong core correctness and usefulness, tempered by citation/grounding gaps and incomplete coverage of source-backed nuances.",
+          "judgeScores": [
+            {
+              "judgeId": "skeptic",
+              "weightedScore": 7.714285714285714
+            },
+            {
+              "judgeId": "referee",
+              "weightedScore": 7
+            },
+            {
+              "judgeId": "advocate",
+              "weightedScore": 7.142857142857143
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "questionId": "8.1",
+      "category": 8,
+      "split": "dev",
+      "panels": [
+        {
+          "panelId": "website",
+          "finalScore": 3.833333333333333,
+          "preGateScore": 3.833333333333333,
+          "gateTripped": false,
+          "panelSpread": 0.13888888888888884,
+          "rationale": "All three judges agreed the artifact is effectively a placeholder stub: it contains no substantive guidance on Algolia typo tolerance (including how to disable it for specific attributes/words), offers no citations, and does not meaningfully engage the user’s request. Their scores clustered tightly (4.38–4.50), diverging only slightly on how much to credit its concision and lack of risky claims. The final 3.83/10 is driven primarily by total incompleteness and failure to answer the question, with no grounding violations only because it makes virtually no assertions.",
+          "judgeScores": [
+            {
+              "judgeId": "skeptic",
+              "weightedScore": 4.5
+            },
+            {
+              "judgeId": "referee",
+              "weightedScore": 4.375
+            },
+            {
+              "judgeId": "advocate",
+              "weightedScore": 4.5
+            }
+          ]
+        },
+        {
+          "panelId": "mirror",
+          "finalScore": 6.638888888888888,
+          "preGateScore": 6.638888888888888,
+          "gateTripped": false,
+          "panelSpread": 1.1111111111111116,
+          "rationale": "The judges largely agreed the answer is clear and well-grounded for the narrow sub-question: it correctly points to attribute-level controls like `disableTypoToleranceOnAttribute` and `disablePrefixOnAttributes`, and it avoids speculating about disabling typo tolerance for specific words without sources. They also aligned that it under-answers the primary prompt because it doesn’t explain how Algolia typo tolerance works in general, resulting in limited completeness and depth. The small score divergence came from how much each judge valued that narrow correctness versus the missing broader explanation, with minor grounding concerns noted by two judges but not central to the overall evaluation.",
+          "judgeScores": [
+            {
+              "judgeId": "skeptic",
+              "weightedScore": 6.625
+            },
+            {
+              "judgeId": "referee",
+              "weightedScore": 7.5
+            },
+            {
+              "judgeId": "advocate",
+              "weightedScore": 7.625
+            }
+          ]
+        },
+        {
+          "panelId": "tuned",
+          "finalScore": 6.583333333333333,
+          "preGateScore": 6.583333333333333,
+          "gateTripped": false,
+          "panelSpread": 1.1111111111111107,
+          "rationale": "The judges broadly agreed this is a strong, practical answer that explains how to disable typo tolerance at the attribute level and for specific words, and that it correctly flags an important limitation with using Rules (plus a workaround). They also converged on the main shortcomings: no explicit inline citations and a few mechanistic statements about how typo tolerance operates that are somewhat overconfident relative to the sources, driving the noted grounding violations. The advocate scored it higher for its helpful inspection guidance and completeness, while the skeptic (and to a lesser extent the referee) pulled the score down due to stricter expectations on source backing and precision. Overall, the 6.58/10 reflects “solid and useful” content tempered by citation/grounding gaps and minor overgeneralizations.",
+          "judgeScores": [
+            {
+              "judgeId": "skeptic",
+              "weightedScore": 6.875
+            },
+            {
+              "judgeId": "referee",
+              "weightedScore": 7
+            },
+            {
+              "judgeId": "advocate",
+              "weightedScore": 7.875
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

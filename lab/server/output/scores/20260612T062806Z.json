@@ -1,0 +1,95 @@
+{
+  "runId": "20260612T062806Z",
+  "createdAt": "2026-06-12T16:03:31.626Z",
+  "judgeModel": "gemini-2.5-pro",
+  "questions": [
+    {
+      "questionId": "1.2",
+      "category": 1,
+      "split": "dev",
+      "panels": [
+        {
+          "panelId": "website",
+          "finalScore": 4.2857142857142865,
+          "preGateScore": 4.2857142857142865,
+          "gateTripped": false,
+          "panelSpread": 1.4285714285714297,
+          "rationale": "The judges unanimously agreed that the artifact is a placeholder message that completely fails to answer the user's question, which was the primary driver of the low score. All panelists noted the artifact was free of grounding violations since it made no factual claims. The slight divergence in scores stemmed from whether to reward the placeholder for its harmlessness and conciseness or to penalize it more heavily for its complete lack of utility.",
+          "rounds": 1,
+          "meanPreGateScore": 4.2857142857142865,
+          "stdDevPreGateScore": 0,
+          "gateTripFraction": 0,
+          "borderline": false,
+          "judgeScores": [
+            {
+              "judgeId": "skeptic",
+              "weightedScore": 4.857142857142857
+            },
+            {
+              "judgeId": "referee",
+              "weightedScore": 4.857142857142857
+            },
+            {
+              "judgeId": "advocate",
+              "weightedScore": 6.142857142857143
+            }
+          ]
+        },
+        {
+          "panelId": "mirror",
+          "finalScore": 3,
+          "preGateScore": 9.619047619047619,
+          "gateTripped": true,
+          "panelSpread": 0.6349206349206344,
+          "rationale": "Although the panel was in strong agreement regarding the artifact's exceptional clarity, depth, and structure, their assessments diverged on its factual accuracy. The final verdict was ultimately determined by one judge's identification of a subtle but critical unsupported claim missed by the others. This single grounding violation tripped a hard-gate, which automatically capped the score and overrode the otherwise exemplary ratings.",
+          "rounds": 1,
+          "meanPreGateScore": 9.619047619047619,
+          "stdDevPreGateScore": 0,
+          "gateTripFraction": 1,
+          "borderline": false,
+          "judgeScores": [
+            {
+              "judgeId": "skeptic",
+              "weightedScore": 9.428571428571429
+            },
+            {
+              "judgeId": "referee",
+              "weightedScore": 10
+            },
+            {
+              "judgeId": "advocate",
+              "weightedScore": 10
+            }
+          ]
+        },
+        {
+          "panelId": "tuned",
+          "finalScore": 9.904761904761905,
+          "preGateScore": 9.904761904761905,
+          "gateTripped": false,
+          "panelSpread": 0.15873015873015817,
+          "rationale": "The panel was in strong agreement regarding the artifact's exceptional quality, with all judges praising its comprehensive and perfectly grounded explanation of the technical topic. The verdict was most driven by the response's masterful use of practical examples, which provided a sophisticated layer of clarity and demonstrated a deep understanding of the material. The final score of 9.90 reflects two judges awarding a perfect 10 for what they considered an exemplary and model answer, while a third judge's equally positive but slightly more reserved \"excellent\" rating accounts for the minor variance.",
+          "rounds": 1,
+          "meanPreGateScore": 9.904761904761905,
+          "stdDevPreGateScore": 0,
+          "gateTripFraction": 0,
+          "borderline": false,
+          "judgeScores": [
+            {
+              "judgeId": "skeptic",
+              "weightedScore": 9.857142857142858
+            },
+            {
+              "judgeId": "referee",
+              "weightedScore": 10
+            },
+            {
+              "judgeId": "advocate",
+              "weightedScore": 10
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

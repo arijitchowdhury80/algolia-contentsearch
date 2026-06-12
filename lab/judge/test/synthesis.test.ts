@@ -1,0 +1,206 @@
+import { describe, expect, it } from "vitest";
+import {
+  ALGOLIA_ANSWER_RUBRIC,
+  DEFAULT_GATE,
+  DEFAULT_SYNTHESIS,
+  aggregateRounds,
+  consensusScore,
+  multiRoundStats,
+  stdDev,
+  synthesize,
+} from "../src/index.js";
+import { makeJudgment } from "./helpers.js";
+
+/** One round's panel: skeptic+referee+advocate at flat scores, optional skeptic violation. */
+function round(
+  skeptic: number,
+  referee: number,
+  advocate: number,
+  skepticViolation = false,
+) {
+  return [
+    makeJudgment("skeptic", "skeptic", skeptic, skepticViolation ? [{ confidence: 0.9 }] : []),
+    makeJudgment("referee", "referee", referee),
+    makeJudgment("advocate", "advocate", advocate),
+  ];
+}
+
+describe("consensusScore", () => {
+  it("mean rule averages judges' scores on the 0-10 scale", () => {
+    const panel = [
+      makeJudgment("skeptic", "skeptic", 4), // 4 on 1-10 -> 3.33 on 0-10
+      makeJudgment("referee", "referee", 7),
+      makeJudgment("advocate", "advocate", 10),
+    ];
+    const score = consensusScore(panel, ALGOLIA_ANSWER_RUBRIC, { rule: "mean" });
+    // flat scores aggregate to the flat value, rescaled (v-1)/9*10
+    const exp = ((4 - 1) / 9 + (7 - 1) / 9 + (10 - 1) / 9) / 3 * 10;
+    expect(score).toBeCloseTo(exp, 5);
+  });
+
+  it("median rule is robust to a single generous outlier", () => {
+    const panel = [
+      makeJudgment("skeptic", "skeptic", 5),
+      makeJudgment("referee", "referee", 6),
+      makeJudgment("advocate", "advocate", 10),
+    ];
+    const med = consensusScore(panel, ALGOLIA_ANSWER_RUBRIC, { rule: "median" });
+    expect(med).toBeCloseTo(((6 - 1) / 9) * 10, 5); // median raw = 6
+  });
+
+  it("trimmed-skeptic-weighted leans toward the skeptic and trims the top advocate", () => {
+    const conservative = consensusScore(
+      [
+        makeJudgment("skeptic", "skeptic", 4),
+        makeJudgment("referee", "referee", 7),
+        makeJudgment("advocate", "advocate", 10),
+      ],
+      ALGOLIA_ANSWER_RUBRIC,
+      DEFAULT_SYNTHESIS,
+    );
+    const plainMean = consensusScore(
+      [
+        makeJudgment("skeptic", "skeptic", 4),
+        makeJudgment("referee", "referee", 7),
+        makeJudgment("advocate", "advocate", 10),
+      ],
+      ALGOLIA_ANSWER_RUBRIC,
+      { rule: "mean" },
+    );
+    // Skeptic up-weighted + top advocate trimmed => below the plain mean.
+    expect(conservative).toBeLessThan(plainMean);
+  });
+});
+
+describe("synthesize (consensus -> hard gate reconciliation)", () => {
+  it("returns the consensus score when the gate does not trip", () => {
+    const panel = [
+      makeJudgment("skeptic", "skeptic", 8),
+      makeJudgment("referee", "referee", 8),
+      makeJudgment("advocate", "advocate", 8),
+    ];
+    const r = synthesize(panel, ALGOLIA_ANSWER_RUBRIC, DEFAULT_SYNTHESIS, DEFAULT_GATE);
+    expect(r.gate.tripped).toBe(false);
+    expect(r.finalScore).toBeCloseTo(r.preGateScore, 5);
+    expect(r.finalScore).toBeCloseTo(((8 - 1) / 9) * 10, 5);
+  });
+
+  it("CAPS the final score when the skeptic flags a verified violation, despite high prose", () => {
+    const panel = [
+      makeJudgment("skeptic", "skeptic", 9, [{ confidence: 0.95 }]),
+      makeJudgment("referee", "referee", 9),
+      makeJudgment("advocate", "advocate", 10),
+    ];
+    const r = synthesize(panel, ALGOLIA_ANSWER_RUBRIC, DEFAULT_SYNTHESIS, DEFAULT_GATE);
+    expect(r.gate.tripped).toBe(true);
+    expect(r.preGateScore).toBeGreaterThan(DEFAULT_GATE.cap); // prose was high
+    expect(r.finalScore).toBe(DEFAULT_GATE.cap); // ...but capped
+  });
+
+  it("reports panel spread as a variance signal", () => {
+    const panel = [
+      makeJudgment("skeptic", "skeptic", 3),
+      makeJudgment("referee", "referee", 6),
+      makeJudgment("advocate", "advocate", 9),
+    ];
+    const r = synthesize(panel, ALGOLIA_ANSWER_RUBRIC, DEFAULT_SYNTHESIS, DEFAULT_GATE);
+    const expSpread = ((9 - 1) / 9) * 10 - ((3 - 1) / 9) * 10;
+    expect(r.panelSpread).toBeCloseTo(expSpread, 5);
+  });
+});
+
+describe("multi-round variance", () => {
+  it("stdDev is zero for identical rounds and positive when they differ", () => {
+    expect(stdDev([5, 5, 5])).toBe(0);
+    expect(stdDev([4, 6])).toBeGreaterThan(0);
+  });
+
+  it("multiRoundStats summarises scores across rounds", () => {
+    const stats = multiRoundStats([7, 7, 9], true);
+    expect(stats.rounds).toBe(3);
+    expect(stats.meanFinalScore).toBeCloseTo((7 + 7 + 9) / 3, 5);
+    expect(stats.range).toBeCloseTo(2, 5);
+    expect(stats.anyGateTripped).toBe(true);
+  });
+});
+
+describe("aggregateRounds (voted gate over a stable mean pre-gate)", () => {
+  const opts = { rubric: ALGOLIA_ANSWER_RUBRIC, synthesis: DEFAULT_SYNTHESIS, gate: DEFAULT_GATE };
+
+  it("does NOT trip on a MINORITY of gate trips — the flicker bug fix", () => {
+    // 1 of 3 rounds flagged a violation (stochastic skeptic mood); 2 were clean.
+    const perRound = [round(7, 8, 8, true), round(7, 8, 8), round(7, 8, 8)];
+    const agg = aggregateRounds(perRound, opts.rubric, opts.synthesis, opts.gate, 0.5);
+
+    expect(agg.gateTripFraction).toBeCloseTo(1 / 3, 5);
+    expect(agg.gateTripped).toBe(false);
+    // Final tracks the stable mean pre-gate, NOT the cap.
+    expect(agg.finalScore).toBeCloseTo(agg.meanPreGateScore, 5);
+    expect(agg.finalScore).toBeGreaterThan(DEFAULT_GATE.cap);
+  });
+
+  it("DOES trip when violations reproduce in a MAJORITY of rounds", () => {
+    // 2 of 3 rounds flagged a violation -> a real, reproducible grounding problem.
+    const perRound = [round(7, 8, 8, true), round(7, 8, 8, true), round(7, 8, 8)];
+    const agg = aggregateRounds(perRound, opts.rubric, opts.synthesis, opts.gate, 0.5);
+
+    expect(agg.gateTripFraction).toBeCloseTo(2 / 3, 5);
+    expect(agg.gateTripped).toBe(true);
+    expect(agg.finalScore).toBe(DEFAULT_GATE.cap);
+  });
+
+  it("reports a stable mean and ZERO stdDev when rounds are identical", () => {
+    const perRound = [round(8, 8, 8), round(8, 8, 8), round(8, 8, 8)];
+    const agg = aggregateRounds(perRound, opts.rubric, opts.synthesis, opts.gate, 0.5);
+
+    const single = consensusScore(round(8, 8, 8), opts.rubric, opts.synthesis);
+    expect(agg.meanPreGateScore).toBeCloseTo(single, 5);
+    expect(agg.stdDevPreGateScore).toBe(0);
+    expect(agg.rounds).toBe(3);
+    expect(agg.gateTripped).toBe(false);
+  });
+
+  it("surfaces pre-gate variance (positive stdDev) when judges drift across rounds", () => {
+    const perRound = [round(6, 6, 6), round(8, 8, 8)];
+    const agg = aggregateRounds(perRound, opts.rubric, opts.synthesis, opts.gate, 0.5);
+    expect(agg.stdDevPreGateScore).toBeGreaterThan(0);
+    expect(agg.perRoundPreGate).toHaveLength(2);
+  });
+
+  // --- supermajority + borderline (default policy) -------------------------
+  function rounds5(violationCount: number) {
+    return Array.from({ length: 5 }, (_, i) => round(7, 8, 8, i < violationCount));
+  }
+
+  it("by DEFAULT requires a supermajority (>=2/3) of rounds to trip the gate", () => {
+    // 3 of 5 rounds = 0.6, below the default supermajority -> NOT tripped.
+    const below = aggregateRounds(rounds5(3), opts.rubric, opts.synthesis, opts.gate);
+    expect(below.gateTripped).toBe(false);
+    // 4 of 5 = 0.8, a supermajority -> tripped.
+    const above = aggregateRounds(rounds5(4), opts.rubric, opts.synthesis, opts.gate);
+    expect(above.gateTripped).toBe(true);
+    expect(above.finalScore).toBe(DEFAULT_GATE.cap);
+  });
+
+  it("FLAGS borderline (and does NOT cap) when violations appear but are not reproducible", () => {
+    // 2 of 5 rounds flagged: some evidence, below supermajority, above 'clean'.
+    const agg = aggregateRounds(rounds5(2), opts.rubric, opts.synthesis, opts.gate);
+    expect(agg.gateTripped).toBe(false);
+    expect(agg.borderline).toBe(true);
+    // Not capped — final tracks the stable mean pre-gate.
+    expect(agg.finalScore).toBeCloseTo(agg.meanPreGateScore, 5);
+    expect(agg.finalScore).toBeGreaterThan(DEFAULT_GATE.cap);
+  });
+
+  it("is neither tripped nor borderline when rounds are reproducibly clean", () => {
+    const agg = aggregateRounds(rounds5(0), opts.rubric, opts.synthesis, opts.gate);
+    expect(agg.gateTripped).toBe(false);
+    expect(agg.borderline).toBe(false);
+  });
+
+  it("is tripped (not merely borderline) when violations reproduce every round", () => {
+    const agg = aggregateRounds(rounds5(5), opts.rubric, opts.synthesis, opts.gate);
+    expect(agg.gateTripped).toBe(true);
+    expect(agg.borderline).toBe(false);
+  });
+});
