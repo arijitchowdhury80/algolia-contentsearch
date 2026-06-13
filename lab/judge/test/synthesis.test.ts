@@ -204,3 +204,42 @@ describe("aggregateRounds (voted gate over a stable mean pre-gate)", () => {
     expect(agg.borderline).toBe(false);
   });
 });
+
+describe("aggregateRounds — claim-level gate (zero-flicker)", () => {
+  const opts = { rubric: ALGOLIA_ANSWER_RUBRIC, synthesis: DEFAULT_SYNTHESIS, gate: DEFAULT_GATE };
+
+  /** A round whose skeptic flags ONE specific claim at a given confidence. */
+  function roundWithClaim(claim: string, confidence = 0.9) {
+    const skeptic = makeJudgment("skeptic", "skeptic", 7, [{ confidence }]);
+    return [
+      { ...skeptic, groundingViolations: [{ claim, reason: "not in sources", confidence }] },
+      makeJudgment("referee", "referee", 8),
+      makeJudgment("advocate", "advocate", 8),
+    ];
+  }
+
+  it("does NOT trip on heterogeneous one-off claims — no single claim recurs", () => {
+    // Every round flags SOMETHING, but a different thing each time → skeptic noise,
+    // not a reproducible violation. Old logic counted 3/3 trips and gated; wrong.
+    const perRound = [
+      roundWithClaim("vector search uses numeric embeddings"),
+      roundWithClaim("facetFilters restrict to selected refinements"),
+      roundWithClaim("NeuralSearch blends keyword and semantic ranking"),
+    ];
+    const agg = aggregateRounds(perRound, opts.rubric, opts.synthesis, opts.gate, 0.5);
+    expect(agg.gateTripped).toBe(false);
+  });
+
+  it("DOES trip when the SAME claim recurs, even as confidence wobbles across the old cutoff", () => {
+    // The anti-flicker guarantee: a real violation flagged every round trips
+    // stably, regardless of confidence dipping below the old verified cutoff.
+    const perRound = [
+      roundWithClaim("the opening definition is ungrounded", 0.62),
+      roundWithClaim("the opening definition is ungrounded", 0.78),
+      roundWithClaim("the opening definition is ungrounded", 0.55),
+    ];
+    const agg = aggregateRounds(perRound, opts.rubric, opts.synthesis, opts.gate, 0.5);
+    expect(agg.gateTripped).toBe(true);
+    expect(agg.finalScore).toBe(DEFAULT_GATE.cap);
+  });
+});

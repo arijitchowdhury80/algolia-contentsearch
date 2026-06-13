@@ -1,4 +1,5 @@
 import { applyGate, evaluateHardGate } from "./gate.js";
+import { evaluateClaimGate, DEFAULT_CLAIM_GATE } from "./claimGate.js";
 import { toFinalScale } from "./aggregate.js";
 import type {
   HardGateConfig,
@@ -160,14 +161,31 @@ export function aggregateRounds(
   const perRoundPreGate = perRoundJudgments.map((js) =>
     consensusScore(js, rubric, synthesisCfg),
   );
-  const tripCount = perRoundJudgments.reduce(
-    (n, js) => n + (evaluateHardGate(js, gateCfg).tripped ? 1 : 0),
+
+  // CLAIM-LEVEL GATE (zero-flicker): instead of counting heterogeneous per-round
+  // trips (which let a different imagined claim each round gate, and let a real
+  // claim escape when its confidence dipped under a sharp cutoff), gather the
+  // gating judges' violations per round and trip only when the SAME claim
+  // RECURS in `tripThreshold` of rounds. Stable under confidence wobble.
+  const gating = new Set(gateCfg.gatingTemperaments);
+  const perRoundViolations = perRoundJudgments.map((js) =>
+    js
+      .filter((j) => gating.has(j.temperament))
+      .flatMap((j) => j.groundingViolations),
+  );
+  const claimGate = evaluateClaimGate(perRoundViolations, {
+    ...DEFAULT_CLAIM_GATE,
+    recurrenceThreshold: tripThreshold,
+  });
+  // The recurrence of the most-reproducible claim — the gate's evidence strength.
+  const maxRecurrence = claimGate.clusters.reduce(
+    (m, c) => Math.max(m, c.recurrenceFraction),
     0,
   );
 
   const meanPreGateScore = mean(perRoundPreGate);
-  const gateTripFraction = rounds === 0 ? 0 : tripCount / rounds;
-  const gateTripped = rounds > 0 && gateTripFraction >= tripThreshold;
+  const gateTripFraction = rounds === 0 ? 0 : maxRecurrence;
+  const gateTripped = rounds > 0 && claimGate.tripped;
   const borderline = !gateTripped && gateTripFraction > cleanThreshold;
   const finalScore = gateTripped
     ? Math.min(meanPreGateScore, gateCfg.cap)

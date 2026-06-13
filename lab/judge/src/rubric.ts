@@ -69,12 +69,21 @@ export const ALGOLIA_ANSWER_RUBRIC: Rubric = {
   ],
 };
 
-/** The three blind judge personas. Identity of the pipeline is never revealed. */
+/**
+ * The three blind judge personas. Identity of the pipeline is never revealed.
+ *
+ * ALL judges run at temperature 0 (zero-flicker policy, 2026-06-13): determinism
+ * comes from temperature 0; perspective diversity comes from the distinct PERSONAS
+ * below, NOT from random sampling. A nonzero temperature on the gating Skeptic was
+ * the primary source of grounding-gate flicker (its violation-detection wobbled
+ * across runs). The claim-recurrence gate is the safety net for any residual
+ * provider nondeterminism; temperature 0 removes it at the source.
+ */
 export const DEFAULT_JUDGES: readonly JudgeProfile[] = [
   {
     id: "skeptic",
     temperament: "skeptic",
-    temperature: 0.2,
+    temperature: 0.0,
     persona:
       "You are a CONTRARIAN skeptic. Hunt for hallucination, unsupported claims, fluff, broken logic, and citations that do not actually back the claim they attach to. Assume the answer is wrong until the sources prove it right. Score conservatively: when in doubt, score lower. Flag every claim you cannot map to a provided source as a grounding violation with your confidence.",
   },
@@ -88,7 +97,7 @@ export const DEFAULT_JUDGES: readonly JudgeProfile[] = [
   {
     id: "advocate",
     temperament: "advocate",
-    temperature: 0.3,
+    temperature: 0.0,
     persona:
       "You are a generous ADVOCATE who believes the answer is trying to help. Reward genuine depth, helpfulness, layered teaching, completeness, and engagement. Give credit for substance. You still must not excuse fabricated facts — grounding is non-negotiable — but everywhere else, find the value.",
   },

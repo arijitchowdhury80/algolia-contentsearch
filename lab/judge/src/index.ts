@@ -39,3 +39,15 @@ export {
   DEFAULT_GATE_CLEAN_THRESHOLD,
 } from "./synthesis.js";
 export { judgeArtifact, judgeArtifactMultiRound } from "./judge.js";
+export {
+  claimSimilarity,
+  clusterRoundViolations,
+  evaluateClaimGate,
+  DEFAULT_CLAIM_GATE,
+} from "./claimGate.js";
+export type {
+  ClaimCluster,
+  ClaimGateConfig,
+  ClaimGateOutcome,
+  ClusterOptions,
+} from "./claimGate.js";
