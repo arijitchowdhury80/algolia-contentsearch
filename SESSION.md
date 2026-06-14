@@ -1,8 +1,48 @@
 # SESSION.md — Algolia-Central2 (Visibility Agents)
 
+_Last updated: 2026-06-13 ~10:40pm EDT (/persist)_
+
+## ▶ RESUME (2026-06-13 ~10:40pm) — START HERE (latest; supersedes ALL blocks below)
+
+**This session built + packaged the reusable Eval-Loop product (AI Judge + Autocorrect) and corrected the verdict. All committed + pushed (`448e434`). Memory: [[project-eval-loop-product]], [[feedback-zero-flicker-judge]].**
+
+### ⏳ FIRST ACTION ON RESUME — check the live optimization run
+A REAL autocorrect run was launched and was **STILL RUNNING at persist** (pid 68620, mid round-0). Log: `/tmp/autocorrect_real.log`. Config: baseline=`grounded_lead_v1`, `--rounds 3`, `JUDGE_ROUNDS=3`, `minImprovement=0.3`, full dev(18)+held-out(9).
+1. `tail -50 /tmp/autocorrect_real.log` → look for `=== REAL RUN DONE` + `STOPPED: <reason>` + `best config id` + per-round KEEP/ROLLBACK lines.
+2. If it produced a winning mutation, the live tuned agent `b5c4de23` is already on it; read the best prompt and decide whether to keep it.
+3. If it crashed/hung: re-run `cd lab/server && JUDGE_ROUNDS=3 ./node_modules/.bin/tsx src/cli.ts autocorrect --rounds 3`.
+
+### What this session shipped (3 phases, TDD throughout, all committed + pushed)
+**Phase 0 — Judge ZERO-flicker (commit `35efbf3`).** The grounding gate flickered (same answer scored 3 or 8, ±5 swing) → keep/rollback untrustworthy. Root cause: (a) gate counted heterogeneous per-round trips, (b) gating Skeptic ran temp 0.2. Fix: **claim-recurrence gate** (`lab/judge/src/claimGate.ts` — clusters violations across rounds by stemmed token-Jaccard, trips only when the SAME claim recurs in a supermajority) + **all judges temp 0** (`rubric.ts`). PROVEN: judged identical answers twice → **0/21 gate flips**. Honest residual: quality score wiggles ≤~0.3 (Gemini not bit-deterministic at temp 0) — never flips a gate, handled by `minImprovement`. 64 judge tests. dimensionMeans now persisted (`synthesis.ts`/`judgeStep.ts`/`store.ts`).
+**Phase 1 — Autocorrect loop (commits `c741e0a`,`57a21f6`,`e1ef6e1`,`9469053`).** Portable orchestrator `runAutocorrect` (`lab/autocorrect/src/orchestrator.ts`) drives the pre-existing pure decision core via 3 injected seams (`deploy`/`evaluate`/`propose`). Algolia adapters in `lab/server/src/autocorrectAdapters.ts` (deploy via agent_admin.mjs; evaluate via runTests+judgeRun; propose via LLM grounded in judge rationales). CLI: `tsx src/cli.ts autocorrect [--baseline f] [--rounds N] [--smoke] [--ids/--limit]`. Ran live end-to-end (smoke): correctly rolled back a non-improvement, handled empty held-out (bug found+fixed `9469053`), clean stop. 23 autocorrect tests.
+**Phase 2 — Eval-Loop plugin (commit `448e434`).** Repo `eval-loop/`: `.claude-plugin/plugin.json`, `skills/ai-judge`, `skills/autocorrect-loop`, bundled `packages/` (via `sync-packages.sh`), README. Skills validated by a fresh subagent with NO source access (it wired both APIs correctly from skill text alone; gaps found were closed). **INSTALLED GLOBALLY:** `~/.claude/skills/{ai-judge,autocorrect-loop}/` + `~/.claude/eval-loop/packages/` → usable in EVERY project. ⚠ global copies are the INSTALLED instance, NOT in git; canonical = repo `eval-loop/`.
+
+### Verdict CORRECTED (important — don't cite the old number)
+Fair re-test (② fixed, fresh, N=5, zero-flicker judge, dev split `20260613T004122Z`): **① 3.82 · ② 4.42 (gated 14/18) · ③ 5.15 (gated 12/18)** — ③ beats ② by only **+0.73**, both gate ~70%. The stale "③ 7.44 vs ② 4.59 / +2.85" does NOT survive (it was v1/N=3/gpt-5.2-cached/②-broken). "110% grounded" NOT met. Diagnosis: `docs/experiment/gated-question-diagnosis.md` (③ gates are real — un-sourced opening definition; root-caused to the prompt's "direct answer first" rule). Mutation #1 `grounded_lead_v1` (deployed to `b5c4de23`) validated as a KEEP on targeted Qs. Full log: `docs/experiment/autocorrect-run-log.md`.
+
+### Verification (this session)
+`cd lab/judge && npx vitest run` → **64 pass**, tsc clean. `cd lab/autocorrect && ../judge/node_modules/.bin/vitest run` → **23 pass**, tsc clean. `cd lab/server && npx tsc --noEmit` → clean. Zero-flicker proof: `/tmp/judge_stability.log` (Phase 0 N=5 ×2) + `/tmp/flicker_proof.log` (0/21 flips). Smoke: `/tmp/autocorrect_smoke2.log` (clean stop).
+
+### NOT done (no false completion)
+- The REAL optimization run had NOT completed at persist — **check it first** (above).
+- No FULL optimization yet (more rounds / larger budget). The loop's `evaluate` re-runs the FIXED ② floor every round = ~2× cost; optimize (cache the floor) before long runs.
+- OpenAI quota still dead → all on Gemini ([[project-gemini-switch]]). Provider flip-back enforcer still not built.
+- `eval-loop/` skills are global but live OUTSIDE git (the repo copy is canonical; re-copy to update).
+- UI judge panel still mock; ① WebsiteColumn still not wired (pre-existing, untouched this session).
+- `lab/server/output/{scores,transcripts}/` has many new untracked files (not committed; not needed for resume).
+
+### Key IDs / paths (carry-over)
+- Agents (app `VVKSSPDMJX`): ② mirror `02852440-8f57-4383-98bc-bffa5b357516`; ③ tuned `b5c4de23-769b-4b38-9051-a19add9dee06` (live = `grounded_lead_v1`). Re-instruct: `node scripts/setup/agent_admin.mjs update <id> <file>`.
+- Case-3 prompts: live `scripts/setup/instructions_case3_grounded_lead_v1.md`; rollback `scripts/setup/rollback_case3_v0_live.md`.
+- GitHub: github.com/arijitchowdhury80/algolia-contentsearch @ `448e434`.
+
+---
+
+_(historical blocks below — superseded by the 2026-06-13 block above)_
+
 _Last updated: 2026-06-12 ~7pm EDT (handoff)_
 
-## ▶▶▶ HANDOFF RESUME (2026-06-12 ~7pm) — START HERE (latest; supersedes the ~1pm block below)
+## ▶▶▶ HANDOFF RESUME (2026-06-12 ~7pm)
 
 **This session shipped the project to GitHub + Vercel, then did local debugging. Single source of truth = this session (the parallel lane was stopped by Arijit earlier — see ~1pm block + [[feedback-multi-session-coordination]]).**
 
