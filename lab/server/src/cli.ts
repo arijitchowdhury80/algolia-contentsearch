@@ -9,6 +9,7 @@
  * The harness ONLY runs panels + scores them. It never creates or modifies
  * Algolia agents/indices. Panel ids come from web/.env.local (see config.ts).
  */
+import { readFile } from "node:fs/promises";
 import { runTests } from "./runTests.js";
 import { judgeRun } from "./judgeStep.js";
 import { summarize } from "./summary.js";
@@ -16,11 +17,17 @@ import { setWebsiteCapture } from "./panels.js";
 import { liveWebsiteCapture } from "./website.js";
 import { getEnv } from "./config.js";
 import { resolveActiveProvider } from "./provider.js";
+import { runAutocorrect } from "@lab/autocorrect";
+import type { LoopConfig } from "@lab/autocorrect";
+import { makeAlgoliaSeams } from "./autocorrectAdapters.js";
 
 interface Flags {
   limit?: number;
   ids?: string[];
   split?: "dev" | "held-out";
+  baseline?: string;
+  rounds?: number;
+  smoke?: boolean;
   positional: string[];
 }
 
@@ -30,6 +37,9 @@ function parseFlags(argv: string[]): Flags {
     const a = argv[i];
     if (a === "--limit") flags.limit = Number(argv[++i]);
     else if (a === "--ids") flags.ids = argv[++i]?.split(",").map((s) => s.trim());
+    else if (a === "--baseline") flags.baseline = argv[++i];
+    else if (a === "--rounds") flags.rounds = Number(argv[++i]);
+    else if (a === "--smoke") flags.smoke = true;
     else if (a === "--split") {
       const v = argv[++i];
       if (v === "dev" || v === "held-out") flags.split = v;
@@ -121,6 +131,46 @@ async function main(): Promise<void> {
       );
       break;
     }
+    case "autocorrect": {
+      // Drive the @lab/autocorrect loop against the live Algolia agents.
+      //   --baseline <file>  the Case-3 prompt to start from (deployed at round 0)
+      //   --rounds N         max rounds (default 4)
+      //   --smoke            stub proposer + tiny set (--ids/--limit) to prove wiring
+      const baselineFile =
+        f.baseline ??
+        `${process.cwd()}/../../scripts/setup/instructions_case3_grounded_lead_v1.md`;
+      const baselineConfig = await readFile(baselineFile, "utf8");
+      const cfg: LoopConfig = {
+        oursPanelId: "tuned",
+        floorPanelId: "mirror",
+        targetMargin: 1.0,
+        sustainRounds: 2,
+        maxRounds: f.rounds ?? 4,
+        patience: 2,
+        minImprovement: 0.3, // measured Gemini noise floor (zero-flicker proof)
+      };
+      const { seams, lastRunId } = makeAlgoliaSeams({
+        oursPanelId: "tuned",
+        stubWebsite: true,
+        ...(f.smoke ? { stubProposer: true } : {}),
+        ...(f.ids ? { evalIds: f.ids } : {}),
+        ...(f.limit !== undefined ? { evalLimit: f.limit } : {}),
+        log: (m) => console.log(`[autocorrect] ${m}`),
+      });
+      console.log(
+        `\n[autocorrect] baseline=${baselineFile}\n[autocorrect] maxRounds=${cfg.maxRounds} target=+${cfg.targetMargin} minImprovement=${cfg.minImprovement}${f.smoke ? " (SMOKE: stub proposer)" : ""}\n`,
+      );
+      const res = await runAutocorrect({
+        seams,
+        cfg,
+        baseline: { id: "case3-baseline", config: baselineConfig },
+      });
+      console.log(`\n[autocorrect] STOPPED: ${res.stopReason}`);
+      console.log(`[autocorrect] best config id: ${res.best.id}`);
+      console.log(`[autocorrect] rounds run: ${res.history.length}`);
+      console.log(`[autocorrect] last transcript: ${lastRunId() ?? "(none)"}`);
+      break;
+    }
     case "pipeline": {
       const runId = await runTests({
         ...(f.limit !== undefined ? { limit: f.limit } : {}),
@@ -141,6 +191,8 @@ async function main(): Promise<void> {
           "  judge <runId> [--limit N] [--ids a,b]",
           "  summary <runId>",
           "  pipeline [--limit N] [--ids a,b] [--split ...]",
+          "  provider",
+          "  autocorrect [--baseline <file>] [--rounds N] [--smoke]",
         ].join("\n"),
       );
   }

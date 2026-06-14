@@ -75,6 +75,8 @@ export interface PanelScore {
   borderline: boolean;
   /** per-judge weighted scores, for transparency. */
   judgeScores: { judgeId: string; weightedScore: number }[];
+  /** Mean raw score per rubric dimension (across judges + rounds) — autocorrect diagnosis. */
+  dimensionMeans?: Readonly<Record<string, number>>;
   error?: string;
 }
 

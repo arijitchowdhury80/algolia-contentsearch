@@ -124,6 +124,8 @@ async function scorePanel(
     stdDevPreGateScore: agg.stdDevPreGateScore,
     gateTripFraction: agg.gateTripFraction,
     borderline: agg.borderline,
+    // Per-dimension means (across judges + rounds) — feeds autocorrect diagnosis.
+    dimensionMeans: agg.dimensionMeans,
     // Average each judge's weighted score across rounds for transparency.
     judgeScores: averageJudgeScores(result),
   };

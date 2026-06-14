@@ -11,7 +11,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@lab/judge": "file:../judge"
+    "@lab/judge": "file:../judge",
+    "@lab/autocorrect": "file:../autocorrect"
   },
   "devDependencies": {
     "@types/node": "^22.19.21",
