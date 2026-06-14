@@ -126,6 +126,28 @@ describe("runAutocorrect orchestrator", () => {
     expect(res.best.config).toBe("baseline");
   });
 
+  it("treats an EMPTY held-out split as not-validated (never crashes)", async () => {
+    // A held-out evaluation that returns no answers (e.g. restricted question
+    // set) must not crash the win-check — the round is simply not validated.
+    const seams: AutocorrectSeams<string> = {
+      async deploy() {},
+      async evaluate(split) {
+        return split === "dev" ? answers("dev", 6, 4) : []; // held-out empty
+      },
+      async propose() {
+        return "cand";
+      },
+    };
+    const res = await runAutocorrect({
+      seams,
+      cfg: { ...CFG, maxRounds: 2, sustainRounds: 1, targetMargin: 1.0 },
+      baseline: { id: "baseline", config: "baseline" },
+    });
+    // No throw; rounds recorded; never declares a win without held-out evidence.
+    expect(res.history.length).toBeGreaterThanOrEqual(2);
+    expect(res.stopReason).not.toBe("won");
+  });
+
   it("stops with 'won' when ours sustains the target margin on held-out", async () => {
     // baseline ours=5 floor=4 (margin 1.0 already >= targetMargin 1.0, grounded).
     const { seams } = makeSeams([{ ours: 5, heldOut: 5 }], 4.0);

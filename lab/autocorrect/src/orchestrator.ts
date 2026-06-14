@@ -120,6 +120,10 @@ async function measure<C>(
   if (!validate) return { round, configId, dev };
   const heldAnswers = await seams.evaluate("held-out");
   const heldOut: SplitMetrics = summarizeSplit(heldAnswers, "held-out");
+  // An empty held-out split (e.g. a restricted question set) carries no panels
+  // to compare — treat the round as NOT validated rather than feed the pure
+  // win-check a split it will reject. A win then requires real held-out evidence.
+  if (heldOut.panels.length === 0) return { round, configId, dev };
   return { round, configId, dev, heldOut };
 }
 
