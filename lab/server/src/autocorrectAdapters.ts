@@ -89,6 +89,13 @@ export interface AutocorrectAdapterOptions {
   evalIds?: string[];
   /** Restrict evaluation to the first N questions (smoke tests). */
   evalLimit?: number;
+  /**
+   * Cache the fixed ①/② floor across rounds (default true). Only the panel
+   * under optimization (`oursPanelId`) changes between rounds, so the floor is
+   * measured + judged once per split and reused — roughly halving per-round
+   * cost. Set false to re-measure every panel every round.
+   */
+  cacheFloor?: boolean;
   log?: (msg: string) => void;
 }
 
@@ -110,6 +117,9 @@ export function makeAlgoliaSeams(
   if (opts.stubWebsite ?? true) process.env.WEBSITE_STUB = "1";
 
   let lastRunId: string | undefined;
+  const cacheFloor = opts.cacheFloor ?? true;
+  /** Per-split cache of the FIXED (non-ours) panel scores, measured once. */
+  const floorCache = new Map<"dev" | "held-out", ScoredPanelAnswer[]>();
 
   const seams: AutocorrectSeams<string> = {
     async deploy(promptText) {
@@ -120,15 +130,32 @@ export function makeAlgoliaSeams(
     },
 
     async evaluate(split) {
-      log(`evaluate(${split}): run-tests + judge`);
+      const cached = cacheFloor ? floorCache.get(split) : undefined;
+      const oursOnly = cached !== undefined;
+      log(
+        `evaluate(${split}): run-tests + judge${oursOnly ? ` (ours only — ${cached!.length} floor panel-scores cached)` : ""}`,
+      );
       const runId = await runTests({
         split,
         ...(opts.evalIds ? { onlyIds: opts.evalIds } : {}),
         ...(opts.evalLimit !== undefined ? { limit: opts.evalLimit } : {}),
+        ...(oursOnly ? { panelIds: [oursPanelId] } : {}),
       });
       await judgeRun(runId);
       lastRunId = runId;
-      return scoresToAnswers(runId, split);
+      const fresh = scoresToAnswers(runId, split);
+      if (!cacheFloor) return fresh;
+      if (!oursOnly) {
+        // First measurement of this split: cache the fixed (non-ours) panels.
+        floorCache.set(
+          split,
+          fresh.filter((a) => a.panelId !== oursPanelId),
+        );
+        return fresh;
+      }
+      // Later rounds: `fresh` holds only the re-measured ours panel; merge it
+      // with the cached floor so the loop sees a complete split.
+      return [...cached!, ...fresh];
     },
 
     async propose(current, weakest: readonly WeakDimension[], _history: readonly RoundResult[]) {

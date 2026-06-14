@@ -64,6 +64,12 @@ export interface RunTestsOptions {
   onlyIds?: string[];
   /** Restrict to a split. */
   split?: "dev" | "held-out";
+  /**
+   * Only run these panels (by id). Default: all configured panels. Used by the
+   * autocorrect loop to re-run ONLY the panel under optimization on later rounds
+   * (the fixed ①/② floor is measured once and cached).
+   */
+  panelIds?: string[];
 }
 
 export async function runTests(opts: RunTestsOptions = {}): Promise<string> {
@@ -78,19 +84,30 @@ export async function runTests(opts: RunTestsOptions = {}): Promise<string> {
     questions = questions.slice(0, opts.limit);
   }
 
+  let panels = cfg.panels;
+  if (opts.panelIds?.length) {
+    const want = new Set(opts.panelIds);
+    panels = panels.filter((p) => want.has(p.id));
+    if (panels.length === 0) {
+      throw new Error(
+        `panelIds [${opts.panelIds.join(", ")}] matched no configured panels`,
+      );
+    }
+  }
+
   const runId = newRunId();
   console.log(`\n[run-tests] runId=${runId}`);
   console.log(
-    `[run-tests] ${questions.length} question(s) × ${cfg.panels.length} panel(s)\n`,
+    `[run-tests] ${questions.length} question(s) × ${panels.length} panel(s)\n`,
   );
 
   const tQuestions: TranscriptQuestion[] = [];
 
   for (const q of questions) {
     console.log(`  Q ${q.id} (cat ${q.category}, ${q.split}): ${q.prompt}`);
-    const panels: TranscriptPanel[] = [];
+    const tPanels: TranscriptPanel[] = [];
 
-    for (const panel of cfg.panels) {
+    for (const panel of panels) {
       const t0 = Date.now();
       const answer = await runPanelForQuestion(panel, cfg, q);
       const latencyMs = Date.now() - t0;
@@ -99,7 +116,7 @@ export async function runTests(opts: RunTestsOptions = {}): Promise<string> {
         : `${answer.answer.length} chars, ${answer.sources.length} src`;
       console.log(`    ${panel.id.padEnd(8)} ${latencyMs}ms  ${status}`);
 
-      panels.push({
+      tPanels.push({
         panelId: panel.id,
         panelLabel: panel.label,
         kind: panel.kind,
@@ -117,7 +134,7 @@ export async function runTests(opts: RunTestsOptions = {}): Promise<string> {
       prompt: q.prompt,
       ...(q.followUp ? { followUp: q.followUp } : {}),
       isRefusalTest: q.isRefusalTest,
-      panels,
+      panels: tPanels,
     });
   }
 
@@ -125,7 +142,7 @@ export async function runTests(opts: RunTestsOptions = {}): Promise<string> {
     runId,
     createdAt: new Date().toISOString(),
     questionVersion: QUESTION_VERSION,
-    panelOrder: cfg.panels.map((p) => p.id),
+    panelOrder: panels.map((p) => p.id),
     questions: tQuestions,
   };
 

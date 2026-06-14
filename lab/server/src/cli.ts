@@ -28,6 +28,7 @@ interface Flags {
   baseline?: string;
   rounds?: number;
   smoke?: boolean;
+  noCacheFloor?: boolean;
   positional: string[];
 }
 
@@ -40,6 +41,7 @@ function parseFlags(argv: string[]): Flags {
     else if (a === "--baseline") flags.baseline = argv[++i];
     else if (a === "--rounds") flags.rounds = Number(argv[++i]);
     else if (a === "--smoke") flags.smoke = true;
+    else if (a === "--no-cache-floor") flags.noCacheFloor = true;
     else if (a === "--split") {
       const v = argv[++i];
       if (v === "dev" || v === "held-out") flags.split = v;
@@ -136,6 +138,7 @@ async function main(): Promise<void> {
       //   --baseline <file>  the Case-3 prompt to start from (deployed at round 0)
       //   --rounds N         max rounds (default 4)
       //   --smoke            stub proposer + tiny set (--ids/--limit) to prove wiring
+      //   --no-cache-floor   re-measure every panel every round (default: cache ①/②)
       const baselineFile =
         f.baseline ??
         `${process.cwd()}/../../scripts/setup/instructions_case3_grounded_lead_v1.md`;
@@ -152,6 +155,7 @@ async function main(): Promise<void> {
       const { seams, lastRunId } = makeAlgoliaSeams({
         oursPanelId: "tuned",
         stubWebsite: true,
+        cacheFloor: !f.noCacheFloor,
         ...(f.smoke ? { stubProposer: true } : {}),
         ...(f.ids ? { evalIds: f.ids } : {}),
         ...(f.limit !== undefined ? { evalLimit: f.limit } : {}),
@@ -192,7 +196,7 @@ async function main(): Promise<void> {
           "  summary <runId>",
           "  pipeline [--limit N] [--ids a,b] [--split ...]",
           "  provider",
-          "  autocorrect [--baseline <file>] [--rounds N] [--smoke]",
+          "  autocorrect [--baseline <file>] [--rounds N] [--smoke] [--no-cache-floor]",
         ].join("\n"),
       );
   }
