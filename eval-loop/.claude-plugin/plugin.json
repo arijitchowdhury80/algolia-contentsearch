@@ -1,0 +1,17 @@
+{
+  "name": "eval-loop",
+  "version": "0.1.0",
+  "description": "Provider-agnostic LLM answer-quality toolkit: a reproducible multi-judge scoring panel with a zero-flicker grounding gate, plus an autocorrect optimization loop that improves a system's config/prompt while never regressing grounding. Two skills: ai-judge and autocorrect-loop.",
+  "author": {
+    "name": "Arijit Chowdhury"
+  },
+  "keywords": [
+    "llm-judge",
+    "eval",
+    "grounding",
+    "hallucination",
+    "rag",
+    "prompt-optimization",
+    "answer-quality"
+  ]
+}

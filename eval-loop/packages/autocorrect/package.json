@@ -1,0 +1,14 @@
+{
+  "name": "@lab/autocorrect",
+  "version": "0.1.0",
+  "description": "Autocorrect — eval-driven optimization loop (Karpathy AutoResearch): judge → diagnose → mutate Case-3 config → re-test → keep-if-better, with held-out overfit guard and stopping criteria. The decision core is pure and provider-agnostic.",
+  "type": "module",
+  "private": true,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "../judge/node_modules/.bin/vitest run",
+    "typecheck": "../judge/node_modules/.bin/tsc --noEmit"
+  }
+}
