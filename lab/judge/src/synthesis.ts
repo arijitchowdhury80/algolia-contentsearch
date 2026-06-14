@@ -183,6 +183,23 @@ export function aggregateRounds(
     0,
   );
 
+  // Per-dimension means across ALL judges and ALL rounds (for loop diagnosis).
+  const dimSums: Record<string, { sum: number; n: number }> = {};
+  for (const js of perRoundJudgments) {
+    for (const j of js) {
+      for (const d of j.dimensionScores) {
+        const cur = dimSums[d.dimensionId] ?? { sum: 0, n: 0 };
+        cur.sum += d.score;
+        cur.n += 1;
+        dimSums[d.dimensionId] = cur;
+      }
+    }
+  }
+  const dimensionMeans: Record<string, number> = {};
+  for (const [dim, { sum, n }] of Object.entries(dimSums)) {
+    if (n > 0) dimensionMeans[dim] = sum / n;
+  }
+
   const meanPreGateScore = mean(perRoundPreGate);
   const gateTripFraction = rounds === 0 ? 0 : maxRecurrence;
   const gateTripped = rounds > 0 && claimGate.tripped;
@@ -200,6 +217,7 @@ export function aggregateRounds(
     gateTripped,
     borderline,
     finalScore,
+    dimensionMeans,
   };
 }
 

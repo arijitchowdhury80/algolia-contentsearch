@@ -289,6 +289,13 @@ export interface RoundAggregate {
   readonly borderline: boolean;
   /** meanPreGateScore, capped to the gate cap iff gateTripped. */
   readonly finalScore: number;
+  /**
+   * Mean raw (1-10) score per rubric dimension, averaged across all judges and
+   * all rounds. Keyed by dimensionId; omits dimensions not scored (e.g.
+   * engagement on a one-shot answer). Feeds the autocorrect loop's
+   * weakest-dimension diagnosis.
+   */
+  readonly dimensionMeans: Readonly<Record<string, number>>;
 }
 
 export interface MultiRoundResult {

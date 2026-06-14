@@ -242,4 +242,15 @@ describe("aggregateRounds — claim-level gate (zero-flicker)", () => {
     expect(agg.gateTripped).toBe(true);
     expect(agg.finalScore).toBe(DEFAULT_GATE.cap);
   });
+
+  it("reports per-dimension means averaged across judges and rounds", () => {
+    // skeptic=4, referee=7, advocate=10 on every dimension → mean 7 per dim.
+    const perRound = [round(4, 7, 10), round(4, 7, 10)];
+    const agg = aggregateRounds(perRound, opts.rubric, opts.synthesis, opts.gate, 0.5);
+    expect(agg.dimensionMeans).toBeDefined();
+    expect(agg.dimensionMeans.completeness).toBeCloseTo(7, 5);
+    expect(agg.dimensionMeans.groundedness).toBeCloseTo(7, 5);
+    // "engagement" is omitted for one-shot answers → not in the means.
+    expect(agg.dimensionMeans.engagement).toBeUndefined();
+  });
 });
