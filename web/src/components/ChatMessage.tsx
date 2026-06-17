@@ -7,7 +7,7 @@
  *   refusal (trustworthy info-blue card — the thesis, NOT an error),
  *   error (danger card — e.g. provider 401 / network).
  */
-import { SourceList } from './SourceList';
+import { GroupedSources } from './GroupedSources';
 import { Markdown } from './Markdown';
 import type { Message } from '../types/chat';
 
@@ -62,7 +62,7 @@ export function ChatMessage({ message }: Props) {
         )}
 
         {!streaming && message.sources && message.sources.length > 0 && (
-          <SourceList sources={message.sources} />
+          <GroupedSources sources={message.sources} />
         )}
       </div>
     </div>
