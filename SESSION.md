@@ -1,8 +1,23 @@
 # SESSION.md — Algolia-Central2 (Visibility Agents)
 
-_Last updated: 2026-06-14 ~12:25pm EDT (/persist + /handoff)_
+_Last updated: 2026-06-17 ~11:20am EDT_
 
-## ▶ RESUME (2026-06-14 ~12:25pm) — START HERE (latest; supersedes ALL blocks below)
+## ▶ RESUME (2026-06-17 ~11:20am) — START HERE (latest; supersedes ALL blocks below)
+
+**This session: (1) committed the big 2026-06-14 batch as clean logical commits + set a gitignore policy for eval run outputs; (2) ran UX research and locked ADR-001 (Answer-Quality Lab redesign); (3) started building the redesign — D3 + D1 done.**
+
+### ⏳ FIRST ACTION ON RESUME: continue the **Lab UX redesign**
+- **Read `docs/workspace/lab-ux-redesign/_status.md` → "▶ RESUME (next session)"** — it is the complete, self-contained resume. Decisions live in `docs/design/adr-001-lab-ux-redesign.md`.
+- **State:** `main` HEAD `dbb98fa`. Committed & green (tsc + 58 web tests): D3 grouped source pills (`b3b5bff`), D1 lane rail (`dbb98fa`), ADR-001 (`45a1eb6`), plus the 2026-06-14 batch (`bd152c9`/`55e3eda`/`a87fd1e`). **Nothing pushed — push to `main` needs Arijit's explicit OK.**
+- **Remaining:** D2 (analysis drawer + lane score pills) → D4 (composer + follow-up callout + multi-turn surface) → consolidated browser proof → `ui-validator`. The multi-turn engine is ALREADY wired (ADR read-receipt) — D4 is pure UI surfacing.
+- **gitignore policy (new):** `lab/server/output/` is now ignored; cited eval runs are force-added. Don't un-ignore.
+
+### Background processes
+Backend `:8787` + vite `:5175` may still be running. `lsof -ti:8787 | xargs kill ; lsof -ti:5175 | xargs kill` if unused; the live judge + ① panel + the browser proof need :8787 up.
+
+---
+
+## ▶ RESUME (2026-06-14 ~12:25pm) — superseded by the 2026-06-17 block above
 
 **This session: made the lab UI actually work (live judge + ① website wired), made the autocorrect loop fast + robust, recorded a reliability SOP, and built the Sample Questions panel. Big batch is BUILT + VERIFIED but UNCOMMITTED.**
 
