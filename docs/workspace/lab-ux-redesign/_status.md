@@ -9,32 +9,66 @@
 
 **Done & committed (green: tsc + 58 web tests):** D3 grouped source pills (`b3b5bff`),
 D1 lane rail (`dbb98fa`), ADR-001 (`45a1eb6`), on `main`. Tree clean. **Not pushed**
-(needs Arijit OK). Run order to resume: build **D2 → D4 → browser proof → ui-validator**.
+(needs Arijit OK).
 
-**D2 — analysis drawer + lane score pills (do first):**
-1. Read `web/src/hooks/useLiveJudge.ts`, `web/src/lib/judgeClient.ts`, `web/src/lib/analysis.ts`
-   to find what per-panel scores exist. `AnalysisData` (AnalysisPanel.tsx) currently has a
-   single `synthesizedScore` (for ③ tuned) + judges + configDiff + synthesis. For lane pills
-   you need ② AND ③ scores — if only ③ is available, scope pills to what exists and note it.
-2. Refactor `AnalysisPanel` → `AnalysisDrawer`: right slide-out `role=dialog`, Esc to close,
-   focus trap + restore. Trigger from a header verdict chip + a per-lane ⚖ button.
-3. App shell: drop `.lab__analysis` (bottom 40%); `.lab__main` becomes the rail at full height.
-   Add `.drawer` CSS (right overlay, ~380–420px; full-screen sheet <768px).
-4. Score pill into `ColumnHeader` (add optional `score?`+tone); thread from App `live.data`
-   → `renderColumn` → AgentColumn → ColumnHeader (map panelId→score). Color tone + numeral
-   (never color alone).
+**D2 — analysis drawer + lane score pills — DONE (UNCOMMITTED, green: tsc + 68 web tests).**
+What shipped:
+- `lib/score.ts` — `scoreTone` (≥7.5/≥5 thresholds) + `laneTone` (gate-tripped → forced weak)
+  + `LaneScore` type. +5 unit tests.
+- `AnalysisData.laneScores: Record<panelId, LaneScore>` added; `toAnalysisData` now surfaces
+  BOTH ② mirror and ③ tuned scores (errored panels omitted). +2 analysis tests.
+- **`AnalysisPanel` → `AnalysisDrawer`** (renamed file; types moved in). Right slide-out
+  `role=dialog` `aria-modal`, backdrop, Esc-to-close, focus-in + restore + Tab trap
+  (dependency-free). Same idle/streaming/judging/done/error states. +5 drawer tests.
+- `ColumnHeader` gains optional `score?`+`onOpenAnalysis?` → always-visible `.lane-score`
+  pill (numeral + gate-aware tone; doubles as the per-lane ⚖ trigger). +4 header tests.
+- `AgentColumn` threads `score`/`onOpenAnalysis`. `App` holds drawer open state, header
+  `.verdict-chip` (③ headline, gate-aware), threads `laneScores[id]` to each lane.
+- CSS: dropped `.lab__main` 60/40 split (`.lab__panels` full height); added `.drawer*`
+  (full-screen sheet <768px), `.lane-score*`, `.verdict-chip*`, `.lab__qbar-row`,
+  `.lane__head-actions`; removed dead `.analysis`/`.analysis__head/title/mock` + mobile refs.
+- Esc/focus/Tab-trap behaviour is browser-proven at Step 10 (static-markup tests cover
+  the render branches, matching D1/D3 verification style).
 
-**D4 — composer + follow-up + multi-turn surface:**
-- `QueryBar` → `Composer`: persistent bottom bar; centered hero when `!hasRun`, docked after.
-  (`useComparison.submit()` already bumps seq → lanes already thread + replay history. No
-  engine work — pure surfacing. Confirmed via ADR read-receipt.)
-- `FollowUpCallout` + quick-reply chips: detect the agent's trailing question in an assistant
-  message; render a distinct accented block below the answer (icon + "asking" text + chips
-  that call `submit()`), NOT prose.
+**D4 — composer + follow-up + multi-turn surface — DONE (UNCOMMITTED, green: tsc + 80 web tests).**
+What shipped:
+- **`QueryBar` → `Composer`** (renamed). Persistent input that sends each turn to ALL lanes.
+  `hero={!hasRun}` → centered ChatGPT-style hero (title + big input + Sample Questions);
+  docked slim bottom bar after the first turn ("Ask a follow-up — goes to all systems…",
+  "Send"). Clears on submit; refocuses on dock. Engine already threads (ADR read-receipt) —
+  pure surfacing, confirmed live (multi-turn proof below).
+- `lib/followup.ts` — `detectFollowUp` (pure, conservative): a follow-up exists only when the
+  answer's FINAL sentence ends with '?'; quick-reply chips only from a clean trailing "A or B
+  [or C]" enumeration (filler-stripped), else []. +8 unit tests.
+- **`FollowUpCallout`** — elevated 🤔 accented block (label + question + optional chips that
+  call the shared `submit` → goes to all lanes). Rendered in `AgentColumn` only on the latest
+  settled, non-error assistant turn. +4 render tests.
+- App: `.lab--hero` toggles the hero/docked layout; topbar (comparison key + verdict chip)
+  shows only after first run; `onReply={submit}` threaded to lanes.
+- CSS: `.composer*` (hero fills+centers via `.lab--hero .lab__main{display:none}`; docked
+  bottom bar), `.lab__topbar`, `.followup*`; mobile padding for topbar/composer.
 
-**Then:** consolidated browser proof (backend on :8787 + vite on :5175; Chrome/Playwright →
-screenshots of rail scroll / pill popover / drawer / follow-up / multi-turn into this folder),
-then `ui-validator`, then final tsc+tests, update this file, commit, Definition-of-Done.
+**Browser proof — DONE** (backend :8787 + vite :5173; Chrome 1440px + 390px). Screenshots in
+this folder: `proof-01-hero` (centered composer) · `proof-02-docked-rail` (docked + full-height
+rail + source pills) · `proof-03-score-pills` (② 9.9 green / ③ 1.5 red·gated + verdict chip) ·
+`proof-04-drawer` (right analysis drawer: judges + config diff + synthesis) · `proof-05-followup-
+multiturn` (③ turn-2 ends in a question → 🤔 callout; shared turn-2 in ② & ③) · `proof-06-pill-
+popover` (D3 grouped-pill popover) · `proof-07-mobile` (tab switcher + wrapped topbar). **Esc-
+close + focus-restore verified live** (focus returned to the ⚖ pill). Multi-turn verified live
+(turn-2 fanned to all lanes; ③ recovered from the turn-1 false-refusal via history).
+
+**ui-validator — DONE: 0 FAIL, 1 WARN** (sub-44px touch targets on secondary pills/chips —
+matches existing pill density, mitigated by 44px mobile tabs). ⚠ Live vault SOP was unreadable
+(`EPERM` on the Google-Drive mount) — validated against the skill checklist + tokens.css +
+proofs; re-run against the SOP text when the mount is available. Fixed one `#fff`→`var(--fg-on-blue)`.
+
+**REMAINING:** commit the D2+D4 batch as logical commits (still UNCOMMITTED on `main`), then
+push — **push needs Arijit's explicit OK** (auto-mode blocks direct-to-main).
+
+### Pre-existing issue noticed (NOT this work, out of scope)
+The ① website weblist renders raw HTML entities in titles (`&rsquo;`, `&mdash;`). That's the
+website-capture path from a prior session; flag for a later fix (decode entities in
+`websiteClient`/`weblist` render).
 
 ---
 
@@ -47,16 +81,17 @@ then `ui-validator`, then final tsc+tests, update this file, commit, Definition-
 - [ ] Read current source (ColumnGrid, AnalysisPanel, SourceList, QueryBar, ChatMessage, App, useComparison, AgentColumn, WebsiteColumn, ab.css)
 - [x] D3 — GroupedSources lib + tests (grouping by source_type / URL inference) — `lib/sources.ts` (+15 unit tests)
 - [x] D3 — Popover (dependency-free) + GroupedSources component (+ static-markup render tests); SourceList removed; CSS `.srcpills/.srcpill/.pop`. tsc + 58 web tests green. Browser-proof pending (batched at Step 10).
-- [ ] D4 — conversation store (multi-turn) confirm/extend + tests
-- [ ] D4 — Composer (persistent, hero→docked)
-- [ ] D4 — FollowUpCallout + quick-reply chips
-- [x] D1 — LaneRail (horizontal-scroll; ColumnGrid→LaneRail, .grid*→.rail*; fixed-width clamp 340–400px, 3 fit + scroll for more; mobile tabs kept). tsc + 58 tests green. (Full-height comes with D2 removing the bottom 40%.)
-- [ ] D2 — AnalysisDrawer + lane score pills
-- [ ] CSS — .rail / .composer / .drawer / .srcpills / .followup; drop 60/40
-- [ ] Integrate in App
-- [ ] Verify — tsc + all test suites green
-- [ ] ui-validator
-- [ ] Browser proof (rail scroll, drawer, pill popover, follow-up, multi-turn)
+- [x] D4 — conversation store (multi-turn): confirmed already wired (ADR read-receipt); verified live (turn-2 fan-out)
+- [x] D4 — Composer (persistent, hero→docked) + tests-via-logic; live-proven
+- [x] D4 — FollowUpCallout + quick-reply chips (`lib/followup.ts` +8, callout +4); live-proven
+- [x] D1 — LaneRail (horizontal-scroll; ColumnGrid→LaneRail, .grid*→.rail*; fixed-width clamp 340–400px, 3 fit + scroll for more; mobile tabs kept). Now full-height (D2 removed the bottom 40%).
+- [x] D2 — AnalysisDrawer + lane score pills (both ② and ③) + verdict chip (`lib/score.ts` +5, drawer +5, header +4, analysis +2)
+- [x] CSS — .rail / .composer / .drawer / .lane-score / .verdict-chip / .followup; dropped 60/40
+- [x] Integrate in App (drawer state, hero/docked toggle, score threading, onReply)
+- [x] Verify — tsc clean + 80 web tests green (was 58 at D1/D3)
+- [x] ui-validator — 0 FAIL, 1 WARN (caveat: vault SOP unreadable here)
+- [x] Browser proof — 7 screenshots (hero, docked rail, score pills, drawer, follow-up+multiturn, pill popover, mobile)
+- [ ] **Commit the D2+D4 batch** (logical commits) — then **push (needs Arijit OK)**
 
 ## Notes / decisions during build
 
