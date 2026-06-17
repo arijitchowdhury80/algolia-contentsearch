@@ -79,4 +79,16 @@ describe('display helpers', () => {
     expect(sourceSummary({ chunk_text: 'body' })).toBe('body');
     expect(sourceTitle({})).toBe('Source');
   });
+
+  it('repairs root-relative source URLs to the canonical algolia.com origin', () => {
+    // The tuned index stores path-only URLs; left raw they 404 against the app origin.
+    expect(sourceUrl({ url: '/about/news/x' })).toBe('https://www.algolia.com/about/news/x');
+    expect(sourceUrl({ doc_url: '/fr/resources/asset/y' })).toBe('https://www.algolia.com/fr/resources/asset/y');
+  });
+
+  it('leaves absolute and protocol-relative URLs untouched', () => {
+    expect(sourceUrl({ url: 'https://academy.algolia.com/training/z' })).toBe('https://academy.algolia.com/training/z');
+    expect(sourceUrl({ url: '//cdn.example.com/a' })).toBe('//cdn.example.com/a');
+    expect(sourceUrl({})).toBeUndefined();
+  });
 });

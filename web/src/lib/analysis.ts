@@ -1,9 +1,11 @@
 /**
- * analysis — map a live JudgeResult into the AnalysisPanel's AnalysisData.
+ * analysis — map a live JudgeResult into the AnalysisDrawer's AnalysisData.
  * Pure. The ③ Our System panel drives the judges + headline score; the ② Ask AI
- * panel (the floor) is folded into the synthesis as the real margin.
+ * panel (the floor) is folded into the synthesis as the real margin. Every judged
+ * panel's score is also surfaced in `laneScores` for the always-visible lane pills.
  */
-import type { AnalysisData } from '../components/AnalysisPanel';
+import type { AnalysisData } from '../components/AnalysisDrawer';
+import type { LaneScore } from './score';
 import type { JudgeResult } from './judgeClient';
 
 /** Static config context (genuinely fixed — not judge output). */
@@ -42,10 +44,22 @@ export function toAnalysisData(
   }
   const synthesis = `${marginBits.join(' ')} ${ours.rationale}`.trim();
 
+  // Surface every judged panel's score for the always-visible lane pills.
+  const laneScores: Record<string, LaneScore> = {};
+  for (const p of result.panels) {
+    if (p.error) continue; // a panel that failed to judge has no headline
+    laneScores[p.panelId] = {
+      score: p.synthesizedScore,
+      gateTripped: p.gateTripped,
+      borderline: p.borderline,
+    };
+  }
+
   return {
     synthesizedScore: ours.synthesizedScore,
     judges: ours.judges.map((j) => ({ role: j.role, score: j.score, note: j.note })),
     configDiff: CONFIG_DIFF,
     synthesis,
+    laneScores,
   };
 }

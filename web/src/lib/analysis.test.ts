@@ -45,6 +45,25 @@ describe('toAnalysisData', () => {
     expect(data.synthesis.toLowerCase()).toContain('ours rationale'.toLowerCase());
   });
 
+  it('surfaces every judged panel in laneScores (both ② and ③), with gate state', () => {
+    const data = toAnalysisData(result, 'tuned', 'mirror');
+    expect(Object.keys(data.laneScores).sort()).toEqual(['mirror', 'tuned']);
+    expect(data.laneScores.tuned).toEqual({ score: 5.9, gateTripped: false, borderline: false });
+    expect(data.laneScores.mirror).toEqual({ score: 4.4, gateTripped: true, borderline: false });
+  });
+
+  it('omits a panel from laneScores when its judging errored', () => {
+    const withError: JudgeResult = {
+      rounds: 1,
+      panels: [
+        result.panels[1], // tuned, ok
+        { ...result.panels[0], error: 'judge failed' }, // mirror errored
+      ],
+    };
+    const data = toAnalysisData(withError, 'tuned', 'mirror');
+    expect(Object.keys(data.laneScores)).toEqual(['tuned']);
+  });
+
   it('throws if the ours panel is missing from the result', () => {
     expect(() => toAnalysisData({ rounds: 2, panels: [] }, 'tuned', 'mirror')).toThrow();
   });

@@ -131,8 +131,21 @@ export function totalSources(groups: SourceGroup[]): number {
 export function sourceTitle(s: Source): string {
   return s.title ?? s.doc_title ?? s.url ?? s.doc_url ?? 'Source';
 }
+/** Canonical origin for the algolia.com www corpus (used to repair relative URLs). */
+const WWW_ORIGIN = 'https://www.algolia.com';
+
+/**
+ * The displayable URL for a source. Some index records (notably the tuned index)
+ * store ROOT-RELATIVE paths like `/about/news/…`; left as-is the link resolves
+ * against the app origin (localhost / the Vercel host) and 404s. Prefix the
+ * canonical www origin so the citation actually points at algolia.com. Absolute
+ * URLs (https://academy.algolia.com/…) and protocol-relative URLs pass through.
+ */
 export function sourceUrl(s: Source): string | undefined {
-  return s.url ?? s.doc_url;
+  const raw = s.url ?? s.doc_url;
+  if (!raw) return undefined;
+  if (raw.startsWith('/') && !raw.startsWith('//')) return `${WWW_ORIGIN}${raw}`;
+  return raw;
 }
 export function sourceSummary(s: Source): string | undefined {
   return s.summary ?? s.doc_summary ?? s.chunk_text;

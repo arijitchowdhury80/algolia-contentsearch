@@ -47,11 +47,17 @@ export function useComparison(): ComparisonApi {
   const [submission, setSubmission] = useState<Submission | null>(null);
   const [clearSeq, setClearSeq] = useState(0);
   const registry = useRef(new Map<ColumnId, () => LaneSnapshot>());
+  // Monotonic across the whole session — must NOT derive from submission, which
+  // reset() nulls. Deriving from prev?.seq made the first query after a Reset
+  // collide with the prior run's seq, so downstream seq guards (useLiveJudge)
+  // mistook it for the same submission and kept showing the stale verdict.
+  const seqRef = useRef(0);
 
   const submit = useCallback((query: string) => {
     const q = query.trim();
     if (!q) return;
-    setSubmission((prev) => ({ query: q, seq: (prev?.seq ?? 0) + 1 }));
+    seqRef.current += 1;
+    setSubmission({ query: q, seq: seqRef.current });
   }, []);
 
   const reset = useCallback(() => {

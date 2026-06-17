@@ -13,7 +13,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ColumnId } from '../types/chat';
 import type { Submission } from './useComparison';
 import type { AgentResult } from './useAgentColumn';
-import type { AnalysisData } from '../components/AnalysisPanel';
+import type { AnalysisData } from '../components/AnalysisDrawer';
 import { requestJudge, toJudgeSource, type JudgePanelInput } from '../lib/judgeClient';
 import { toAnalysisData } from '../lib/analysis';
 
@@ -50,9 +50,17 @@ export function useLiveJudge(
   const seqRef = useRef(-1);
   const resultsRef = useRef(new Map<ColumnId, AgentResult>());
 
-  // Reset on each new submission.
+  // Reset on each new submission — and clear back to idle on Reset (submission → null)
+  // so a stale verdict never lingers on the score pills / verdict chip.
   useEffect(() => {
-    if (!submission) return;
+    if (!submission) {
+      seqRef.current = -1;
+      resultsRef.current = new Map();
+      setState('idle');
+      setData(undefined);
+      setError(undefined);
+      return;
+    }
     if (submission.seq === seqRef.current) return;
     seqRef.current = submission.seq;
     resultsRef.current = new Map();
