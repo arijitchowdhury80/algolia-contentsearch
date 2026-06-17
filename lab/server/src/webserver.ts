@@ -15,12 +15,13 @@
  *   Judges the EXACT answers the browser rendered (indicative; the batch
  *   `cli judge` on a full transcript remains authoritative).
  *
- * NOTE: runs LOCALLY (Playwright + ~15s/query; judge ~30–90s/query). Not
- * deployable to Vercel serverless (binary + timeout). A live deploy would need
- * a standalone service.
+ * DEPLOYMENT: this runs as a standalone always-on service (the judge is 30–90s
+ * and needs a server-side LLM key — not a fit for Vercel serverless). It binds
+ * the host's $PORT. `/api/website` (Playwright) is lazily imported only when hit,
+ * so a JUDGE-ONLY host needs no browser installed — the live app's ① panel now
+ * queries Algolia browser-direct and never calls /api/website in production.
  */
 import { createServer } from "node:http";
-import { liveWebsiteCapture } from "./website.js";
 import { makeActiveJudgeLlm } from "./activeJudgeLlm.js";
 import {
   judgeLive,
@@ -29,7 +30,8 @@ import {
   type LiveJudgeRequest,
 } from "./liveJudge.js";
 
-const PORT = Number(process.env.CAPTURE_PORT ?? 8787);
+// Hosts (Render/Railway/Fly) inject $PORT; fall back to CAPTURE_PORT for local dev.
+const PORT = Number(process.env.PORT ?? process.env.CAPTURE_PORT ?? 8787);
 
 const server = createServer(async (req, res) => {
   // Permissive CORS — search-only data, local dev tool.
@@ -54,6 +56,8 @@ const server = createServer(async (req, res) => {
         return;
       }
       console.log(`[capture-api] capturing: ${query}`);
+      // Lazy-load Playwright capture so a judge-only host boots without a browser.
+      const { liveWebsiteCapture } = await import("./website.js");
       const out = await liveWebsiteCapture.captureWebsite(query);
       res.writeHead(200, { "Content-Type": "application/json" });
       res.end(JSON.stringify(out));
@@ -105,5 +109,5 @@ const server = createServer(async (req, res) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`[capture-api] listening on http://localhost:${PORT}  (POST /api/website)`);
+  console.log(`[lab-api] listening on :${PORT}  (POST /api/judge · POST /api/website · GET /health)`);
 });

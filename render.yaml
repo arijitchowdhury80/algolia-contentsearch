@@ -1,0 +1,25 @@
+# Render Blueprint — deploys the lab judge backend as an always-on service.
+#
+# Why a service (not Vercel serverless): the live judge runs 3 Gemini judges
+# (~30–90s/query) and needs a server-side LLM key — past Vercel's serverless
+# timeout. ① "Current Website Search" now queries Algolia browser-direct, so this
+# backend is JUDGE-ONLY (no Playwright/browser needed; it boots without one).
+#
+# Deploy: Render → New → Blueprint → pick this repo. Then set GOOGLE_API_KEY in
+# the service's Environment (Render dashboard). Finally point the Vercel frontend
+# at the service URL: set VITE_LAB_API_URL = https://<service>.onrender.com in
+# Vercel (Production) and redeploy. The frontend POSTs /api/judge there.
+services:
+  - type: web
+    name: algolia-lab-judge
+    runtime: node
+    plan: starter # always-on (no cold starts). 'free' works too but sleeps after 15 min idle.
+    rootDir: lab/server
+    buildCommand: npm install
+    startCommand: npx tsx src/webserver.ts
+    healthCheckPath: /health
+    envVars:
+      - key: LLM_PROVIDER
+        value: gemini # pin to Gemini (OpenAI quota is dead; avoids a failed probe)
+      - key: GOOGLE_API_KEY
+        sync: false # set in the Render dashboard — never committed
