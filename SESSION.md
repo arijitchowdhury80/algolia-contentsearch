@@ -1,8 +1,52 @@
 # SESSION.md — Algolia-Central2 (Visibility Agents)
 
-_Last updated: 2026-06-13 ~10:40pm EDT (/persist)_
+_Last updated: 2026-06-14 ~12:25pm EDT (/persist + /handoff)_
 
-## ▶ RESUME (2026-06-13 ~10:40pm) — START HERE (latest; supersedes ALL blocks below)
+## ▶ RESUME (2026-06-14 ~12:25pm) — START HERE (latest; supersedes ALL blocks below)
+
+**This session: made the lab UI actually work (live judge + ① website wired), made the autocorrect loop fast + robust, recorded a reliability SOP, and built the Sample Questions panel. Big batch is BUILT + VERIFIED but UNCOMMITTED.**
+
+### ⏳ FIRST ACTIONS ON RESUME (in order)
+1. **Decide: commit the batch.** Everything below is verified (tsc clean; tests green; browser-proven) but NOT committed. On `main`, HEAD `94a1f8a` (pushed). Suggested logical commits: (a) `feat(web): live judge in UI + ① website panel wired + sample-questions panel`; (b) `perf/fix(lab): parallelize judge+run-tests, gemini retry hardening, propose guard, floor-cache tests`; (c) `docs: LLM-harness-reliability SOP + typo-tolerance finding`. Push to `main` needs Arijit's explicit OK (auto-mode blocks direct-to-main; he authorized it before per-push).
+2. **Background processes still running** (from this session): backend `webserver.ts` on **:8787** (pid was 12396) + **vite on :5175**. Kill if not needed: `lsof -ti:8787 | xargs kill ; lsof -ti:5175 | xargs kill`. The live judge + ① panel need :8787 up to work locally.
+3. **Re-read** memory `feedback-llm-harness-reliability` + `docs/sop/llm-harness-reliability.md` before touching harness code.
+
+### What this session SHIPPED (all tsc-clean, tests green, browser-proven)
+**A. Live judge in the UI (was mock).** `POST /api/judge` in `lab/server/src/webserver.ts` judges the displayed ②/③ answers on Gemini and returns per-judge scores+notes+synth+gate. New `lab/server/src/liveJudge.ts` (pure mappers + injected scorer) + `activeJudgeLlm.ts` (extracted provider resolution; `judgeStep` now uses it too). Web: `lib/judgeClient.ts`, `lib/analysis.ts`, `hooks/useLiveJudge.ts`, `useAgentColumn` emits `AgentResult` on done/error, `AnalysisPanel` states idle/streaming/judging/done/error. PROVEN end-to-end in browser (grounded answer 5.9 / fabricated 0.70 GATED; live ②-vs-③ margin). Screenshot `docs/workspace/live-judge-ui/live-judged-proof.png`.
+**B. Idle mock removed.** `AnalysisPanel` idle now shows a call-to-action; deleted `MOCK_ANALYSIS` + `isMock` entirely (Arijit flagged fake scores on launch).
+**C. ① Website panel WIRED (was placeholder).** `WebsiteColumn` now calls `POST /api/website` (backend Playwright capture of live algolia.com) → renders top result hits + links. `lib/websiteClient.ts` + `hooks/useWebsiteColumn.ts`. PROVEN: "vector search" → 8 real algolia.com results. Screenshot `…/website-panel-wired-proof.png`.
+**D. Sample Questions panel (Arijit's Approach A).** Collapsed pill "✦ Sample questions · 27 · ⌄" → expands to a 4×2 grid of 8 color-coded category cards (all 27 locked Qs). Overlay dropdown (~⅓ viewport, doesn't push panels). Click → fills bar + collapses. `config/sampleQuestions.ts` (data), `components/SampleQuestions.tsx`, wired in `QueryBar` (replaced the old 4-chip TRY strip). Screenshot `…/sample-questions-expanded-proof.png`.
+**E. Autocorrect loop: FAST + ROBUST.** Parallelized judge + run-tests via `lab/server/src/concurrency.ts` `mapWithConcurrency` (order-preserving; `RUN_CONCURRENCY` default 4) — round 0 ~2h → ~15-20min. Floor cache (`applyFloorCache` + `runTests({panelIds})`) — rounds 1+ judge only ③. Gemini retry hardened: now retries {429,500,502,503,504} + thrown network errors, injectable `backoffBaseMs` (`gemini.ts`). Proposer guarded (try/catch → return incumbent) + `maxTokens` 4000→16000 (was crashing on thinking-model MAX_TOKENS empty). 
+**F. Reliability SOP recorded.** `docs/sop/llm-harness-reliability.md` (9 standards S1–S9 + Pre-Run Checklist + Failure Catalog runbook). Memory `feedback-llm-harness-reliability`. Vault: `Projects/Algolia-Central2/wiki/{syntheses/llm-harness-reliability,dev-log}.md`.
+
+### Autocorrect RUN VERDICT (final, clean run `/tmp/autocorrect_real4.log`)
+Ran full 3 rounds clean (0 transient errors). **Round 0 baseline ③ dev=6.55. Rounds 1 & 2 both ROLLBACK (grounding-regressed). STOPPED max-rounds, best=baseline.** → **No improvement found; the hand-tuned `grounded_lead_v1` baseline wins.** Live ③ agent `b5c4de23` is back on the **baseline (7254 chars)** — known-good. Takeaway: for ③, "more depth" trades against grounding; the real lever is RETRIEVAL (see typo-tolerance finding), not prompt rewording.
+
+### Known product bug (diagnosed, fix STAGED, NOT deployed)
+③ false-refuses on answerable Qs (typo tolerance, vector search). Root cause PROVEN: verbose agent keyword reformulation × tuned index `removeWordsIfNoResults:allOptional` → over-broad retrieval (1000s of hits) → canonical doc buried → agent correctly refuses junk. Index is HEALTHY (direct search returns right docs). Fix staged: `scripts/setup/instructions_case3_reformulation_fix_v1.md` (tighter 2-4 keyword reformulation, re-search narrower not broader). NOT deployed (don't fight a run; deploy via `node scripts/setup/agent_admin.mjs update b5c4de23-769b-4b38-9051-a19add9dee06 <file>`). Full writeup: `docs/experiment/finding-typo-tolerance-false-refusal.md`.
+
+### Verification (this session)
+`cd lab/server && npx tsc --noEmit` clean; `../judge/node_modules/.bin/vitest run` → **18** (concurrency 4, floor-cache 3, liveJudge 7, gemini 4). `cd lab/judge && npx vitest run` → **64**. `cd lab/autocorrect && ../judge/node_modules/.bin/vitest run` → **22**. `cd web && ./node_modules/.bin/tsc -b && npm test` → **46** (+1 skipped). Browser proofs in `docs/workspace/live-judge-ui/*.png`.
+
+### NOT done (no false completion)
+- **Whole batch UNCOMMITTED** (see first action). 
+- **S8 observability NOT built** — the SOP documents timestamps/heartbeat/final-summary for long runs, but the harness doesn't emit them yet (offered to build; Arijit hasn't said go).
+- Typo-tolerance reformulation fix STAGED, not deployed.
+- ③ still loses to ② on retrieval-miss queries — not solved (needs the retrieval fix, maybe index `allOptional`→`lastWords`).
+- `lab/server/output/{scores,transcripts}/` has many untracked run artifacts — NOT needed; don't commit.
+- `EXAMPLE_QUERIES` in `web/src/config/columns.ts` now unused (harmless, still exported).
+
+### Key IDs / paths (carry-over)
+- Agents (app `VVKSSPDMJX`): ② mirror `02852440-8f57-4383-98bc-bffa5b357516`; ③ tuned `b5c4de23-769b-4b38-9051-a19add9dee06` (live = baseline `grounded_lead_v1`).
+- Local backend: `cd lab/server && npx tsx src/webserver.ts` (:8787; live judge + ① capture). Web: `cd web && npm run dev`.
+- Autocorrect: `cd lab/server && JUDGE_ROUNDS=3 RUN_CONCURRENCY=4 ./node_modules/.bin/tsx src/cli.ts autocorrect --rounds 3`. Smoke: add `--smoke --ids 1.2`.
+- GitHub: github.com/arijitchowdhury80/algolia-contentsearch @ `94a1f8a` (batch unpushed).
+
+---
+
+_(historical — superseded by the 2026-06-14 block above)_
+
+## ▶ RESUME (2026-06-13 ~10:40pm) — (history)
 
 **This session built + packaged the reusable Eval-Loop product (AI Judge + Autocorrect) and corrected the verdict. All committed + pushed (`448e434`). Memory: [[project-eval-loop-product]], [[feedback-zero-flicker-judge]].**
 

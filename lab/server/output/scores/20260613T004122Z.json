@@ -1,0 +1,1591 @@
+{
+  "runId": "20260613T004122Z",
+  "createdAt": "2026-06-13T02:52:10.349Z",
+  "judgeModel": "gemini-2.5-pro",
+  "questions": [
+    {
+      "questionId": "1.2",
+      "category": 1,
+      "split": "dev",
+      "panels": [
+        {
+          "panelId": "website",
+          "finalScore": 3.942857142857144,
+          "preGateScore": 3.942857142857144,
+          "gateTripped": false,
+          "panelSpread": 4.2857142857142865,
+          "rationale": "The panel unanimously agreed that this artifact is a placeholder message, not a substantive answer, and therefore completely fails to address the user's question. The final score was driven by this fundamental failure of intent. The divergence in scoring reflects differing weights assigned to the artifact's technical merits; while all judges noted its uselessness, some awarded higher marks for its perfect grounding and conciseness, preventing a lower overall score.",
+          "rounds": 5,
+          "meanPreGateScore": 3.942857142857144,
+          "stdDevPreGateScore": 1.3822325757353708,
+          "gateTripFraction": 0,
+          "borderline": false,
+          "judgeScores": [
+            {
+              "judgeId": "skeptic",
+              "weightedScore": 3.657142857142857
+            },
+            {
+              "judgeId": "referee",
+              "weightedScore": 5.885714285714285
+            },
+            {
+              "judgeId": "advocate",
+              "weightedScore": 6.2
+            }
+          ]
+        },
+        {
+          "panelId": "mirror",
+          "finalScore": 3,
+          "preGateScore": 7.733333333333334,
+          "gateTripped": true,
+          "panelSpread": 4.1269841269841265,
+          "rationale": "While the judges unanimously praised the artifact's clear structure and explanation, their views diverged critically on its factual accuracy. Judge Skeptic identified a significant error in the core list of ranking criteria—an omission that the other judges missed. This unsupported factual claim tripped a grounding hard-gate, which automatically capped the final score and overrode the artifact's otherwise high marks for quality.",
+          "rounds": 5,
+          "meanPreGateScore": 7.733333333333334,
+          "stdDevPreGateScore": 0.6636667196260703,
+          "gateTripFraction": 1,
+          "borderline": false,
+          "judgeScores": [
+            {
+              "judgeId": "skeptic",
+              "weightedScore": 6.828571428571427
+            },
+            {
+              "judgeId": "referee",
+              "weightedScore": 9.742857142857144
+            },
+            {
+              "judgeId": "advocate",
+              "weightedScore": 9.771428571428572
+            }
+          ]
+        },
+        {
+          "panelId": "tuned",
+          "finalScore": 3,
+          "preGateScore": 7.142857142857144,
+          "gateTripped": true,
+          "panelSpread": 4.285714285714286,
+          "rationale": "While the panel praised the artifact's excellent structure and clarity, the judges diverged sharply on its factual accuracy. The final verdict was determined by Judge Skeptic's finding of several grounding violations, with one critically unsupported factual claim tripping a hard-gate. This violation mandated a score cap of 3.00, overriding the otherwise high ratings from the majority of the panel.",
+          "rounds": 5,
+          "meanPreGateScore": 7.142857142857144,
+          "stdDevPreGateScore": 0.35521525665268244,
+          "gateTripFraction": 1,
+          "borderline": false,
+          "judgeScores": [
+            {
+              "judgeId": "skeptic",
+              "weightedScore": 6.228571428571429
+            },
+            {
+              "judgeId": "referee",
+              "weightedScore": 9.22857142857143
+            },
+            {
+              "judgeId": "advocate",
+              "weightedScore": 9.8
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "questionId": "1.3",
+      "category": 1,
+      "split": "dev",
+      "panels": [
+        {
+          "panelId": "website",
+          "finalScore": 2.5142857142857142,
+          "preGateScore": 2.5142857142857142,
+          "gateTripped": false,
+          "panelSpread": 5.714285714285715,
+          "rationale": "The panel unanimously agreed that the artifact is a placeholder message that completely fails to answer the user's question, resulting in the lowest possible scores for completeness and depth. While some judges noted that the artifact technically avoids making false claims, this did not compensate for its fundamental lack of substance. This core failure to provide any relevant information was the overwhelming driver of the final verdict.",
+          "rounds": 5,
+          "meanPreGateScore": 2.5142857142857142,
+          "stdDevPreGateScore": 0.8359279336187314,
+          "gateTripFraction": 0,
+          "borderline": false,
+          "judgeScores": [
+            {
+              "judgeId": "skeptic",
+              "weightedScore": 3.057142857142857
+            },
+            {
+              "judgeId": "referee",
+              "weightedScore": 6.142857142857143
+            },
+            {
+              "judgeId": "advocate",
+              "weightedScore": 3.5714285714285716
+            }
+          ]
+        },
+        {
+          "panelId": "mirror",
+          "finalScore": 3,
+          "preGateScore": 7.765079365079366,
+          "gateTripped": true,
+          "panelSpread": 2.3809523809523814,
+          "rationale": "The panel unanimously praised the artifact's exceptional clarity and structure in explaining Algolia's `distinct` feature. However, judges diverged sharply on grounding, with the majority finding that the answer invented a key example and a step-by-step process not supported by the source material. This unsupported factual claim tripped a grounding hard-gate, which capped the artifact's score and ultimately drove the final verdict.",
+          "rounds": 5,
+          "meanPreGateScore": 7.765079365079366,
+          "stdDevPreGateScore": 0.5456624812664226,
+          "gateTripFraction": 1,
+          "borderline": false,
+          "judgeScores": [
+            {
+              "judgeId": "skeptic",
+              "weightedScore": 7.085714285714286
+            },
+            {
+              "judgeId": "referee",
+              "weightedScore": 9.342857142857143
+            },
+            {
+              "judgeId": "advocate",
+              "weightedScore": 9.914285714285715
+            }
+          ]
+        },
+        {
+          "panelId": "tuned",
+          "finalScore": 9.796825396825396,
+          "preGateScore": 9.796825396825396,
+          "gateTripped": false,
+          "panelSpread": 0.3174603174603181,
+          "rationale": "The judges reached a strong consensus that this is an exemplary artifact, uniformly praising its clear structure, perfect grounding, and concise explanation of the `distinct` feature. The verdict was most driven by the answer's impressive depth, as all three panelists specifically highlighted the proactive and nuanced explanation of the feature's critical interaction with facet counts. The minor score variations simply reflect a shared conviction in the artifact's exceptional quality and utility, confirming it as a comprehensive and insightful resource.",
+          "rounds": 5,
+          "meanPreGateScore": 9.796825396825396,
+          "stdDevPreGateScore": 0.05535109769575525,
+          "gateTripFraction": 0,
+          "borderline": false,
+          "judgeScores": [
+            {
+              "judgeId": "skeptic",
+              "weightedScore": 9.771428571428572
+            },
+            {
+              "judgeId": "referee",
+              "weightedScore": 9.914285714285715
+            },
+            {
+              "judgeId": "advocate",
+              "weightedScore": 9.971428571428572
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "questionId": "2.1",
+      "category": 2,
+      "split": "dev",
+      "panels": [
+        {
+          "panelId": "website",
+          "finalScore": 4.057142857142858,
+          "preGateScore": 4.057142857142858,
+          "gateTripped": false,
+          "panelSpread": 5.396825396825398,
+          "rationale": "The judges unanimously agreed that the artifact was a system placeholder message and a complete non-answer to the user's query, thus earning the lowest possible marks for completeness, depth, and clarity. The final verdict was driven down by this total failure to provide any useful information on the topic. However, the score was moderated slightly above the absolute minimum because the panel majority noted that the placeholder, by making no factual claims, was technically harmless, being both concise and perfectly grounded.",
+          "rounds": 5,
+          "meanPreGateScore": 4.057142857142858,
+          "stdDevPreGateScore": 1.1735559467237613,
+          "gateTripFraction": 0,
+          "borderline": false,
+          "judgeScores": [
+            {
+              "judgeId": "skeptic",
+              "weightedScore": 4.171428571428572
+            },
+            {
+              "judgeId": "referee",
+              "weightedScore": 6.4
+            },
+            {
+              "judgeId": "advocate",
+              "weightedScore": 5.371428571428572
+            }
+          ]
+        },
+        {
+          "panelId": "mirror",
+          "finalScore": 3,
+          "preGateScore": 6.26031746031746,
+          "gateTripped": true,
+          "panelSpread": 3.8095238095238093,
+          "rationale": "The panel was in strong agreement about the artifact's outstanding quality, praising its exceptional clarity, logical structure, and comprehensive guidance. A critical divergence emerged, however, over its factual grounding, as a majority of judges found that the artifact introduced core concepts that were entirely unsubstantiated by the provided sources. This major unsupported factual claim tripped a grounding hard-gate, which automatically capped the final score and overrode the artifact's otherwise excellent qualities.",
+          "rounds": 5,
+          "meanPreGateScore": 6.26031746031746,
+          "stdDevPreGateScore": 1.2343288254277849,
+          "gateTripFraction": 0.8,
+          "borderline": false,
+          "judgeScores": [
+            {
+              "judgeId": "skeptic",
+              "weightedScore": 6.942857142857143
+            },
+            {
+              "judgeId": "referee",
+              "weightedScore": 6.171428571428572
+            },
+            {
+              "judgeId": "advocate",
+              "weightedScore": 9.171428571428573
+            }
+          ]
+        },
+        {
+          "panelId": "tuned",
+          "finalScore": 8.901587301587302,
+          "preGateScore": 8.901587301587302,
+          "gateTripped": false,
+          "panelSpread": 1.1111111111111107,
+          "rationale": "The panel unanimously praised the artifact's exceptional clarity, conciseness, and logical structure as a guide to core principles. Judges diverged, however, on its practical completeness and strict grounding, with one citing a lack of \"how-to\" instructions and another flagging a minor, un-sourced example. Ultimately, the verdict was driven by the artifact's outstanding explanatory power, which was slightly tempered by these noted issues of practical application and a single grounding detail.",
+          "rounds": 5,
+          "meanPreGateScore": 8.901587301587302,
+          "stdDevPreGateScore": 1.054541821366433,
+          "gateTripFraction": 0.4,
+          "borderline": true,
+          "judgeScores": [
+            {
+              "judgeId": "skeptic",
+              "weightedScore": 8.714285714285714
+            },
+            {
+              "judgeId": "referee",
+              "weightedScore": 9.457142857142859
+            },
+            {
+              "judgeId": "advocate",
+              "weightedScore": 9.8
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "questionId": "2.2",
+      "category": 2,
+      "split": "dev",
+      "panels": [
+        {
+          "panelId": "website",
+          "finalScore": 4.2857142857142865,
+          "preGateScore": 4.2857142857142865,
+          "gateTripped": false,
+          "panelSpread": 1.4285714285714297,
+          "rationale": "The judges unanimously agreed that the artifact is a placeholder message which completely fails to address the user's query, offering no information, depth, or value. While some judges gave minor credit for the artifact's conciseness and for not making ungrounded claims, the panel's low score was ultimately driven by this total failure to generate a helpful or relevant answer.",
+          "rounds": 5,
+          "meanPreGateScore": 4.2857142857142865,
+          "stdDevPreGateScore": 1.0061038206662294,
+          "gateTripFraction": 0,
+          "borderline": false,
+          "judgeScores": [
+            {
+              "judgeId": "skeptic",
+              "weightedScore": 5.371428571428572
+            },
+            {
+              "judgeId": "referee",
+              "weightedScore": 5.371428571428572
+            },
+            {
+              "judgeId": "advocate",
+              "weightedScore": 5.114285714285714
+            }
+          ]
+        },
+        {
+          "panelId": "mirror",
+          "finalScore": 8.17142857142857,
+          "preGateScore": 8.17142857142857,
+          "gateTripped": false,
+          "panelSpread": 4.2857142857142865,
+          "rationale": "The panel unanimously agreed that the answer is exceptionally well-structured, clear, and conceptually accurate. Judges diverged sharply on the interpretation of grounding; a majority found the answer perfectly supported by its citations pointing to the correct documentation, while one judge faulted it severely because the provided source snippets alone did not contain the text to substantiate the claims. The final score was thus driven by the majority's view, which heavily valued the answer's high quality and helpfulness over the methodological grounding concern raised by the dissenter.",
+          "rounds": 5,
+          "meanPreGateScore": 8.17142857142857,
+          "stdDevPreGateScore": 0.8611546327967479,
+          "gateTripFraction": 0.4,
+          "borderline": true,
+          "judgeScores": [
+            {
+              "judgeId": "skeptic",
+              "weightedScore": 8.4
+            },
+            {
+              "judgeId": "referee",
+              "weightedScore": 8.285714285714286
+            },
+            {
+              "judgeId": "advocate",
+              "weightedScore": 9.514285714285714
+            }
+          ]
+        },
+        {
+          "panelId": "tuned",
+          "finalScore": 8.914285714285715,
+          "preGateScore": 8.914285714285715,
+          "gateTripped": false,
+          "panelSpread": 2.5396825396825395,
+          "rationale": "The panel unanimously praised the answer's excellent structure and clear, conceptually complete explanation for implementing backend search. The final score was ultimately driven by a sharp disagreement over grounding; while the majority found the answer to be exemplary and fully supported, one judge identified two violations for including minor, unverified details. This lone verdict, while an outlier, significantly moderated what would have otherwise been a near-perfect score.",
+          "rounds": 5,
+          "meanPreGateScore": 8.914285714285715,
+          "stdDevPreGateScore": 0.7926088398388436,
+          "gateTripFraction": 0.4,
+          "borderline": true,
+          "judgeScores": [
+            {
+              "judgeId": "skeptic",
+              "weightedScore": 8.542857142857143
+            },
+            {
+              "judgeId": "referee",
+              "weightedScore": 9.828571428571427
+            },
+            {
+              "judgeId": "advocate",
+              "weightedScore": 9.8
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "questionId": "3.1",
+      "category": 3,
+      "split": "dev",
+      "panels": [
+        {
+          "panelId": "website",
+          "finalScore": 4.253968253968255,
+          "preGateScore": 4.253968253968255,
+          "gateTripped": false,
+          "panelSpread": 1.4285714285714297,
+          "rationale": "The panel unanimously agreed that this artifact is a system placeholder message that makes no attempt to answer the user's question, resulting in the lowest possible scores for completeness and depth. While judges acknowledged the message was clear and technically well-grounded by virtue of making no factual claims, this could not compensate for its primary flaw. The verdict was thus driven by the artifact's fundamental failure to provide any helpful information.",
+          "rounds": 5,
+          "meanPreGateScore": 4.253968253968255,
+          "stdDevPreGateScore": 0.7078724435387291,
+          "gateTripFraction": 0,
+          "borderline": false,
+          "judgeScores": [
+            {
+              "judgeId": "skeptic",
+              "weightedScore": 4.6000000000000005
+            },
+            {
+              "judgeId": "referee",
+              "weightedScore": 5.685714285714285
+            },
+            {
+              "judgeId": "advocate",
+              "weightedScore": 5.2
+            }
+          ]
+        },
+        {
+          "panelId": "mirror",
+          "finalScore": 3,
+          "preGateScore": 4.914285714285715,
+          "gateTripped": true,
+          "panelSpread": 4.444444444444445,
+          "rationale": "The panel unanimously praised the artifact's clear structure and writing quality but diverged on the severity of its grounding violations. The verdict was ultimately driven by a critical point of consensus: the artifact fabricates core technical details, most notably an unsubstantiated claim that the technology uses large language models. This unsupported factual assertion tripped a grounding hard-gate, which automatically capped the final score.",
+          "rounds": 5,
+          "meanPreGateScore": 4.914285714285715,
+          "stdDevPreGateScore": 0.2628602100886915,
+          "gateTripFraction": 1,
+          "borderline": false,
+          "judgeScores": [
+            {
+              "judgeId": "skeptic",
+              "weightedScore": 4.371428571428572
+            },
+            {
+              "judgeId": "referee",
+              "weightedScore": 7
+            },
+            {
+              "judgeId": "advocate",
+              "weightedScore": 8.485714285714286
+            }
+          ]
+        },
+        {
+          "panelId": "tuned",
+          "finalScore": 9.593650793650793,
+          "preGateScore": 9.593650793650793,
+          "gateTripped": false,
+          "panelSpread": 0.15873015873015994,
+          "rationale": "The judges were in strong agreement, unanimously praising this artifact as an exemplary, flawlessly grounded, and exceptionally clear response. The near-perfect score was decisively driven by the answer's core strength, which all judges highlighted: its ability to concisely explain not just what NeuralSearch is, but the specific mechanics of its hybrid ranking system. The minimal divergence in scoring was negligible, as the panel was in complete consensus regarding the artifact's outstanding and highly educational quality.",
+          "rounds": 5,
+          "meanPreGateScore": 9.593650793650793,
+          "stdDevPreGateScore": 0.2763181605966847,
+          "gateTripFraction": 0.2,
+          "borderline": false,
+          "judgeScores": [
+            {
+              "judgeId": "skeptic",
+              "weightedScore": 9.542857142857143
+            },
+            {
+              "judgeId": "referee",
+              "weightedScore": 9.828571428571431
+            },
+            {
+              "judgeId": "advocate",
+              "weightedScore": 9.885714285714286
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "questionId": "3.2",
+      "category": 3,
+      "split": "dev",
+      "panels": [
+        {
+          "panelId": "website",
+          "finalScore": 4.133333333333335,
+          "preGateScore": 4.133333333333335,
+          "gateTripped": false,
+          "panelSpread": 1.2698412698412707,
+          "rationale": "The panel unanimously agreed that this artifact is a system placeholder message rather than a substantive answer to the user's query. This complete failure to address the topic of vector search was the primary driver of the low score, resulting in minimal ratings for completeness, depth, and clarity. The score was prevented from being even lower because the artifact, in making no factual claims, also committed no grounding or citation violations.",
+          "rounds": 5,
+          "meanPreGateScore": 4.133333333333335,
+          "stdDevPreGateScore": 0.9816456172742953,
+          "gateTripFraction": 0,
+          "borderline": false,
+          "judgeScores": [
+            {
+              "judgeId": "skeptic",
+              "weightedScore": 4.114285714285714
+            },
+            {
+              "judgeId": "referee",
+              "weightedScore": 6.142857142857143
+            },
+            {
+              "judgeId": "advocate",
+              "weightedScore": 5.6571428571428575
+            }
+          ]
+        },
+        {
+          "panelId": "mirror",
+          "finalScore": 3,
+          "preGateScore": 8.438095238095238,
+          "gateTripped": true,
+          "panelSpread": 2.5396825396825387,
+          "rationale": "The panel unanimously praised the artifact for its exceptional clarity, structure, and readability, agreeing it provided a strong introduction to the topic. However, the judges diverged on its factual grounding, as one judge identified an unsupported claim where the artifact fabricated an example rather than using one from the provided sources. This violation was the decisive factor, tripping a grounding hard-gate and automatically capping the final score.",
+          "rounds": 5,
+          "meanPreGateScore": 8.438095238095238,
+          "stdDevPreGateScore": 0.2870515442655826,
+          "gateTripFraction": 1,
+          "borderline": false,
+          "judgeScores": [
+            {
+              "judgeId": "skeptic",
+              "weightedScore": 7.885714285714284
+            },
+            {
+              "judgeId": "referee",
+              "weightedScore": 9.771428571428572
+            },
+            {
+              "judgeId": "advocate",
+              "weightedScore": 9.714285714285714
+            }
+          ]
+        },
+        {
+          "panelId": "tuned",
+          "finalScore": 3,
+          "preGateScore": 3.7968253968253967,
+          "gateTripped": true,
+          "panelSpread": 1.2698412698412702,
+          "rationale": "The judges unanimously praised the artifact for its exceptional clarity and well-structured explanation, but they were in firm agreement that it suffered from a catastrophic failure of grounding. The artifact’s entire technical explanation was fabricated and unsubstantiated by the provided sources, constituting a critical unsupported factual claim. This severe violation tripped a grounding hard-gate, which capped the final score and was the definitive factor in the panel's verdict.",
+          "rounds": 5,
+          "meanPreGateScore": 3.7968253968253967,
+          "stdDevPreGateScore": 0.33692696282975504,
+          "gateTripFraction": 1,
+          "borderline": false,
+          "judgeScores": [
+            {
+              "judgeId": "skeptic",
+              "weightedScore": 3.9142857142857146
+            },
+            {
+              "judgeId": "referee",
+              "weightedScore": 5.228571428571429
+            },
+            {
+              "judgeId": "advocate",
+              "weightedScore": 5.4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "questionId": "4.1",
+      "category": 4,
+      "split": "dev",
+      "panels": [
+        {
+          "panelId": "website",
+          "finalScore": 4.571428571428572,
+          "preGateScore": 4.571428571428572,
+          "gateTripped": false,
+          "panelSpread": 1.1111111111111116,
+          "rationale": "The judges unanimously agreed that the artifact is a placeholder system message rather than a substantive answer, noting its complete failure on completeness and depth. The final verdict was driven by this fundamental lack of utility, as the artifact provided no relevant information to the user. However, the panel also concurred that because the placeholder makes no factual claims, it is perfectly grounded, which prevented an even lower score.",
+          "rounds": 5,
+          "meanPreGateScore": 4.571428571428572,
+          "stdDevPreGateScore": 0.6764214524654769,
+          "gateTripFraction": 0,
+          "borderline": false,
+          "judgeScores": [
+            {
+              "judgeId": "skeptic",
+              "weightedScore": 5.4
+            },
+            {
+              "judgeId": "referee",
+              "weightedScore": 5.885714285714285
+            },
+            {
+              "judgeId": "advocate",
+              "weightedScore": 4.685714285714286
+            }
+          ]
+        },
+        {
+          "panelId": "mirror",
+          "finalScore": 3,
+          "preGateScore": 3.2952380952380955,
+          "gateTripped": true,
+          "panelSpread": 3.9682539682539675,
+          "rationale": "The panel was in strong agreement, praising the answer's exceptional structure and clarity while simultaneously condemning its catastrophic grounding failures. All judges noted that the answer fabricated core product features—such as tunable relevance and personalization—that were entirely absent from the provided source material. This unsupported factual claim tripped a grounding hard-gate, capping the score and reflecting a consensus that the answer was fundamentally untrustworthy despite its polished presentation.",
+          "rounds": 5,
+          "meanPreGateScore": 3.2952380952380955,
+          "stdDevPreGateScore": 0.22303705486032127,
+          "gateTripFraction": 1,
+          "borderline": false,
+          "judgeScores": [
+            {
+              "judgeId": "skeptic",
+              "weightedScore": 3.542857142857143
+            },
+            {
+              "judgeId": "referee",
+              "weightedScore": 4.6
+            },
+            {
+              "judgeId": "advocate",
+              "weightedScore": 6.4
+            }
+          ]
+        },
+        {
+          "panelId": "tuned",
+          "finalScore": 2.5714285714285716,
+          "preGateScore": 2.5714285714285716,
+          "gateTripped": true,
+          "panelSpread": 1.7460317460317456,
+          "rationale": "The panel reached a strong consensus, agreeing that the artifact was exceptionally well-structured and clearly written but suffered from a catastrophic and disqualifying failure in grounding. All three judges identified that the core of the answer, a detailed list of product features, was entirely fabricated and unsubstantiated by the provided sources. This fabrication of a central factual claim tripped a grounding hard-gate, which capped the final score to reflect this critical violation of trust.",
+          "rounds": 5,
+          "meanPreGateScore": 2.5714285714285716,
+          "stdDevPreGateScore": 0.17271708582521203,
+          "gateTripFraction": 1,
+          "borderline": false,
+          "judgeScores": [
+            {
+              "judgeId": "skeptic",
+              "weightedScore": 3.0857142857142854
+            },
+            {
+              "judgeId": "referee",
+              "weightedScore": 3.7714285714285714
+            },
+            {
+              "judgeId": "advocate",
+              "weightedScore": 4.142857142857143
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "questionId": "4b",
+      "category": 4,
+      "split": "dev",
+      "panels": [
+        {
+          "panelId": "website",
+          "finalScore": 5.390476190476191,
+          "preGateScore": 5.390476190476191,
+          "gateTripped": false,
+          "panelSpread": 1.4285714285714297,
+          "rationale": "The judges unanimously agreed this artifact was a placeholder message that completely failed to answer the user's question, resulting in the lowest possible scores for helpfulness. While there was slight divergence on how to numerically score this type of failure, the panel was in full agreement that the placeholder was perfectly grounded and concise because it made no factual claims. The final verdict was most driven by this consensus, valuing the artifact's technical correctness and honesty despite its complete lack of a substantive answer.",
+          "rounds": 5,
+          "meanPreGateScore": 5.390476190476191,
+          "stdDevPreGateScore": 0.30476190476190496,
+          "gateTripFraction": 0,
+          "borderline": false,
+          "judgeScores": [
+            {
+              "judgeId": "skeptic",
+              "weightedScore": 6.171428571428572
+            },
+            {
+              "judgeId": "referee",
+              "weightedScore": 5.371428571428572
+            },
+            {
+              "judgeId": "advocate",
+              "weightedScore": 6.200000000000001
+            }
+          ]
+        },
+        {
+          "panelId": "mirror",
+          "finalScore": 3,
+          "preGateScore": 4.863492063492063,
+          "gateTripped": true,
+          "panelSpread": 5.396825396825397,
+          "rationale": "While the judges unanimously praised the artifact's clear structure and writing, they diverged significantly on the severity of its factual inaccuracies. A consensus formed that the artifact invented a core \"Natural Language Understanding\" capability and fabricated specific examples not present in the source material. This introduction of an unsupported factual claim tripped a grounding hard-gate, resulting in a capped final score that reflects a catastrophic failure in groundedness despite the high quality of the prose.",
+          "rounds": 5,
+          "meanPreGateScore": 4.863492063492063,
+          "stdDevPreGateScore": 0.46803599984716476,
+          "gateTripFraction": 1,
+          "borderline": false,
+          "judgeScores": [
+            {
+              "judgeId": "skeptic",
+              "weightedScore": 4.428571428571429
+            },
+            {
+              "judgeId": "referee",
+              "weightedScore": 7.257142857142857
+            },
+            {
+              "judgeId": "advocate",
+              "weightedScore": 8.114285714285714
+            }
+          ]
+        },
+        {
+          "panelId": "tuned",
+          "finalScore": 3,
+          "preGateScore": 3.4476190476190474,
+          "gateTripped": true,
+          "panelSpread": 1.7460317460317465,
+          "rationale": "The judges unanimously praised the artifact's exceptional structure and clarity, but they were in firm agreement that it suffered from a catastrophic grounding failure. The panel found that nearly all of the answer's specific factual claims—from customer examples to core features—were fabricated and entirely unsupported by the provided source documents. This severe breach of grounding tripped a hard-gate designed to penalize unsupported factual claims, capping the score and reflecting the panel's consensus that the artifact was fundamentally untrustworthy and misleading despite its polished presentation.",
+          "rounds": 5,
+          "meanPreGateScore": 3.4476190476190474,
+          "stdDevPreGateScore": 0.5734004777079686,
+          "gateTripFraction": 1,
+          "borderline": false,
+          "judgeScores": [
+            {
+              "judgeId": "skeptic",
+              "weightedScore": 4.171428571428571
+            },
+            {
+              "judgeId": "referee",
+              "weightedScore": 4
+            },
+            {
+              "judgeId": "advocate",
+              "weightedScore": 5.2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "questionId": "5.1",
+      "category": 5,
+      "split": "dev",
+      "panels": [
+        {
+          "panelId": "website",
+          "finalScore": 2.8380952380952387,
+          "preGateScore": 2.8380952380952387,
+          "gateTripped": false,
+          "panelSpread": 5.8730158730158735,
+          "rationale": "The panel unanimously agreed that this artifact is a placeholder system message that completely fails to address the user's question. While some judges noted its clarity and lack of hallucination, these minor points did not offset its primary failure. The verdict was ultimately driven by the artifact's total inability to provide any useful information, guidance, or next steps, rendering it entirely unhelpful.",
+          "rounds": 5,
+          "meanPreGateScore": 2.8380952380952387,
+          "stdDevPreGateScore": 1.2769010104452856,
+          "gateTripFraction": 0,
+          "borderline": false,
+          "judgeScores": [
+            {
+              "judgeId": "skeptic",
+              "weightedScore": 4.4
+            },
+            {
+              "judgeId": "referee",
+              "weightedScore": 2.2857142857142856
+            },
+            {
+              "judgeId": "advocate",
+              "weightedScore": 4.828571428571428
+            }
+          ]
+        },
+        {
+          "panelId": "mirror",
+          "finalScore": 3,
+          "preGateScore": 6.819047619047618,
+          "gateTripped": true,
+          "panelSpread": 4.1269841269841265,
+          "rationale": "The panel unanimously praised the artifact's excellent structure and clarity, but this was critically undermined by a severe grounding violation. All judges identified that the artifact presented factually incorrect instructions on how to investigate the problem by misinterpreting the source material. Although judges diverged on the overall impact of this error, the presence of a significant, unsupported factual claim tripped a grounding hard-gate. This cap was applied because the misleading advice rendered a core part of the answer unreliable.",
+          "rounds": 5,
+          "meanPreGateScore": 6.819047619047618,
+          "stdDevPreGateScore": 0.5708639185521021,
+          "gateTripFraction": 1,
+          "borderline": false,
+          "judgeScores": [
+            {
+              "judgeId": "skeptic",
+              "weightedScore": 5.857142857142857
+            },
+            {
+              "judgeId": "referee",
+              "weightedScore": 9.114285714285716
+            },
+            {
+              "judgeId": "advocate",
+              "weightedScore": 9.457142857142857
+            }
+          ]
+        },
+        {
+          "panelId": "tuned",
+          "finalScore": 3,
+          "preGateScore": 8.679365079365079,
+          "gateTripped": true,
+          "panelSpread": 1.2698412698412707,
+          "rationale": "The panel unanimously praised the artifact's excellent structure, comprehensive guidance, and exceptional clarity. However, a majority of judges diverged from a perfect assessment by identifying a critical, unsupported factual claim about \"runaway loops,\" which the third judge missed. This grounding violation tripped a hard-gate, which was the decisive factor driving the verdict. The final 3.00/10 score is the direct result of this automatic cap, which is applied regardless of an artifact's other considerable merits.",
+          "rounds": 5,
+          "meanPreGateScore": 8.679365079365079,
+          "stdDevPreGateScore": 0.46423076597919694,
+          "gateTripFraction": 1,
+          "borderline": false,
+          "judgeScores": [
+            {
+              "judgeId": "skeptic",
+              "weightedScore": 8.228571428571428
+            },
+            {
+              "judgeId": "referee",
+              "weightedScore": 9.685714285714287
+            },
+            {
+              "judgeId": "advocate",
+              "weightedScore": 9.885714285714286
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "questionId": "5.2",
+      "category": 5,
+      "split": "dev",
+      "panels": [
+        {
+          "panelId": "website",
+          "finalScore": 4.165079365079366,
+          "preGateScore": 4.165079365079366,
+          "gateTripped": false,
+          "panelSpread": 2.8571428571428577,
+          "rationale": "The panel unanimously agreed that this artifact is a placeholder message and not a genuine answer, representing a complete failure to address the user's query. This lack of substance was the primary driver of the low score, resulting in minimal marks for completeness, depth, and clarity from all judges. While the artifact's harmlessness and conciseness prevented an even lower score, the verdict reflects a response that is functionally a non-answer.",
+          "rounds": 5,
+          "meanPreGateScore": 4.165079365079366,
+          "stdDevPreGateScore": 0.4832909773710492,
+          "gateTripFraction": 0,
+          "borderline": false,
+          "judgeScores": [
+            {
+              "judgeId": "skeptic",
+              "weightedScore": 4.371428571428572
+            },
+            {
+              "judgeId": "referee",
+              "weightedScore": 6.142857142857143
+            },
+            {
+              "judgeId": "advocate",
+              "weightedScore": 5.314285714285714
+            }
+          ]
+        },
+        {
+          "panelId": "mirror",
+          "finalScore": 3,
+          "preGateScore": 5.206349206349206,
+          "gateTripped": true,
+          "panelSpread": 2.5396825396825395,
+          "rationale": "The panel unanimously praised the artifact's exceptional clarity and logical structure, agreeing that it provided a well-organized troubleshooting guide. However, this praise was uniformly tempered by the identification of severe grounding violations, where core technical concepts were introduced without any support from the provided sources. Ultimately, the verdict was driven by this introduction of an unsupported factual claim, which tripped a grounding hard-gate and automatically capped the final score, overriding the judges' individual assessments of quality.",
+          "rounds": 5,
+          "meanPreGateScore": 5.206349206349206,
+          "stdDevPreGateScore": 0.14054567378526128,
+          "gateTripFraction": 1,
+          "borderline": false,
+          "judgeScores": [
+            {
+              "judgeId": "skeptic",
+              "weightedScore": 5.285714285714286
+            },
+            {
+              "judgeId": "referee",
+              "weightedScore": 6.342857142857143
+            },
+            {
+              "judgeId": "advocate",
+              "weightedScore": 7.2
+            }
+          ]
+        },
+        {
+          "panelId": "tuned",
+          "finalScore": 3,
+          "preGateScore": 5.301587301587301,
+          "gateTripped": true,
+          "panelSpread": 1.746031746031746,
+          "rationale": "The judges unanimously praised the answer's exceptional clarity and logical structure, but this was completely overshadowed by a critical grounding failure. A core explanatory section was found to be entirely fabricated from the provided sources, an unsupported factual claim that tripped a grounding hard-gate and capped the final score. This major fabrication was the definitive factor in the verdict, rendering the otherwise well-organized artifact fundamentally unreliable.",
+          "rounds": 5,
+          "meanPreGateScore": 5.301587301587301,
+          "stdDevPreGateScore": 0.27893184300303175,
+          "gateTripFraction": 1,
+          "borderline": false,
+          "judgeScores": [
+            {
+              "judgeId": "skeptic",
+              "weightedScore": 5.257142857142857
+            },
+            {
+              "judgeId": "referee",
+              "weightedScore": 6.542857142857143
+            },
+            {
+              "judgeId": "advocate",
+              "weightedScore": 7.571428571428572
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "questionId": "6.1",
+      "category": 6,
+      "split": "dev",
+      "panels": [
+        {
+          "panelId": "website",
+          "finalScore": 4.222222222222223,
+          "preGateScore": 4.222222222222223,
+          "gateTripped": false,
+          "panelSpread": 1.4285714285714297,
+          "rationale": "The judges unanimously agreed that this artifact is a placeholder system message and not a genuine response to the user's query. Consequently, it received the lowest possible ratings for completeness, depth, and clarity. While the artifact was technically sound—being concise and perfectly grounded by virtue of making no factual claims—this could not overcome its core failure. The final score was decisively driven by this complete inability to provide any relevant information.",
+          "rounds": 5,
+          "meanPreGateScore": 4.222222222222223,
+          "stdDevPreGateScore": 1.1300873885098153,
+          "gateTripFraction": 0,
+          "borderline": false,
+          "judgeScores": [
+            {
+              "judgeId": "skeptic",
+              "weightedScore": 4.742857142857143
+            },
+            {
+              "judgeId": "referee",
+              "weightedScore": 5.371428571428572
+            },
+            {
+              "judgeId": "advocate",
+              "weightedScore": 5.4
+            }
+          ]
+        },
+        {
+          "panelId": "mirror",
+          "finalScore": 3,
+          "preGateScore": 5.5174603174603165,
+          "gateTripped": true,
+          "panelSpread": 2.8571428571428568,
+          "rationale": "The panel unanimously praised the answer's exceptional clarity and well-organized structure, finding the comparison easy to understand. However, this high quality was completely overshadowed by severe, unanimous agreement on its grounding failures. The answer consistently fabricated unsupported factual claims regarding machine learning mechanics and specific business impacts, a critical error that tripped a grounding hard-gate. This violation capped the final score, making the otherwise excellent writing and organization irrelevant to the verdict.",
+          "rounds": 5,
+          "meanPreGateScore": 5.5174603174603165,
+          "stdDevPreGateScore": 0.1672627285373901,
+          "gateTripFraction": 1,
+          "borderline": false,
+          "judgeScores": [
+            {
+              "judgeId": "skeptic",
+              "weightedScore": 5.428571428571429
+            },
+            {
+              "judgeId": "referee",
+              "weightedScore": 6.771428571428572
+            },
+            {
+              "judgeId": "advocate",
+              "weightedScore": 7.4
+            }
+          ]
+        },
+        {
+          "panelId": "tuned",
+          "finalScore": 3,
+          "preGateScore": 3.707936507936508,
+          "gateTripped": true,
+          "panelSpread": 1.1111111111111112,
+          "rationale": "The judges unanimously praised the artifact's exceptional clarity and well-organized structure, but they also identified the same catastrophic flaw. The panel was in complete agreement that the entire description of Algolia Recommend was a fabrication, as the provided sources contained no information about the product beyond its name. This severe grounding violation tripped a hard-gate for presenting an unsupported factual claim as truth, which automatically capped the final score and rendered the otherwise well-written answer untrustworthy.",
+          "rounds": 5,
+          "meanPreGateScore": 3.707936507936508,
+          "stdDevPreGateScore": 0.20807580454824054,
+          "gateTripFraction": 1,
+          "borderline": false,
+          "judgeScores": [
+            {
+              "judgeId": "skeptic",
+              "weightedScore": 4.0285714285714285
+            },
+            {
+              "judgeId": "referee",
+              "weightedScore": 4.885714285714285
+            },
+            {
+              "judgeId": "advocate",
+              "weightedScore": 5.542857142857143
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "questionId": "6.3",
+      "category": 6,
+      "split": "dev",
+      "panels": [
+        {
+          "panelId": "website",
+          "finalScore": 3.1428571428571432,
+          "preGateScore": 3.1428571428571432,
+          "gateTripped": false,
+          "panelSpread": 4.285714285714286,
+          "rationale": "The judges unanimously agreed that the artifact is a placeholder message that completely fails to answer the user's question about Algolia filters. This consensus that the response provided zero substance or value was the definitive driver of the very low score. The only divergence among the panel was the precise numeric penalty assigned to this total, albeit factually harmless, lack of content.",
+          "rounds": 5,
+          "meanPreGateScore": 3.1428571428571432,
+          "stdDevPreGateScore": 1.4456126446484023,
+          "gateTripFraction": 0,
+          "borderline": false,
+          "judgeScores": [
+            {
+              "judgeId": "skeptic",
+              "weightedScore": 3.8285714285714283
+            },
+            {
+              "judgeId": "referee",
+              "weightedScore": 5.371428571428572
+            },
+            {
+              "judgeId": "advocate",
+              "weightedScore": 3.8285714285714283
+            }
+          ]
+        },
+        {
+          "panelId": "mirror",
+          "finalScore": 3,
+          "preGateScore": 6.247619047619048,
+          "gateTripped": true,
+          "panelSpread": 2.5396825396825387,
+          "rationale": "The panel unanimously praised the answer's exceptional clarity and structure, agreeing it provided a comprehensive and well-taught comparison of the filtering parameters. However, the judges diverged sharply on its factual accuracy, with the final verdict hinging on the discovery of several fabricated technical details, including unsupported claims about syntax and boolean operators. Because this introduction of a significant, ungrounded factual claim tripped a grounding hard-gate, the final score was capped at 3.00.",
+          "rounds": 5,
+          "meanPreGateScore": 6.247619047619048,
+          "stdDevPreGateScore": 1.4745203045383408,
+          "gateTripFraction": 1,
+          "borderline": false,
+          "judgeScores": [
+            {
+              "judgeId": "skeptic",
+              "weightedScore": 6.657142857142857
+            },
+            {
+              "judgeId": "referee",
+              "weightedScore": 7.657142857142857
+            },
+            {
+              "judgeId": "advocate",
+              "weightedScore": 7.942857142857143
+            }
+          ]
+        },
+        {
+          "panelId": "tuned",
+          "finalScore": 3,
+          "preGateScore": 5.123809523809524,
+          "gateTripped": true,
+          "panelSpread": 3.174603174603174,
+          "rationale": "The panel unanimously lauded the artifact for its exceptional clarity, structure, and instructional quality. This praise was overshadowed, however, by a critical grounding failure, as the answer made a significant, unsupported factual claim regarding performance (\"faster than\") that was absent from the source documents. This specific violation tripped a grounding hard-gate, automatically capping the final score and rendering the otherwise well-crafted answer untrustworthy.",
+          "rounds": 5,
+          "meanPreGateScore": 5.123809523809524,
+          "stdDevPreGateScore": 0.49368907114396815,
+          "gateTripFraction": 1,
+          "borderline": false,
+          "judgeScores": [
+            {
+              "judgeId": "skeptic",
+              "weightedScore": 4.914285714285714
+            },
+            {
+              "judgeId": "referee",
+              "weightedScore": 6.657142857142857
+            },
+            {
+              "judgeId": "advocate",
+              "weightedScore": 8.000000000000002
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "questionId": "7.1",
+      "category": 7,
+      "split": "dev",
+      "panels": [
+        {
+          "panelId": "website",
+          "finalScore": 3.707936507936508,
+          "preGateScore": 3.707936507936508,
+          "gateTripped": false,
+          "panelSpread": 8.412698412698413,
+          "rationale": "The panel agreed the artifact was a system placeholder message rather than a substantive answer, correctly triggered by an out-of-scope query. However, judges diverged sharply on whether this constituted a successful refusal. The low final score was primarily driven by the majority view that a technical stub is an unhelpful and incomplete response, outweighing the minority opinion that it was the correct system behavior for this specific test.",
+          "rounds": 5,
+          "meanPreGateScore": 3.707936507936508,
+          "stdDevPreGateScore": 1.3557302589923235,
+          "gateTripFraction": 0.2,
+          "borderline": false,
+          "judgeScores": [
+            {
+              "judgeId": "skeptic",
+              "weightedScore": 3.4
+            },
+            {
+              "judgeId": "referee",
+              "weightedScore": 5.742857142857143
+            },
+            {
+              "judgeId": "advocate",
+              "weightedScore": 9.257142857142856
+            }
+          ]
+        },
+        {
+          "panelId": "mirror",
+          "finalScore": 10,
+          "preGateScore": 10,
+          "gateTripped": false,
+          "panelSpread": 0,
+          "rationale": "The panel unanimously agreed that this artifact represents a perfect response to an out-of-scope query. All three judges praised its ability to correctly identify the question's nature, provide a polite and direct refusal, and helpfully redirect the user to relevant, in-scope resources. This flawless execution, precisely aligning with the special instructions for this test case, was the decisive factor in the unanimous verdict.",
+          "rounds": 5,
+          "meanPreGateScore": 10,
+          "stdDevPreGateScore": 0,
+          "gateTripFraction": 0,
+          "borderline": false,
+          "judgeScores": [
+            {
+              "judgeId": "skeptic",
+              "weightedScore": 10
+            },
+            {
+              "judgeId": "referee",
+              "weightedScore": 10
+            },
+            {
+              "judgeId": "advocate",
+              "weightedScore": 10
+            }
+          ]
+        },
+        {
+          "panelId": "tuned",
+          "finalScore": 10,
+          "preGateScore": 10,
+          "gateTripped": false,
+          "panelSpread": 0,
+          "rationale": "The judges were in complete and unanimous agreement, all awarding a perfect score. The verdict was driven by the artifact's ideal execution of a refusal, which was the required behavior for this out-of-scope prompt according to special test instructions. The panel specifically praised the response for correctly identifying the question as outside its knowledge base and providing a polite, concise, and helpful refusal that guided the user to other resources.",
+          "rounds": 5,
+          "meanPreGateScore": 10,
+          "stdDevPreGateScore": 0,
+          "gateTripFraction": 0,
+          "borderline": false,
+          "judgeScores": [
+            {
+              "judgeId": "skeptic",
+              "weightedScore": 10
+            },
+            {
+              "judgeId": "referee",
+              "weightedScore": 10
+            },
+            {
+              "judgeId": "advocate",
+              "weightedScore": 10
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "questionId": "7.2",
+      "category": 7,
+      "split": "dev",
+      "panels": [
+        {
+          "panelId": "website",
+          "finalScore": 4.806349206349206,
+          "preGateScore": 4.806349206349206,
+          "gateTripped": false,
+          "panelSpread": 6.984126984126984,
+          "rationale": "The judges unanimously identified the artifact as a system placeholder message that correctly functions as a refusal for an out-of-scope question, and therefore contains no grounding violations. However, the panel was deeply divided on whether to score the artifact based on its correct technical function or its quality as a user-facing answer. The final score was driven down by the majority view that the artifact, while functionally correct, was an exceptionally poor refusal filled with confusing jargon, rendering it completely unclear and unhelpful to the user.",
+          "rounds": 5,
+          "meanPreGateScore": 4.806349206349206,
+          "stdDevPreGateScore": 2.012668368911013,
+          "gateTripFraction": 0,
+          "borderline": false,
+          "judgeScores": [
+            {
+              "judgeId": "skeptic",
+              "weightedScore": 5.428571428571429
+            },
+            {
+              "judgeId": "referee",
+              "weightedScore": 8.37142857142857
+            },
+            {
+              "judgeId": "advocate",
+              "weightedScore": 5.171428571428573
+            }
+          ]
+        },
+        {
+          "panelId": "mirror",
+          "finalScore": 10,
+          "preGateScore": 10,
+          "gateTripped": false,
+          "panelSpread": 0,
+          "rationale": "The panel was in unanimous agreement, finding this to be an ideal response to an out-of-scope question. All three judges concluded that the artifact’s perfection lay in its refusal to answer; it correctly identified the user's query as being about Elasticsearch, politely explained why it could not answer from the Algolia knowledge base, and helpfully routed the user to general support. This flawless execution of a refusal protocol was the definitive driver for the perfect score.",
+          "rounds": 5,
+          "meanPreGateScore": 10,
+          "stdDevPreGateScore": 0,
+          "gateTripFraction": 0,
+          "borderline": false,
+          "judgeScores": [
+            {
+              "judgeId": "skeptic",
+              "weightedScore": 10
+            },
+            {
+              "judgeId": "referee",
+              "weightedScore": 10
+            },
+            {
+              "judgeId": "advocate",
+              "weightedScore": 10
+            }
+          ]
+        },
+        {
+          "panelId": "tuned",
+          "finalScore": 10,
+          "preGateScore": 10,
+          "gateTripped": false,
+          "panelSpread": 0,
+          "rationale": "The judges were in complete agreement, awarding a perfect score for what they unanimously considered a flawless execution of the out-of-scope refusal test. The verdict was primarily driven by the artifact's ability to not only politely refuse the off-topic query but also to provide a sophisticated, user-centric pivot. All three judges specifically highlighted this helpful attempt to re-engage the user on their underlying goal as the key to its perfect performance.",
+          "rounds": 5,
+          "meanPreGateScore": 10,
+          "stdDevPreGateScore": 0,
+          "gateTripFraction": 0,
+          "borderline": false,
+          "judgeScores": [
+            {
+              "judgeId": "skeptic",
+              "weightedScore": 10
+            },
+            {
+              "judgeId": "referee",
+              "weightedScore": 10
+            },
+            {
+              "judgeId": "advocate",
+              "weightedScore": 10
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "questionId": "8.1",
+      "category": 8,
+      "split": "dev",
+      "panels": [
+        {
+          "panelId": "website",
+          "finalScore": 3.6277777777777778,
+          "preGateScore": 3.6277777777777778,
+          "gateTripped": false,
+          "panelSpread": 1.25,
+          "rationale": "The panel was in unanimous agreement that the artifact is a system placeholder message, not a substantive answer. This complete failure to address the user's question about typo tolerance was the decisive factor driving the extremely low score. Consequently, all judges found the response offered zero value, assigning it minimal ratings for completeness, depth, and clarity. While final numeric scores showed minor variance, the core verdict was identical across the panel.",
+          "rounds": 5,
+          "meanPreGateScore": 3.6277777777777778,
+          "stdDevPreGateScore": 0.8848170627694185,
+          "gateTripFraction": 0,
+          "borderline": false,
+          "judgeScores": [
+            {
+              "judgeId": "skeptic",
+              "weightedScore": 3.875
+            },
+            {
+              "judgeId": "referee",
+              "weightedScore": 5.5
+            },
+            {
+              "judgeId": "advocate",
+              "weightedScore": 5.3
+            }
+          ]
+        },
+        {
+          "panelId": "mirror",
+          "finalScore": 3,
+          "preGateScore": 5.9111111111111105,
+          "gateTripped": true,
+          "panelSpread": 3.0555555555555554,
+          "rationale": "The judges unanimously praised the answer's clear structure and well-written explanations of core concepts, but they all identified the same critical grounding failure. The response confidently fabricated a key parameter that was entirely unsupported by the provided source material, a flaw that drove the final verdict. This unsupported factual claim tripped a grounding hard-gate, resulting in a mandatory score cap that reflects the severity of presenting a hallucination as fact. While judges diverged on the answer's overall helpfulness despite this error, the panel's final score is defined by this critical failure to ground its claims.",
+          "rounds": 5,
+          "meanPreGateScore": 5.9111111111111105,
+          "stdDevPreGateScore": 1.353938014884045,
+          "gateTripFraction": 0.8,
+          "borderline": false,
+          "judgeScores": [
+            {
+              "judgeId": "skeptic",
+              "weightedScore": 6.5
+            },
+            {
+              "judgeId": "referee",
+              "weightedScore": 6.075
+            },
+            {
+              "judgeId": "advocate",
+              "weightedScore": 7.55
+            }
+          ]
+        },
+        {
+          "panelId": "tuned",
+          "finalScore": 3,
+          "preGateScore": 6.377777777777777,
+          "gateTripped": true,
+          "panelSpread": 6.111111111111111,
+          "rationale": "While the judges unanimously praised the artifact's exceptional clarity and structure, they were deeply divided on its factual accuracy and grounding. A conclusive review confirmed the most critical assessment, finding that multiple core claims about the platform's functionality were completely unsupported by the provided documentation. This catastrophic failure of grounding tripped a hard-gate, capping the final score to reflect that the well-written answer was fundamentally untrustworthy.",
+          "rounds": 5,
+          "meanPreGateScore": 6.377777777777777,
+          "stdDevPreGateScore": 0.9437252163371583,
+          "gateTripFraction": 1,
+          "borderline": false,
+          "judgeScores": [
+            {
+              "judgeId": "skeptic",
+              "weightedScore": 5.25
+            },
+            {
+              "judgeId": "referee",
+              "weightedScore": 9.225
+            },
+            {
+              "judgeId": "advocate",
+              "weightedScore": 9.65
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "questionId": "8.2",
+      "category": 8,
+      "split": "dev",
+      "panels": [
+        {
+          "panelId": "website",
+          "finalScore": 3.6999999999999993,
+          "preGateScore": 3.6999999999999993,
+          "gateTripped": false,
+          "panelSpread": 1.3888888888888884,
+          "rationale": "The judges were in unanimous agreement that the artifact was a placeholder system message and not a substantive answer, completely failing to address the user's query. There was no significant divergence in their rationale, as all panelists identified the absolute lack of completeness, depth, and relevance as the core failure. This total failure to function as an answer was the primary driver of the very low score, with the lack of grounding violations being merely an irrelevant byproduct of the artifact containing no information.",
+          "rounds": 5,
+          "meanPreGateScore": 3.6999999999999993,
+          "stdDevPreGateScore": 0.7199537022151725,
+          "gateTripFraction": 0,
+          "borderline": false,
+          "judgeScores": [
+            {
+              "judgeId": "skeptic",
+              "weightedScore": 4
+            },
+            {
+              "judgeId": "referee",
+              "weightedScore": 4.85
+            },
+            {
+              "judgeId": "advocate",
+              "weightedScore": 5.675
+            }
+          ]
+        },
+        {
+          "panelId": "mirror",
+          "finalScore": 3,
+          "preGateScore": 9.288888888888888,
+          "gateTripped": true,
+          "panelSpread": 0.6944444444444446,
+          "rationale": "The panel was unanimous in its praise for the artifact's exceptional clarity, depth, and logical structure, viewing it as an otherwise outstanding explanation of the topic. While the judges diverged slightly on the number of minor grounding issues, their collective finding of unsourced inferences triggered a critical grounding failure. This hard-gate violation, for making an unsupported factual claim, was the decisive factor that capped the artifact's final score.",
+          "rounds": 5,
+          "meanPreGateScore": 9.288888888888888,
+          "stdDevPreGateScore": 0.3427377070041595,
+          "gateTripFraction": 0.8,
+          "borderline": false,
+          "judgeScores": [
+            {
+              "judgeId": "skeptic",
+              "weightedScore": 9.25
+            },
+            {
+              "judgeId": "referee",
+              "weightedScore": 9.55
+            },
+            {
+              "judgeId": "advocate",
+              "weightedScore": 9.8
+            }
+          ]
+        },
+        {
+          "panelId": "tuned",
+          "finalScore": 3,
+          "preGateScore": 7.166666666666667,
+          "gateTripped": true,
+          "panelSpread": 1.666666666666667,
+          "rationale": "The panel unanimously praised the artifact's exceptional clarity, structure, and technical depth. However, all judges identified multiple unsupported factual claims regarding the product's business value and performance, differing only on the perceived severity of these grounding violations. Ultimately, the presence of a significant unsupported factual claim tripped a grounding hard-gate, which automatically capped the final score and was the definitive factor in this verdict.",
+          "rounds": 5,
+          "meanPreGateScore": 7.166666666666667,
+          "stdDevPreGateScore": 0.3411129207335279,
+          "gateTripFraction": 1,
+          "borderline": false,
+          "judgeScores": [
+            {
+              "judgeId": "skeptic",
+              "weightedScore": 7.2
+            },
+            {
+              "judgeId": "referee",
+              "weightedScore": 7.825
+            },
+            {
+              "judgeId": "advocate",
+              "weightedScore": 9.025
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "questionId": "8.3",
+      "category": 8,
+      "split": "dev",
+      "panels": [
+        {
+          "panelId": "website",
+          "finalScore": 2.5888888888888886,
+          "preGateScore": 2.5888888888888886,
+          "gateTripped": false,
+          "panelSpread": 1.3888888888888884,
+          "rationale": "The judges reached a strong consensus that the artifact was a placeholder system message, not a substantive answer to the user's query. This complete failure to address the prompt was the decisive factor behind the extremely low score, resulting in minimal ratings for completeness, depth, and helpfulness from the entire panel. While all judges noted the absence of grounding violations, they agreed this was only because the artifact made no factual claims at all, ultimately providing zero value to the user.",
+          "rounds": 5,
+          "meanPreGateScore": 2.5888888888888886,
+          "stdDevPreGateScore": 1.1196064123246698,
+          "gateTripFraction": 0,
+          "borderline": false,
+          "judgeScores": [
+            {
+              "judgeId": "skeptic",
+              "weightedScore": 3.7
+            },
+            {
+              "judgeId": "referee",
+              "weightedScore": 5.05
+            },
+            {
+              "judgeId": "advocate",
+              "weightedScore": 3.025
+            }
+          ]
+        },
+        {
+          "panelId": "mirror",
+          "finalScore": 9.35,
+          "preGateScore": 9.35,
+          "gateTripped": false,
+          "panelSpread": 0.5555555555555554,
+          "rationale": "The panel unanimously agreed that this is an excellent and highly actionable guide for developers, praising its clear structure and practical code example. The only point of divergence was a minor grounding violation, noted by one judge, where a best practice for environment variables was not found in the source documentation. Ultimately, the artifact's outstanding clarity, accuracy, and direct utility for its intended audience were the dominant factors driving its high score.",
+          "rounds": 5,
+          "meanPreGateScore": 9.35,
+          "stdDevPreGateScore": 0.41298372311212966,
+          "gateTripFraction": 0.4,
+          "borderline": true,
+          "judgeScores": [
+            {
+              "judgeId": "skeptic",
+              "weightedScore": 9.425
+            },
+            {
+              "judgeId": "referee",
+              "weightedScore": 9.475
+            },
+            {
+              "judgeId": "advocate",
+              "weightedScore": 9.65
+            }
+          ]
+        },
+        {
+          "panelId": "tuned",
+          "finalScore": 3,
+          "preGateScore": 7.138888888888888,
+          "gateTripped": true,
+          "panelSpread": 4.305555555555555,
+          "rationale": "While the panel agreed that the artifact correctly identified the appropriate library and was well-structured, they diverged significantly on the severity of its grounding issues. The final verdict was most driven by the skeptic's finding of a critical, unsupported superlative claim. This factual error tripped a grounding hard-gate, which capped the final score and overrode the artifact's otherwise strong performance in conciseness and user engagement.",
+          "rounds": 5,
+          "meanPreGateScore": 7.138888888888888,
+          "stdDevPreGateScore": 0.7911548052852398,
+          "gateTripFraction": 1,
+          "borderline": false,
+          "judgeScores": [
+            {
+              "judgeId": "skeptic",
+              "weightedScore": 6.675
+            },
+            {
+              "judgeId": "referee",
+              "weightedScore": 8.55
+            },
+            {
+              "judgeId": "advocate",
+              "weightedScore": 9.175
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "questionId": "8.4",
+      "category": 8,
+      "split": "dev",
+      "panels": [
+        {
+          "panelId": "website",
+          "finalScore": 2.8,
+          "preGateScore": 2.8,
+          "gateTripped": false,
+          "panelSpread": 1.5277777777777777,
+          "rationale": "The panel unanimously agreed that the artifact was not an actual answer but a system-generated placeholder message stating that no content was available. This complete failure to address the user's query was the primary driver for the extremely low score, as the artifact offered zero completeness or depth. All judges noted, however, that the artifact was concise and did not fabricate information, which prevented the score from being even lower.",
+          "rounds": 5,
+          "meanPreGateScore": 2.8,
+          "stdDevPreGateScore": 0.9,
+          "gateTripFraction": 0,
+          "borderline": false,
+          "judgeScores": [
+            {
+              "judgeId": "skeptic",
+              "weightedScore": 3.7
+            },
+            {
+              "judgeId": "referee",
+              "weightedScore": 3.25
+            },
+            {
+              "judgeId": "advocate",
+              "weightedScore": 4.875
+            }
+          ]
+        },
+        {
+          "panelId": "mirror",
+          "finalScore": 3,
+          "preGateScore": 6.794444444444444,
+          "gateTripped": true,
+          "panelSpread": 4.861111111111112,
+          "rationale": "The panel agreed that the answer was exceptionally clear, well-structured, and addressed the user's problem, but diverged completely on its factual grounding. While two judges found the answer to be fully supported, the skeptic judge correctly identified multiple authoritative claims about Algolia's ranking mechanics that were fabricated and not present in the source material. This critical grounding failure tripped a quality hard-gate, capping the score and becoming the definitive factor in this verdict.",
+          "rounds": 5,
+          "meanPreGateScore": 6.794444444444444,
+          "stdDevPreGateScore": 0.5168757044272443,
+          "gateTripFraction": 1,
+          "borderline": false,
+          "judgeScores": [
+            {
+              "judgeId": "skeptic",
+              "weightedScore": 5.875
+            },
+            {
+              "judgeId": "referee",
+              "weightedScore": 8.975
+            },
+            {
+              "judgeId": "advocate",
+              "weightedScore": 9.75
+            }
+          ]
+        },
+        {
+          "panelId": "tuned",
+          "finalScore": 3,
+          "preGateScore": 5.777777777777777,
+          "gateTripped": true,
+          "panelSpread": 5.416666666666666,
+          "rationale": "The panel agreed that the answer was exceptionally well-structured, clear, and actionable in its presentation. However, the judges diverged sharply on its factual accuracy, with the majority finding that the answer's core technical explanation was a complete fabrication not supported by the provided documentation. This critical grounding failure, where the artifact invented a mechanism to support its claims, tripped a hard-gate that capped the final score. The verdict was therefore driven entirely by this catastrophic lack of groundedness, which rendered the answer's structural excellence irrelevant.",
+          "rounds": 5,
+          "meanPreGateScore": 5.777777777777777,
+          "stdDevPreGateScore": 0.5049141230000782,
+          "gateTripFraction": 1,
+          "borderline": false,
+          "judgeScores": [
+            {
+              "judgeId": "skeptic",
+              "weightedScore": 5.35
+            },
+            {
+              "judgeId": "referee",
+              "weightedScore": 7.925
+            },
+            {
+              "judgeId": "advocate",
+              "weightedScore": 7.8
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

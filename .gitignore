@@ -15,9 +15,11 @@ build/
 **/build/
 
 # === run artifacts ===
-# Keep lab/server/output (scores + transcripts = experiment results),
-# but drop logs and the large Playwright screenshot captures.
+# Eval run outputs (scores + transcripts) are generated, not source. Specific
+# runs cited as evidence in docs/ are force-added (git add -f); all other runs
+# are ignored to keep history from churning. (Policy changed 2026-06-17.)
 *.log
+lab/server/output/
 lab/capture/output/
 scripts/setup/current_instructions.txt
 
