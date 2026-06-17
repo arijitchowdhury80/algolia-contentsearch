@@ -14,7 +14,7 @@ import { useLiveJudge, type LiveJudgeOptions } from './hooks/useLiveJudge';
 import { AppHeader } from './components/AppHeader';
 import { QueryBar } from './components/QueryBar';
 import { ComparisonKey } from './components/ComparisonKey';
-import { ColumnGrid } from './components/ColumnGrid';
+import { LaneRail } from './components/LaneRail';
 import { WebsiteColumn } from './components/WebsiteColumn';
 import { AgentColumn } from './components/AgentColumn';
 import { AnalysisPanel } from './components/AnalysisPanel';
@@ -66,7 +66,7 @@ export default function App() {
       </div>
       <main className="lab__main">
         <div className="lab__panels">
-          <ColumnGrid columns={columns} renderColumn={renderColumn} />
+          <LaneRail columns={columns} renderColumn={renderColumn} />
         </div>
         <div className="lab__analysis">
           <AnalysisPanel state={live.state} data={live.data} error={live.error} />

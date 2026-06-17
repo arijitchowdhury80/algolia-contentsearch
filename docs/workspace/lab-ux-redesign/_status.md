@@ -15,7 +15,7 @@
 - [ ] D4 — conversation store (multi-turn) confirm/extend + tests
 - [ ] D4 — Composer (persistent, hero→docked)
 - [ ] D4 — FollowUpCallout + quick-reply chips
-- [ ] D1 — LaneRail (horizontal-scroll full-height)
+- [x] D1 — LaneRail (horizontal-scroll; ColumnGrid→LaneRail, .grid*→.rail*; fixed-width clamp 340–400px, 3 fit + scroll for more; mobile tabs kept). tsc + 58 tests green. (Full-height comes with D2 removing the bottom 40%.)
 - [ ] D2 — AnalysisDrawer + lane score pills
 - [ ] CSS — .rail / .composer / .drawer / .srcpills / .followup; drop 60/40
 - [ ] Integrate in App
