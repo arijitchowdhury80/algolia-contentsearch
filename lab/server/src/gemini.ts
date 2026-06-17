@@ -30,8 +30,10 @@ export interface GeminiClientConfig {
   readonly timeoutMs?: number;
   /** Default output-token cap when a call doesn't specify one. */
   readonly maxOutputTokens?: number;
-  /** Max retries on 429/5xx. Default 5. */
+  /** Max retries on 429/5xx and network errors. Default 5. */
   readonly maxRetries?: number;
+  /** Base backoff in ms (doubles per attempt). Default 2000; tests set ~1. */
+  readonly backoffBaseMs?: number;
   /** fetch override (tests). */
   readonly fetchImpl?: typeof fetch;
 }
@@ -43,6 +45,7 @@ export function makeGeminiComplete(cfg: GeminiClientConfig): LlmComplete {
   const timeoutMs = cfg.timeoutMs ?? 120_000;
   const defaultMaxTokens = cfg.maxOutputTokens ?? 8192;
   const maxRetries = cfg.maxRetries ?? 5;
+  const backoffBaseMs = cfg.backoffBaseMs ?? 2000;
 
   return async function geminiComplete(
     prompt: string,
@@ -59,8 +62,9 @@ export function makeGeminiComplete(cfg: GeminiClientConfig): LlmComplete {
       body.systemInstruction = { parts: [{ text: opts.system }] };
     }
 
-    // Retry on rate-limit (429) and transient server errors (500/503) with
-    // exponential backoff — a single 429 must not crash a 700+ call run.
+    // Retry on rate-limit (429), transient server errors (500/502/503/504), AND
+    // thrown network errors (dropped connection / timeout) with exponential
+    // backoff — a single blip must not crash a 700+ call run or poison a score.
     let text = "";
     let res: Response | undefined;
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
@@ -76,17 +80,25 @@ export function makeGeminiComplete(cfg: GeminiClientConfig): LlmComplete {
             signal: controller.signal,
           },
         );
+      } catch (e) {
+        // Network-level failure (fetch threw): retryable until we run out.
+        if (attempt === maxRetries) {
+          throw new Error(`Gemini network error after ${maxRetries} retries: ${(e as Error).message}`);
+        }
+        await sleep(Math.min(backoffBaseMs * 2 ** attempt, 32_000));
+        continue;
       } finally {
         clearTimeout(timer);
       }
       text = await res.text();
       if (res.ok) break;
-      const retryable = res.status === 429 || res.status === 500 || res.status === 503;
+      const retryable =
+        res.status === 429 || res.status === 500 || res.status === 502 || res.status === 503 || res.status === 504;
       if (!retryable || attempt === maxRetries) {
         throw new Error(`Gemini ${res.status}: ${text.slice(0, 500)}`);
       }
-      // Backoff: 2s, 4s, 8s, 16s, 32s (+ jitter via attempt).
-      await sleep(Math.min(2000 * 2 ** attempt, 32_000));
+      // Backoff: base, 2×, 4×, 8×, 16× (capped at 32s).
+      await sleep(Math.min(backoffBaseMs * 2 ** attempt, 32_000));
     }
     if (!res || !res.ok) {
       throw new Error(`Gemini request failed after ${maxRetries} retries`);

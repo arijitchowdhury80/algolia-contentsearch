@@ -21,6 +21,7 @@ import {
   type TranscriptPanel,
   type TranscriptQuestion,
 } from "./store.js";
+import { mapWithConcurrency } from "./concurrency.js";
 
 const QUESTION_VERSION = "locked-v2";
 
@@ -98,45 +99,47 @@ export async function runTests(opts: RunTestsOptions = {}): Promise<string> {
   const runId = newRunId();
   console.log(`\n[run-tests] runId=${runId}`);
   console.log(
-    `[run-tests] ${questions.length} question(s) × ${panels.length} panel(s)\n`,
+    `[run-tests] ${questions.length} question(s) × ${panels.length} panel(s), concurrency=${cfg.concurrency}\n`,
   );
 
-  const tQuestions: TranscriptQuestion[] = [];
+  // Answer every (question × panel) pair in parallel (bounded). Each pair is
+  // independent (multi-turn questions stay sequential WITHIN runPanelForQuestion),
+  // so order is preserved by mapWithConcurrency and regrouped per question below.
+  const tasks = questions.flatMap((q, qi) =>
+    panels.map((panel, pi) => ({ q, qi, panel, pi })),
+  );
 
-  for (const q of questions) {
-    console.log(`  Q ${q.id} (cat ${q.category}, ${q.split}): ${q.prompt}`);
-    const tPanels: TranscriptPanel[] = [];
+  const flat = await mapWithConcurrency(tasks, cfg.concurrency, async (t) => {
+    const t0 = Date.now();
+    const answer = await runPanelForQuestion(t.panel, cfg, t.q);
+    const latencyMs = Date.now() - t0;
+    const status = answer.error
+      ? `ERROR ${answer.error.slice(0, 80)}`
+      : `${answer.answer.length} chars, ${answer.sources.length} src`;
+    console.log(`  Q ${t.q.id} ${t.panel.id.padEnd(8)} ${latencyMs}ms  ${status}`);
+    const tPanel: TranscriptPanel = {
+      panelId: t.panel.id,
+      panelLabel: t.panel.label,
+      kind: t.panel.kind,
+      ...(t.panel.agentId ? { agentId: t.panel.agentId } : {}),
+      ...(t.panel.index ? { index: t.panel.index } : {}),
+      answer,
+      latencyMs,
+    };
+    return { qi: t.qi, pi: t.pi, tPanel };
+  });
 
-    for (const panel of panels) {
-      const t0 = Date.now();
-      const answer = await runPanelForQuestion(panel, cfg, q);
-      const latencyMs = Date.now() - t0;
-      const status = answer.error
-        ? `ERROR ${answer.error.slice(0, 80)}`
-        : `${answer.answer.length} chars, ${answer.sources.length} src`;
-      console.log(`    ${panel.id.padEnd(8)} ${latencyMs}ms  ${status}`);
-
-      tPanels.push({
-        panelId: panel.id,
-        panelLabel: panel.label,
-        kind: panel.kind,
-        ...(panel.agentId ? { agentId: panel.agentId } : {}),
-        ...(panel.index ? { index: panel.index } : {}),
-        answer,
-        latencyMs,
-      });
-    }
-
-    tQuestions.push({
-      questionId: q.id,
-      category: q.category,
-      split: q.split,
-      prompt: q.prompt,
-      ...(q.followUp ? { followUp: q.followUp } : {}),
-      isRefusalTest: q.isRefusalTest,
-      panels: tPanels,
-    });
-  }
+  // Regroup, preserving question + panel order.
+  const tQuestions: TranscriptQuestion[] = questions.map((q) => ({
+    questionId: q.id,
+    category: q.category,
+    split: q.split,
+    prompt: q.prompt,
+    ...(q.followUp ? { followUp: q.followUp } : {}),
+    isRefusalTest: q.isRefusalTest,
+    panels: new Array<TranscriptPanel>(panels.length),
+  }));
+  for (const { qi, pi, tPanel } of flat) tQuestions[qi].panels[pi] = tPanel;
 
   const transcript: Transcript = {
     runId,

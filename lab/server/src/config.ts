@@ -86,6 +86,8 @@ export interface ExperimentConfig {
   readonly judgeModel: string;
   /** How many independent judging rounds to average per answer (stability). */
   readonly judgeRounds: number;
+  /** Max (question × panel) tasks judged / answered in parallel. */
+  readonly concurrency: number;
   /** Agent Studio app + search key (shared across our agent panels). */
   readonly ours: { appId: string; searchKey: string };
   /** The panels to run, in display order. */
@@ -137,6 +139,12 @@ export function loadConfig(): ExperimentConfig {
   // pre-gate quality score is stable even at 3; 5 sharpens the gate decision).
   const judgeRounds = Math.max(1, Number(opt("JUDGE_ROUNDS") ?? 5) || 5);
 
+  // Parallelism across (question × panel) tasks. Each judged panel itself fans 3
+  // judges out per round, so the effective in-flight LLM calls ≈ concurrency × 3.
+  // 4 is conservative for Gemini's rate limits (gemini.ts retries 429s). Tune via
+  // RUN_CONCURRENCY; set 1 for fully sequential (debugging).
+  const concurrency = Math.max(1, Number(opt("RUN_CONCURRENCY") ?? 4) || 4);
+
   // Provider: default to Gemini (OpenAI quota exhausted 2026-06-12). Override
   // with JUDGE_PROVIDER=openai|gemini and JUDGE_MODEL=<model>.
   const judgeProvider = (opt("JUDGE_PROVIDER") ?? "gemini") as JudgeProvider;
@@ -153,6 +161,7 @@ export function loadConfig(): ExperimentConfig {
     judgeApiKey: req(pd.keyVar),
     judgeModel: opt("JUDGE_MODEL") ?? pd.model,
     judgeRounds,
+    concurrency,
     ours,
     panels,
   };

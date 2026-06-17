@@ -16,11 +16,9 @@ import {
   type Artifact,
   type LlmComplete,
 } from "@lab/judge";
-import { loadConfig, getEnv } from "./config.js";
-import { makeOpenAIComplete } from "./openai.js";
-import { makeGeminiComplete } from "./gemini.js";
-import { makeJudgeLlm } from "./judgeLlm.js";
-import { resolveActiveProvider } from "./provider.js";
+import { loadConfig } from "./config.js";
+import { makeActiveJudgeLlm } from "./activeJudgeLlm.js";
+import { mapWithConcurrency } from "./concurrency.js";
 import {
   loadTranscript,
   saveScores,
@@ -167,15 +165,7 @@ export async function judgeRun(
   // SINGLE source of truth for the provider: prefer OpenAI, fall back to Gemini
   // (consistent across the whole system — see provider.ts). Overrides the static
   // config default so the judge always matches whatever the agents run.
-  const env = getEnv();
-  const spec = await resolveActiveProvider(env);
-  const apiKey = env[spec.keyVar] ?? "";
-  const rawLlm =
-    spec.provider === "gemini"
-      ? makeGeminiComplete({ apiKey, model: spec.judgeModel })
-      : makeOpenAIComplete({ apiKey, model: spec.judgeModel });
-  // Normalise judge dimensionIds (model echoes labels, parser keys on ids).
-  const llm = makeJudgeLlm(rawLlm, DEFAULT_JUDGE_CONFIG.rubric);
+  const { llm, provider, model } = await makeActiveJudgeLlm();
 
   let questions = transcript.questions;
   if (opts.onlyIds?.length) {
@@ -186,37 +176,41 @@ export async function judgeRun(
   }
 
   console.log(
-    `\n[judge] runId=${runId} provider=${spec.provider} model=${spec.judgeModel} rounds=${cfg.judgeRounds}`,
+    `\n[judge] runId=${runId} provider=${provider} model=${model} rounds=${cfg.judgeRounds}`,
   );
   console.log(
     `[judge] ${questions.length} question(s); judges are blind to panel identity\n`,
   );
 
-  const scored: ScoredQuestion[] = [];
+  // Judge every (question × panel) pair in parallel (bounded). Each pair is
+  // independent and judgeArtifact already fans its 3 judges out internally, so a
+  // handful of pairs in flight turns the hour-long sequential pass into minutes.
+  // Order is preserved by mapWithConcurrency, then regrouped per question.
+  const tasks = questions.flatMap((q, qi) =>
+    q.panels.map((panel, pi) => ({ q, qi, panel, pi })),
+  );
+  console.log(
+    `[judge] ${tasks.length} panel-judgings across ${questions.length} question(s), concurrency=${cfg.concurrency}\n`,
+  );
 
-  for (const q of questions) {
-    console.log(`  Q ${q.questionId} (cat ${q.category})`);
-    const panelScores: PanelScore[] = [];
+  const flat = await mapWithConcurrency(tasks, cfg.concurrency, async (t) => {
+    const s = await scorePanel(t.q, t.panel, llm, cfg.judgeRounds);
+    const tag = s.error
+      ? `ERROR ${s.error.slice(0, 60)}`
+      : `final=${s.finalScore.toFixed(2)} (pre=${s.meanPreGateScore.toFixed(2)}±${s.stdDevPreGateScore.toFixed(2)}` +
+        `${s.gateTripped ? `, GATED ${(s.gateTripFraction * 100).toFixed(0)}%` : s.borderline ? `, ~borderline ${(s.gateTripFraction * 100).toFixed(0)}%` : ""})`;
+    console.log(`  Q ${t.q.questionId} ${t.panel.panelId.padEnd(8)} ${tag}`);
+    return { qi: t.qi, pi: t.pi, score: s };
+  });
 
-    // Panels scored sequentially to keep concurrent LLM load modest; each
-    // judgeArtifact already fans the 3 judges out in parallel internally.
-    for (const panel of q.panels) {
-      const s = await scorePanel(q, panel, llm, cfg.judgeRounds);
-      const tag = s.error
-        ? `ERROR ${s.error.slice(0, 60)}`
-        : `final=${s.finalScore.toFixed(2)} (pre=${s.meanPreGateScore.toFixed(2)}±${s.stdDevPreGateScore.toFixed(2)}` +
-          `${s.gateTripped ? `, GATED ${(s.gateTripFraction * 100).toFixed(0)}%` : s.borderline ? `, ~borderline ${(s.gateTripFraction * 100).toFixed(0)}%` : ""})`;
-      console.log(`    ${panel.panelId.padEnd(8)} ${tag}`);
-      panelScores.push(s);
-    }
-
-    scored.push({
-      questionId: q.questionId,
-      category: q.category,
-      split: q.split,
-      panels: panelScores,
-    });
-  }
+  // Regroup into per-question panel arrays, preserving original panel order.
+  const scored: ScoredQuestion[] = questions.map((q) => ({
+    questionId: q.questionId,
+    category: q.category,
+    split: q.split,
+    panels: new Array<PanelScore>(q.panels.length),
+  }));
+  for (const { qi, pi, score } of flat) scored[qi].panels[pi] = score;
 
   const scoreSet: ScoreSet = {
     runId,

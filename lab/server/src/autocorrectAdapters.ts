@@ -34,6 +34,25 @@ const execFileAsync = promisify(execFile);
 const REPO_ROOT = path.resolve(process.cwd(), "../..");
 const AGENT_ADMIN = path.join(REPO_ROOT, "scripts/setup/agent_admin.mjs");
 
+/**
+ * Floor-cache merge logic (pure, testable). The loop only mutates the `ours`
+ * panel each round, so the fixed ①/② floor is measured once and reused:
+ *   - First eval of a split (`cached === undefined`): return all `fresh` panels
+ *     and cache the non-ours ones as the floor.
+ *   - Later evals (`cached` present): `fresh` holds only the re-measured ours
+ *     panel; merge it with the cached floor so the loop sees a complete split.
+ */
+export function applyFloorCache(
+  cached: ScoredPanelAnswer[] | undefined,
+  fresh: ScoredPanelAnswer[],
+  oursPanelId: string,
+): { merged: ScoredPanelAnswer[]; floorToCache?: ScoredPanelAnswer[] } {
+  if (cached === undefined) {
+    return { merged: fresh, floorToCache: fresh.filter((a) => a.panelId !== oursPanelId) };
+  }
+  return { merged: [...cached, ...fresh] };
+}
+
 /** Map a judged ScoreSet (one split's run) to the loop's ScoredPanelAnswer[]. */
 function scoresToAnswers(runId: string, split: "dev" | "held-out"): ScoredPanelAnswer[] {
   const scores = loadScores(runId);
@@ -145,17 +164,9 @@ export function makeAlgoliaSeams(
       lastRunId = runId;
       const fresh = scoresToAnswers(runId, split);
       if (!cacheFloor) return fresh;
-      if (!oursOnly) {
-        // First measurement of this split: cache the fixed (non-ours) panels.
-        floorCache.set(
-          split,
-          fresh.filter((a) => a.panelId !== oursPanelId),
-        );
-        return fresh;
-      }
-      // Later rounds: `fresh` holds only the re-measured ours panel; merge it
-      // with the cached floor so the loop sees a complete split.
-      return [...cached!, ...fresh];
+      const { merged, floorToCache } = applyFloorCache(cached, fresh, oursPanelId);
+      if (floorToCache) floorCache.set(split, floorToCache);
+      return merged;
     },
 
     async propose(current, weakest: readonly WeakDimension[], _history: readonly RoundResult[]) {
@@ -188,9 +199,29 @@ export function makeAlgoliaSeams(
         "Rewrite the system prompt to fix the weakest dimension(s). Make a FOCUSED change — keep everything that works, change only what the rationales point to. Never weaken the grounding rules. Output ONLY the new system prompt text, no preamble, no code fences.",
       ].join("\n");
       log(`propose: LLM rewrite targeting ${weakest[0]?.dimensionId ?? "?"}`);
-      const out = await llm(proposerPrompt, { temperature: 0.4, maxTokens: 4000, tag: "autocorrect:propose" });
-      // Strip accidental code fences.
-      return out.replace(/^```[a-z]*\n?/i, "").replace(/\n?```\s*$/i, "").trim();
+      // maxTokens must cover BOTH the thinking model's reasoning AND the full
+      // rewritten prompt (~2k tokens). 4000 let thinking starve the answer →
+      // empty MAX_TOKENS response. 16000 leaves ample headroom.
+      try {
+        const out = await llm(proposerPrompt, {
+          temperature: 0.4,
+          maxTokens: 16000,
+          tag: "autocorrect:propose",
+        });
+        // Strip accidental code fences.
+        const cleaned = out.replace(/^```[a-z]*\n?/i, "").replace(/\n?```\s*$/i, "").trim();
+        // A truncated/empty proposal is not a valid candidate — keep the
+        // incumbent so the round becomes a no-op (rollback) rather than crashing
+        // the whole loop or deploying a broken prompt.
+        if (cleaned.length < 200) {
+          log(`propose: discarded (output too short: ${cleaned.length} chars) — keeping incumbent`);
+          return current;
+        }
+        return cleaned;
+      } catch (e) {
+        log(`propose: FAILED (${(e as Error).message.slice(0, 120)}) — keeping incumbent`);
+        return current;
+      }
     },
 
     log,

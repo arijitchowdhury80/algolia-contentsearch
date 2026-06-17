@@ -19,5 +19,7 @@
     "isolatedModules": true,
     "noEmit": true
   },
-  "include": ["src/**/*.ts"]
+  "//": "Tests run via judge's vitest binary (no local vitest install), so tsc checks src logic only; *.test.ts is the vitest surface.",
+  "include": ["src/**/*.ts"],
+  "exclude": ["src/**/*.test.ts"]
 }
