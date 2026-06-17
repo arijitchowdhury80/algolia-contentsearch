@@ -24,11 +24,22 @@ export interface AgentColumnState {
   status: AgentLaneStatus;
 }
 
+/** Final outcome of one lane for a given submission — fed to the live judge. */
+export interface AgentResult {
+  columnId: AgentColumnConfig['id'];
+  seq: number;
+  status: 'done' | 'error';
+  answer: string;
+  sources: Source[];
+}
+
 interface Params {
   config: AgentColumnConfig;
   submission: Submission | null;
   clearSeq: number;
   register: (id: AgentColumnConfig['id'], get: () => LaneSnapshot) => () => void;
+  /** Fires once when this lane finishes a submission (done or error). */
+  onResult?: (result: AgentResult) => void;
 }
 
 let msgSeq = 0;
@@ -60,16 +71,23 @@ function hitsToSources(hits: Record<string, unknown>[]): Source[] {
     title: (h.title ?? h.doc_title) as string | undefined,
     url: (h.url ?? h.doc_url) as string | undefined,
     summary: (h.summary ?? h.description ?? h.doc_summary) as string | undefined,
+    // Substantive body for the live grounding gate (thin in the UI vs the
+    // batch harness's full text — live judging is indicative).
+    chunk_text: (h.chunk_text ?? h.content ?? h.body ?? h.excerpt) as string | undefined,
     position: i + 1,
   }));
 }
 
-export function useAgentColumn({ config, submission, clearSeq, register }: Params): AgentColumnState {
+export function useAgentColumn({ config, submission, clearSeq, register, onResult }: Params): AgentColumnState {
   const [messages, setMessages] = useState<Message[]>([]);
   const [status, setStatus] = useState<AgentLaneStatus>('idle');
 
   const messagesRef = useRef(messages);
   messagesRef.current = messages;
+
+  // Ref so the async completion handler always sees the latest callback.
+  const onResultRef = useRef(onResult);
+  onResultRef.current = onResult;
 
   useEffect(() => {
     return register(config.id, () => ({
@@ -88,7 +106,7 @@ export function useAgentColumn({ config, submission, clearSeq, register }: Param
   useEffect(() => {
     if (!submission) return;
     let cancelled = false;
-    const { query } = submission;
+    const { query, seq } = submission;
 
     const history = buildConversationHistory(messagesRef.current);
     const userMsg: Message = { id: nextId(), role: 'user', content: query };
@@ -131,6 +149,13 @@ export function useAgentColumn({ config, submission, clearSeq, register }: Param
             indexName: config.indexName,
           });
           setStatus('error');
+          onResultRef.current?.({
+            columnId: config.id,
+            seq,
+            status: 'error',
+            answer: res.content || res.error,
+            sources: [],
+          });
           return;
         }
         patchAssistant({
@@ -142,6 +167,13 @@ export function useAgentColumn({ config, submission, clearSeq, register }: Param
           indexName: config.indexName,
         });
         setStatus('done');
+        onResultRef.current?.({
+          columnId: config.id,
+          seq,
+          status: 'done',
+          answer: res.content,
+          sources,
+        });
       })
       .catch((err: unknown) => {
         if (cancelled) return;
@@ -152,6 +184,13 @@ export function useAgentColumn({ config, submission, clearSeq, register }: Param
           sourceType: 'error',
         });
         setStatus('error');
+        onResultRef.current?.({
+          columnId: config.id,
+          seq,
+          status: 'error',
+          answer: message,
+          sources: [],
+        });
       });
 
     return () => {

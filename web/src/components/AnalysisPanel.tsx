@@ -6,9 +6,9 @@
  *   (b) Config    — the config diff per case (what changed between ② and ③).
  *   (c) Synthesis — narrative "why ③ wins/loses + what to do next".
  *
- * Driven entirely by a typed `data` prop. Until the real judge workstream lands,
- * it defaults to clearly-labelled MOCK data (see MOCK_ANALYSIS). Swap the prop
- * for live scores when the judges ship — no layout change needed.
+ * Driven by `state` + a typed `data` prop (live scores from useLiveJudge). Only
+ * the `done` state renders the score grid; idle/streaming/judging/error render a
+ * status line. No placeholder/mock scores — idle shows a call-to-action.
  */
 
 export type JudgeRole = 'skeptic' | 'referee' | 'advocate';
@@ -31,8 +31,6 @@ export interface ConfigDiffRow {
 }
 
 export interface AnalysisData {
-  /** True while real scores are not yet wired — drives the MOCK banner. */
-  isMock: boolean;
   judges: JudgeVerdict[];
   /** Synthesized headline score for ③ Our System, 0–10. */
   synthesizedScore: number;
@@ -53,27 +51,17 @@ const JUDGE_ACCENT: Record<JudgeRole, string> = {
   advocate: '--color-success',
 };
 
-/** Placeholder verdicts until the real judge workstream lands. */
-export const MOCK_ANALYSIS: AnalysisData = {
-  isMock: true,
-  synthesizedScore: 7.6,
-  judges: [
-    { role: 'skeptic', score: 6.5, note: 'Grounded, but one claim lacked a direct citation in-thread.' },
-    { role: 'referee', score: 7.8, note: 'Answer is on-topic and complete relative to ② Ask AI.' },
-    { role: 'advocate', score: 8.4, note: 'Tighter synthesis and stronger source coverage than the floor.' },
-  ],
-  configDiff: [
-    { dimension: 'Index', askAi: 'mirror (faithful)', ourSystem: 'tuned (optimized)' },
-    { dimension: 'Prompt', askAi: 'Ask-AI default', ourSystem: 'Hardened grounded prompt' },
-    { dimension: 'Retrieval', askAi: 'Default ranking', ourSystem: 'Tuned ranking + synonyms' },
-  ],
-  synthesis:
-    '③ Our System edges out the ② Ask AI floor on source density and answer completeness, with a slightly tighter grounded refusal posture. Next: confirm the lift holds across the bait-query set and wire the real judge scores to replace this placeholder.',
-};
+
+/** Lifecycle of live judging, surfaced by useLiveJudge. */
+export type AnalysisState = 'idle' | 'streaming' | 'judging' | 'done' | 'error';
 
 interface Props {
-  /** Defaults to clearly-labelled mock data; pass real scores when judges ship. */
+  /** Live judging lifecycle. Defaults to idle (shows the labelled mock preview). */
+  state?: AnalysisState;
+  /** Real judge data; rendered when state is 'done'. */
   data?: AnalysisData;
+  /** Error message when state is 'error'. */
+  error?: string;
 }
 
 function scoreTone(score: number): string {
@@ -82,30 +70,57 @@ function scoreTone(score: number): string {
   return 'is-weak';
 }
 
-export function AnalysisPanel({ data = MOCK_ANALYSIS }: Props) {
+/** Non-`done` states render a status / call-to-action line in place of the grid. */
+function StatusView({ state, error }: { state: AnalysisState; error?: string }) {
+  const text =
+    state === 'idle'
+      ? 'Judges run here. Ask a question above — the 3-judge panel (Skeptic / Referee / Advocate + grounding gate) scores ② and ③ live (~30–90s).'
+      : state === 'streaming'
+        ? 'Answers streaming — the judges run once both ② and ③ finish.'
+        : state === 'judging'
+          ? '⏳ Judges scoring the answers… this takes ~30–90s (3 judges × rounds on Gemini).'
+          : `Judge error: ${error ?? 'unknown'}. Is the local lab backend running on :8787?`;
+  return (
+    <div
+      className={`analysis__status is-${state}`}
+      {...(state === 'idle' ? {} : { role: 'status', 'aria-live': 'polite' as const })}
+    >
+      {text}
+    </div>
+  );
+}
+
+export function AnalysisPanel({ state = 'idle', data, error }: Props) {
+  // done → real judge data; every other state → a status / call-to-action line.
+  // (No fake scores on idle — that read as broken; show a prompt instead.)
+  const view: AnalysisData | null = state === 'done' && data ? data : null;
+
   return (
     <section className="analysis" aria-label="Analysis and synthesis">
       <header className="analysis__head">
         <h2 className="analysis__title">Analysis &amp; Synthesis</h2>
-        {data.isMock && (
-          <span className="analysis__mock" title="Placeholder data — real judge scores arrive in a later workstream">
-            Mock data — real judge scores wired later
+        {state === 'done' && (
+          <span className="analysis__live" title="Scored live by the 3-judge panel">
+            Live judged
           </span>
         )}
       </header>
 
+      {!view && <StatusView state={state} error={error} />}
+
+      {view && (
       <div className="analysis__grid">
         {/* (a) Judges */}
         <div className="analysis__card" aria-label="Judges">
           <div className="analysis__card-head">
             <h3 className="analysis__card-title">Judges</h3>
-            <div className={`analysis__score ${scoreTone(data.synthesizedScore)}`}>
-              <span className="analysis__score-num">{data.synthesizedScore.toFixed(1)}</span>
+            <div className={`analysis__score ${scoreTone(view.synthesizedScore)}`}>
+              <span className="analysis__score-num">{view.synthesizedScore.toFixed(1)}</span>
               <span className="analysis__score-unit">/10</span>
             </div>
           </div>
           <ul className="judges">
-            {data.judges.map((j) => (
+            {view.judges.map((j) => (
               <li key={j.role} className="judge" style={{ ['--judge-accent' as string]: `var(${JUDGE_ACCENT[j.role]})` }}>
                 <div className="judge__row">
                   <span className="judge__role">{JUDGE_LABEL[j.role]}</span>
@@ -132,7 +147,7 @@ export function AnalysisPanel({ data = MOCK_ANALYSIS }: Props) {
               </tr>
             </thead>
             <tbody>
-              {data.configDiff.map((row) => (
+              {view.configDiff.map((row) => (
                 <tr key={row.dimension}>
                   <th scope="row">{row.dimension}</th>
                   <td>{row.askAi}</td>
@@ -149,9 +164,10 @@ export function AnalysisPanel({ data = MOCK_ANALYSIS }: Props) {
             <h3 className="analysis__card-title">Synthesis</h3>
             <span className="analysis__card-sub">Why ③ wins / loses + next</span>
           </div>
-          <p className="analysis__synthesis">{data.synthesis}</p>
+          <p className="analysis__synthesis">{view.synthesis}</p>
         </div>
       </div>
+      )}
     </section>
   );
 }

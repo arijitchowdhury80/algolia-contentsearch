@@ -10,6 +10,7 @@
 import { useMemo } from 'react';
 import { buildColumns, type ColumnConfig } from './config/columns';
 import { useComparison } from './hooks/useComparison';
+import { useLiveJudge, type LiveJudgeOptions } from './hooks/useLiveJudge';
 import { AppHeader } from './components/AppHeader';
 import { QueryBar } from './components/QueryBar';
 import { ComparisonKey } from './components/ComparisonKey';
@@ -22,6 +23,13 @@ export default function App() {
   // Built once; throws loudly at startup if any VITE_* var is missing.
   const columns = useMemo(() => buildColumns(), []);
   const { submission, clearSeq, hasRun, submit, reset, register, buildTranscript } = useComparison();
+
+  // Live judging: the two agent lanes (② mirror, ③ tuned) gate judging; ③ is ours.
+  const judgeOpts = useMemo<LiveJudgeOptions>(
+    () => ({ oursPanelId: 'tuned', floorPanelId: 'mirror', expectedPanelIds: ['mirror', 'tuned'] }),
+    [],
+  );
+  const live = useLiveJudge(submission, judgeOpts);
 
   const onExport = () => {
     const transcript = buildTranscript();
@@ -44,6 +52,7 @@ export default function App() {
         submission={submission}
         clearSeq={clearSeq}
         register={register}
+        onResult={live.report}
       />
     );
   };
@@ -60,7 +69,7 @@ export default function App() {
           <ColumnGrid columns={columns} renderColumn={renderColumn} />
         </div>
         <div className="lab__analysis">
-          <AnalysisPanel />
+          <AnalysisPanel state={live.state} data={live.data} error={live.error} />
         </div>
       </main>
     </div>

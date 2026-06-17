@@ -1,17 +1,19 @@
 /**
  * QueryBar — the HERO. One input that fans a query out to all three panels.
- * Enter submits. Example chips show until the first query runs.
+ * Enter submits. A collapsible Sample Questions panel (all 27, grouped) sits
+ * below; picking one fills the bar (the user reviews, then hits Compare).
  */
-import { useState } from 'react';
-import { EXAMPLE_QUERIES } from '../config/columns';
+import { useRef, useState } from 'react';
+import { SampleQuestions } from './SampleQuestions';
 
 interface Props {
   onSubmit: (query: string) => void;
   hasRun: boolean;
 }
 
-export function QueryBar({ onSubmit, hasRun }: Props) {
+export function QueryBar({ onSubmit, hasRun: _hasRun }: Props) {
   const [value, setValue] = useState('');
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const submit = () => {
     const q = value.trim();
@@ -36,6 +38,7 @@ export function QueryBar({ onSubmit, hasRun }: Props) {
           </svg>
         </span>
         <input
+          ref={inputRef}
           className="qbar__input"
           type="text"
           value={value}
@@ -50,16 +53,12 @@ export function QueryBar({ onSubmit, hasRun }: Props) {
         </button>
       </form>
 
-      {!hasRun && (
-        <div className="qbar__examples">
-          <span className="qbar__examples-label">Try</span>
-          {EXAMPLE_QUERIES.map((q) => (
-            <button key={q} type="button" className="chip qbar__chip" onClick={() => onSubmit(q)}>
-              {q}
-            </button>
-          ))}
-        </div>
-      )}
+      <SampleQuestions
+        onSelect={(prompt) => {
+          setValue(prompt);
+          inputRef.current?.focus();
+        }}
+      />
     </div>
   );
 }

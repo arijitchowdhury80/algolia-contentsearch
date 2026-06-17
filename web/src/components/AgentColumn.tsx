@@ -1,6 +1,6 @@
 /** AgentColumn — a streaming agent chat lane (cols 2–4). */
 import { useEffect, useRef } from 'react';
-import { useAgentColumn } from '../hooks/useAgentColumn';
+import { useAgentColumn, type AgentResult } from '../hooks/useAgentColumn';
 import { ColumnHeader, type StatusTone } from './ColumnHeader';
 import { ChatMessage } from './ChatMessage';
 import type { AgentColumnConfig } from '../config/columns';
@@ -12,10 +12,11 @@ interface Props {
   submission: Submission | null;
   clearSeq: number;
   register: (id: AgentColumnConfig['id'], get: () => LaneSnapshot) => () => void;
+  onResult?: (result: AgentResult) => void;
 }
 
-export function AgentColumn({ config, submission, clearSeq, register }: Props) {
-  const { messages, status } = useAgentColumn({ config, submission, clearSeq, register });
+export function AgentColumn({ config, submission, clearSeq, register, onResult }: Props) {
+  const { messages, status } = useAgentColumn({ config, submission, clearSeq, register, onResult });
 
   // Autoscroll to the latest turn while streaming.
   const threadRef = useRef<HTMLDivElement>(null);
