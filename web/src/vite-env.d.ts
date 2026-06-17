@@ -8,8 +8,12 @@ interface ImportMetaEnv {
   readonly VITE_INDEX_MIRROR: string;
   readonly VITE_AGENT_TUNED_ID: string;
   readonly VITE_INDEX_TUNED: string;
-  /** Incumbent app (1QDAWL72TQ) — READ-ONLY; live keyword index name (for ① label only). */
+  /** Incumbent app (1QDAWL72TQ) — READ-ONLY; powers ① live website keyword search (browser-direct). */
+  readonly VITE_INCUMBENT_APP_ID: string;
+  readonly VITE_INCUMBENT_SEARCH_KEY: string;
   readonly VITE_INCUMBENT_INDEX: string;
+  /** Optional: lab backend base URL for the live judge (defaults to localhost:8787). */
+  readonly VITE_LAB_API_URL?: string;
 }
 
 interface ImportMeta {

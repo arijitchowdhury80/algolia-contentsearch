@@ -24,6 +24,13 @@ export function buildKeywordFilters(): string {
 
 export interface KeywordSearchOptions {
     hitsPerPage?: number;
+    /**
+     * Query-time word-removal strategy. algolia.com's own header search relaxes
+     * NL queries to `allOptional` (a full sentence returns thousands of loosely
+     * matched hits), so ① passes that to faithfully mirror the live behavior —
+     * including its weak NL relevance, which is the point of the keyword baseline.
+     */
+    removeWordsIfNoResults?: 'none' | 'lastWords' | 'firstWords' | 'allOptional';
 }
 
 export interface KeywordSearchResult {
@@ -47,6 +54,7 @@ export async function keywordSearch(
             query,
             filters: buildKeywordFilters(),
             hitsPerPage: opts.hitsPerPage ?? 10,
+            ...(opts.removeWordsIfNoResults ? { removeWordsIfNoResults: opts.removeWordsIfNoResults } : {}),
         },
     });
     return {

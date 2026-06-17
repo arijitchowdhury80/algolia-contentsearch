@@ -1,15 +1,17 @@
 /**
  * WebsiteColumn — ① "Current Website Search".
  *
- * The browser can't query live algolia.com (different app + WAF + CORS), so this
- * calls the local backend's Playwright capture (POST /api/website) and renders
- * the top result hits + links — the "old-world reference" vs ②/③'s answers.
- * Local-only: needs the lab backend on :8787 (won't work on the Vercel deploy).
+ * Browser-direct: queries the incumbent app/index (the same one algolia.com's
+ * header search uses) over the public Algolia search API with a search-only key,
+ * and renders the top keyword hits + links — the "old-world reference" vs ②/③'s
+ * answers. No backend; works on the deployed app.
  */
+import { useMemo } from 'react';
 import { ColumnHeader, type StatusTone } from './ColumnHeader';
 import type { WebsiteColumnConfig } from '../config/columns';
 import type { Submission } from '../hooks/useComparison';
 import { useWebsiteColumn, type WebsiteState } from '../hooks/useWebsiteColumn';
+import type { IncumbentConfig } from '../lib/incumbentSearch';
 
 interface Props {
   config: WebsiteColumnConfig;
@@ -17,14 +19,18 @@ interface Props {
 }
 
 const STATUS: Record<WebsiteState, { tone: StatusTone; label: string }> = {
-  idle: { tone: 'info', label: 'Offline capture' },
-  loading: { tone: 'info', label: 'Capturing…' },
-  done: { tone: 'success', label: 'Captured' },
+  idle: { tone: 'info', label: 'Live keyword search' },
+  loading: { tone: 'info', label: 'Searching…' },
+  done: { tone: 'success', label: 'Results' },
   error: { tone: 'danger', label: 'Error' },
 };
 
 export function WebsiteColumn({ config, submission }: Props) {
-  const { state, result, error } = useWebsiteColumn(submission);
+  const cfg = useMemo<IncumbentConfig>(
+    () => ({ appId: config.appId, searchKey: config.searchKey, indexName: config.indexName }),
+    [config.appId, config.searchKey, config.indexName],
+  );
+  const { state, result, error } = useWebsiteColumn(cfg, submission);
   const status = STATUS[state];
 
   return (
@@ -33,26 +39,26 @@ export function WebsiteColumn({ config, submission }: Props) {
       <div className="lane__thread">
         {state === 'idle' && (
           <div className="lane__empty lane__empty--website">
-            <p>Live algolia.com search</p>
+            <p>Live algolia.com keyword search</p>
             <span>
-              Ask a question above — the top keyword results from live algolia.com are captured
-              (server-side via Playwright) and shown here as the old-world reference. Not driven
-              live from the browser (different app + WAF).
+              Ask a question above — the top keyword results from the live algolia.com index are
+              queried directly and shown here as the old-world reference (a ranked result list, no
+              generated answer).
             </span>
           </div>
         )}
 
         {state === 'loading' && (
           <div className="lane__empty lane__empty--website" role="status" aria-live="polite">
-            <p>Capturing live algolia.com…</p>
-            <span>Driving a real browser against algolia.com — this takes ~15s.</span>
+            <p>Searching live algolia.com…</p>
+            <span>Querying the incumbent index directly.</span>
           </div>
         )}
 
         {state === 'error' && (
           <div className="lane__empty lane__empty--website is-error" role="status" aria-live="polite">
-            <p>Couldn’t capture results</p>
-            <span>{error}. Is the local lab backend running on :8787?</span>
+            <p>Couldn’t fetch results</p>
+            <span>{error}</span>
           </div>
         )}
 

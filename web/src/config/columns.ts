@@ -39,6 +39,10 @@ interface CommonColumn {
 
 export interface WebsiteColumnConfig extends CommonColumn {
   kind: 'website';
+  /** Incumbent app creds for the browser-direct live keyword search (search-only key). */
+  appId: string;
+  searchKey: string;
+  indexName: string;
 }
 
 export interface AgentColumnConfig extends CommonColumn {
@@ -65,6 +69,8 @@ function reqEnv(key: keyof ImportMetaEnv): string {
 export function buildColumns(): ColumnConfig[] {
   const oursApp = reqEnv('VITE_OURS_APP_ID');
   const oursKey = reqEnv('VITE_OURS_SEARCH_KEY');
+  const incApp = reqEnv('VITE_INCUMBENT_APP_ID');
+  const incKey = reqEnv('VITE_INCUMBENT_SEARCH_KEY');
   const incIndex = reqEnv('VITE_INCUMBENT_INDEX');
 
   return [
@@ -76,9 +82,12 @@ export function buildColumns(): ColumnConfig[] {
       agentLabel: 'Live keyword search (algolia.com)',
       appName: 'Incumbent · algolia.com',
       readOnly: true,
-      pipeline: 'Captured offline by the backend harness (Playwright on live algolia.com). Not driven live from the browser.',
+      pipeline: 'Browser → Algolia search API on the incumbent app (1QDAWL72TQ) → live keyword hits. The same index + production filter algolia.com’s own search uses.',
       accentVar: '--gray-400',
-      proves: 'The old-world reference: what algolia.com search returns today.',
+      proves: 'The old-world reference: what algolia.com keyword search returns today.',
+      appId: incApp,
+      searchKey: incKey,
+      indexName: incIndex,
     },
     {
       id: 'mirror',

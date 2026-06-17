@@ -1,12 +1,13 @@
 /**
  * useWebsiteColumn — drives ① "Current Website Search". On each submission it
- * calls the local backend's Playwright capture of live algolia.com and exposes
- * the result + lifecycle. Seq-guarded so a superseded query's result is dropped.
- * Local-only (needs the backend on :8787); errors surface a clear hint.
+ * runs a BROWSER-DIRECT Algolia keyword search against the incumbent app/index
+ * (the same one algolia.com's header search uses) with a search-only key, and
+ * exposes the result + lifecycle. No backend — works on the deployed app.
+ * Seq-guarded so a superseded query's result is dropped.
  */
 import { useEffect, useRef, useState } from 'react';
 import type { Submission } from './useComparison';
-import { requestWebsiteCapture, type WebsiteResult } from '../lib/websiteClient';
+import { searchIncumbent, type IncumbentConfig, type WebsiteResult } from '../lib/incumbentSearch';
 
 export type WebsiteState = 'idle' | 'loading' | 'done' | 'error';
 
@@ -16,7 +17,10 @@ export interface WebsiteColumnApi {
   error?: string;
 }
 
-export function useWebsiteColumn(submission: Submission | null): WebsiteColumnApi {
+export function useWebsiteColumn(
+  cfg: IncumbentConfig,
+  submission: Submission | null,
+): WebsiteColumnApi {
   const [state, setState] = useState<WebsiteState>('idle');
   const [result, setResult] = useState<WebsiteResult>();
   const [error, setError] = useState<string>();
@@ -29,7 +33,7 @@ export function useWebsiteColumn(submission: Submission | null): WebsiteColumnAp
     setState('loading');
     setResult(undefined);
     setError(undefined);
-    requestWebsiteCapture(submission.query)
+    searchIncumbent(cfg, submission.query)
       .then((r) => {
         if (seqRef.current !== fired) return; // superseded
         setResult(r);
