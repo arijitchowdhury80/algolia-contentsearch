@@ -2,9 +2,17 @@
 
 _Last updated: 2026-06-18 ~1:05am EDT_
 
-## ▶ RESUME (2026-06-18 ~1am) — START HERE (latest; supersedes ALL blocks below)
+## ▶ RESUME (2026-06-18 ~2:45am) — START HERE (latest; supersedes ALL blocks below)
 
-**This session DID BOTH workstreams Arijit asked for ("do both, A first") + the UX rework + a judge-speed/streaming overhaul + full-screen layout. All BUILT, VERIFIED, COMMITTED (6 commits, NOT pushed).**
+### STATUS (one line)
+Everything from this long session is **BUILT, VERIFIED, COMMITTED, PUSHED, and DEPLOYED LIVE** (Vercel + VPS), `origin/main` in sync @ `7939f73`. **The ONE pending thing = run the batch `cli judge` for the authoritative ③-vs-② scorecard** (offered to Arijit; he hasn't said go yet).
+
+### ⏳ FIRST ACTION NEXT SESSION
+1. Re-read this block + memory [[project-lab-live-deployed]], [[project-judging-multidimensional]], [[project-case3-refusal-diagnosis]], [[feedback-show-dont-tell]].
+2. **Run the batch `cli judge`** (authoritative scorecard, full sources — NOT the thin-source live panel) on the locked Q-set, including workstream-A's typo fix. `cd lab/server && JUDGE_ROUNDS=5 ./node_modules/.bin/tsx src/cli.ts run-tests --split dev` then `... judge <transcript>` (confirm exact CLI args via `cli.ts`). Report real ③-vs-② numbers. This is the thing Arijit actually wants to trust.
+3. Sanity first: `cd lab/judge && npx vitest run` (65) · `cd lab/server && npx tsc --noEmit && ../judge/node_modules/.bin/vitest run` (34) · `cd web && ./node_modules/.bin/tsc -b && npm test` (88).
+
+**This session DID, in order: (A) fixed ③'s false-refusal + deployed; (B) built the 3-dim judge + permanent analysis rail; then mid-session per Arijit — full-screen layout, judge SPEED+STREAMING (7-10min→~20s), timing instrumentation, and TRANSPARENCY (show flagged claims + real config diff). Pushed ALL (13 commits) + deployed to Vercel + VPS + live-verified.**
 
 ### ➕ UPDATE (~1:45am) — judge SPEED + STREAMING + FULL-SCREEN (committed e8f4bb5, d78dfbf)
 - **Why:** Arijit hit a 7–10 min live judge (he was testing the OLD code on Vercel/VPS — the new code is LOCAL only). Root cause: gemini-2.5-pro × 2 rounds × 2 panels SEQUENTIAL + 429 retry-backoff + no progress UI.
