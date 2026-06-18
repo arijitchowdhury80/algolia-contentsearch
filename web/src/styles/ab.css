@@ -313,15 +313,19 @@
   }
   .rail__cell {
     display: flex !important;
-    flex: 0 0 auto;
-    width: clamp(340px, 30%, 400px);
-    min-width: 280px;
-    max-width: 760px;
-    /* Manually adjustable lanes: native horizontal resize grip (Arijit). */
+    /* Fill the whole width: the few current lanes GROW to share the available
+       space equally (no dead right-margin). min-width keeps them readable and
+       makes the rail scroll horizontally once many lanes arrive (phases 2–3). */
+    flex: 1 1 0;
+    min-width: 360px;
+    /* Manually adjustable: native horizontal resize grip (drag the corner). */
     resize: horizontal;
     overflow: hidden;
     scroll-snap-align: start;
   }
+  /* Once a lane is manually resized it gets an inline width — respect it by not
+     growing that lane (others still fill the remainder). */
+  .rail__cell[style*="width"] { flex-grow: 0; }
 }
 
 /* Horizontal scrollbar for the rail (subtle) */
@@ -851,6 +855,25 @@ a.hit__title:hover { color: var(--algolia-blue); }
 .dimbar__fill.is-mid { background: var(--color-warning); }
 .dimbar__fill.is-weak { background: var(--color-danger); }
 .dimbar__sub { font-size: 10px; color: var(--fg3); text-transform: uppercase; letter-spacing: var(--ls-wide); }
+
+/* Streamed judging progress (so the wait is never a dead spinner). */
+.arail__judging { padding: var(--s-5) var(--s-4); display: flex; flex-direction: column; gap: var(--s-3); }
+.arail__judging-head { display: flex; align-items: center; gap: var(--s-2); font-size: var(--fs-body-sm); color: var(--algolia-blue); font-weight: 600; }
+.arail__spinner {
+  width: 14px; height: 14px; flex: 0 0 auto;
+  border: 2px solid var(--algolia-blue-100); border-top-color: var(--algolia-blue);
+  border-radius: 50%; animation: arail-spin 0.8s linear infinite;
+}
+@keyframes arail-spin { to { transform: rotate(360deg); } }
+.arail__judging-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--s-2); }
+.arail__judging-list li { display: flex; align-items: center; gap: var(--s-2); font-size: var(--fs-body-sm); }
+.arail__judging-name { font-weight: 600; color: var(--fg2); }
+.arail__judging-score { font-family: var(--font-mono); font-weight: 600; }
+.arail__judging-score.is-strong { color: var(--color-success); }
+.arail__judging-score.is-mid { color: var(--color-warning); }
+.arail__judging-score.is-weak { color: var(--color-danger); }
+.arail__judging-pending { color: var(--fg3); font-style: italic; }
+@media (prefers-reduced-motion: reduce) { .arail__spinner { animation: none; } }
 
 .analysis__live {
   font-size: 10px;
