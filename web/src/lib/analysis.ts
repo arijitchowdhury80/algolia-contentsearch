@@ -9,11 +9,44 @@ import type { AnalysisData } from '../components/AnalysisRail';
 import type { LaneScore } from './score';
 import type { JudgeResult } from './judgeClient';
 
-/** Static config context (genuinely fixed — not judge output). */
+/**
+ * The ACTUAL ②→③ differences (not vanity labels). These mirror the live config
+ * exactly — the tuned-index settings from scripts/setup/optimize_index.mjs and the
+ * hardened prompt rules from scripts/setup/instructions_case3_reformulation_fix_v2.md.
+ * Kept here (not the agent's raw text) so the rail is self-contained; the named
+ * files are the source of truth a reviewer can diff against.
+ */
 const CONFIG_DIFF = [
-  { dimension: 'Index', askAi: 'mirror (faithful)', ourSystem: 'tuned (optimized)' },
-  { dimension: 'Prompt', askAi: 'Ask-AI default', ourSystem: 'Hardened grounded prompt' },
-  { dimension: 'Retrieval', askAi: 'Default ranking', ourSystem: 'Tuned ranking + synonyms' },
+  {
+    dimension: 'Index',
+    askAi: 'faithful prod mirror, default settings',
+    ourSystem: 'visibility_www_tuned',
+    detail: [
+      'removeStopWords: en · ignorePlurals: true · queryLanguages: en',
+      'removeWordsIfNoResults: allOptional (natural-language queries still retrieve)',
+      '+7 domain synonym groups (e.g. typo↔typing mistakes, vector search↔NeuralSearch)',
+    ],
+  },
+  {
+    dimension: 'Prompt',
+    askAi: "Algolia's default Ask-AI prompt — unmodified",
+    ourSystem: 'hardened grounded prompt',
+    detail: [
+      'Every claim — including the opening sentence — must trace to a retrieved hit',
+      'No relevant hit → strict refuse + route to docs/support (never answer from memory)',
+      'Clean inline citations only (anchor text, no raw URLs); one CTA/follow-up per turn',
+    ],
+  },
+  {
+    dimension: 'Retrieval',
+    askAi: 'default query reformulation',
+    ourSystem: 'bare-concept reformulation',
+    detail: [
+      'Reformulate to the bare 1–3 word concept term',
+      "Never include “Algolia” or framing words (how / handle / configuration)",
+      'On thin/off-topic results, NARROW (fewer keywords) — never broaden',
+    ],
+  },
 ];
 
 function gateNote(tripped: boolean, borderline: boolean): string {
@@ -62,6 +95,7 @@ export function toAnalysisData(
     gateTripped: ours.gateTripped,
     borderline: ours.borderline,
     dimensions: ours.dimensions,
+    violations: ours.violations ?? [],
     judges: ours.judges.map((j) => ({ role: j.role, score: j.score, note: j.note })),
     ...(floorOk
       ? { floorScore: floor!.synthesizedScore, floorGateTripped: floor!.gateTripped }

@@ -25,6 +25,9 @@ const liveData: AnalysisData = {
     { id: 'confidence', label: 'Answer confidence', score: 6 },
     { id: 'breadth_depth', label: 'Breadth & depth', score: 8 },
   ],
+  violations: [
+    { claim: 'Algolia guarantees 99.999% uptime', reason: 'no source states this', confidence: 0.9 },
+  ],
   floorScore: 4.4,
   floorGateTripped: true,
   judges: [
@@ -79,6 +82,13 @@ describe('AnalysisRail', () => {
     expect(html).toContain('grounded but thin');
     expect(html).toContain('Margin vs'); // ②-vs-③ section present (floorScore set)
     expect(html).toContain('live synthesis text');
+  });
+
+  it('shows the actual flagged claim (the WHY) when grounding is flagged', () => {
+    const html = renderToStaticMarkup(<AnalysisRail open {...base} state="done" data={liveData} />);
+    expect(html).toContain('Flagged as unsupported');
+    expect(html).toContain('99.999% uptime'); // the actual claim text
+    expect(html).toContain('no source states this'); // the reason
   });
 
   it('open + error surfaces the message', () => {

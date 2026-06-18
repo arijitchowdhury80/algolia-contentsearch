@@ -31,10 +31,19 @@ export interface AnalysisDimension {
   score: number;
 }
 
+/** A claim the Skeptic flagged as unsupported by the sources. */
+export interface AnalysisViolation {
+  claim: string;
+  reason: string;
+  confidence: number;
+}
+
 export interface ConfigDiffRow {
   dimension: string;
   askAi: string;
   ourSystem: string;
+  /** The concrete, verifiable specifics of what ③ actually changed. */
+  detail?: string[];
 }
 
 export interface AnalysisData {
@@ -45,6 +54,8 @@ export interface AnalysisData {
   borderline: boolean;
   /** 3-dimension breakdown for ③, 1–10. */
   dimensions: AnalysisDimension[];
+  /** Claims the Skeptic flagged as unsupported (the WHY behind a gate trip). */
+  violations: AnalysisViolation[];
   /** ② Ask AI synthesized score, 0–10 (the floor), when judged. */
   floorScore?: number;
   floorGateTripped?: boolean;
@@ -217,6 +228,31 @@ function Analysis({ data, judgeMs }: { data: AnalysisData; judgeMs?: number | nu
         )}
       </section>
 
+      {/* WHY the gate tripped / borderline — the actual flagged claims */}
+      {data.violations.length > 0 && (
+        <section className="arail__card arail__card--flagged" aria-label="Flagged claims">
+          <div className="arail__card-head">
+            <h3 className="arail__card-title">⚠ Flagged as unsupported</h3>
+            <span className="analysis__card-sub">Skeptic, vs the sources shown</span>
+          </div>
+          <ul className="violations">
+            {data.violations.map((v, i) => (
+              <li key={i} className="violation">
+                <p className="violation__claim">“{v.claim}”</p>
+                <p className="violation__reason">
+                  {v.reason}
+                  <span className="violation__conf"> · {Math.round(v.confidence * 100)}% conf</span>
+                </p>
+              </li>
+            ))}
+          </ul>
+          <p className="violation__note">
+            Live judging scores against the source snippets the panels passed — a claim can be
+            flagged here yet be fine in the full docs. The batch judge (full sources) is authoritative.
+          </p>
+        </section>
+      )}
+
       {/* Per-dimension bars */}
       <section className="arail__card" aria-label="Dimension breakdown">
         <div className="arail__card-head">
@@ -277,30 +313,33 @@ function Analysis({ data, judgeMs }: { data: AnalysisData; judgeMs?: number | nu
         </ul>
       </section>
 
-      {/* Config diff */}
+      {/* Config diff — the ACTUAL tuning + hardening, not vanity labels */}
       <section className="arail__card" aria-label="Config diff">
         <div className="arail__card-head">
-          <h3 className="arail__card-title">Config diff</h3>
-          <span className="analysis__card-sub">② vs ③</span>
+          <h3 className="arail__card-title">What we changed (② → ③)</h3>
         </div>
-        <table className="cfgdiff">
-          <thead>
-            <tr>
-              <th scope="col">Dimension</th>
-              <th scope="col">② Ask AI</th>
-              <th scope="col">③ Our System</th>
-            </tr>
-          </thead>
-          <tbody>
-            {data.configDiff.map((row) => (
-              <tr key={row.dimension}>
-                <th scope="row">{row.dimension}</th>
-                <td>{row.askAi}</td>
-                <td className="cfgdiff__ours">{row.ourSystem}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div className="cfg">
+          {data.configDiff.map((row) => (
+            <div className="cfg__row" key={row.dimension}>
+              <div className="cfg__dim">{row.dimension}</div>
+              <div className="cfg__vals">
+                <span className="cfg__askai">② {row.askAi}</span>
+                <span className="cfg__ours">③ {row.ourSystem}</span>
+              </div>
+              {row.detail && row.detail.length > 0 && (
+                <ul className="cfg__detail">
+                  {row.detail.map((d, i) => (
+                    <li key={i}>{d}</li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          ))}
+        </div>
+        <p className="cfg__src">
+          Source of truth: <code>instructions_case3_reformulation_fix_v2.md</code> +{' '}
+          <code>optimize_index.mjs</code> — these are the exact live settings.
+        </p>
       </section>
 
       {/* Synthesis */}

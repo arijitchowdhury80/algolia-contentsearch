@@ -38,11 +38,20 @@ export interface JudgeDimension {
   score: number;
 }
 
+/** A claim the Skeptic flagged as unsupported by the sources. */
+export interface JudgeViolation {
+  claim: string;
+  reason: string;
+  confidence: number;
+}
+
 export interface JudgeVerdict {
   panelId: string;
   judges: { role: JudgeRole; score: number; note: string }[];
   /** 3-dimension breakdown for the analysis rail's per-dimension bars. */
   dimensions: JudgeDimension[];
+  /** Flagged unsupported claims — the WHY behind a grounding gate trip. */
+  violations: JudgeViolation[];
   synthesizedScore: number;
   preGateScore: number;
   gateTripped: boolean;

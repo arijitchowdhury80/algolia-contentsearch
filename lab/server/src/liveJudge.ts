@@ -58,12 +58,24 @@ export interface VerdictDimension {
   score: number;
 }
 
+/** A claim the (gating) Skeptic judge flagged as unsupported by the sources. */
+export interface VerdictViolation {
+  /** The unsupported claim, quoted/paraphrased from the answer. */
+  claim: string;
+  /** Why no provided source backs it. */
+  reason: string;
+  /** Skeptic's confidence 0–1 that it's a real violation. */
+  confidence: number;
+}
+
 export interface LiveJudgeVerdict {
   panelId: string;
   /** One per temperament: round-averaged composite (0–10) + that judge's round-0 note. */
   judges: { role: Temperament; score: number; note: string }[];
   /** The 3-dimension breakdown (grounding / confidence / breadth_depth), 1–10. */
   dimensions: VerdictDimension[];
+  /** Claims the Skeptic flagged as unsupported — the "why" behind a gate trip. */
+  violations: VerdictViolation[];
   /** Final 0–10 after consensus + voted gate (aggregate.finalScore). */
   synthesizedScore: number;
   /** Stable pre-gate consensus (aggregate.meanPreGateScore). */
@@ -145,6 +157,28 @@ function dimensionsFromAggregate(
     .map((d) => ({ id: d.id, label: d.label, score: means[d.id] }));
 }
 
+/**
+ * Collect the gating judge's (Skeptic's) flagged claims across rounds, deduped by
+ * claim, highest-confidence first — so the UI can show WHY the grounding gate
+ * tripped (or what it was borderline on), instead of an opaque "unsupported claim".
+ */
+function violationsFromRounds(result: MultiRoundResult): VerdictViolation[] {
+  const seen = new Map<string, VerdictViolation>();
+  for (const round of result.perRound) {
+    for (const j of round.judgments) {
+      if (j.temperament !== "skeptic") continue; // the designated gating judge
+      for (const v of j.groundingViolations) {
+        const key = v.claim.trim().toLowerCase().slice(0, 100);
+        const prev = seen.get(key);
+        if (!prev || v.confidence > prev.confidence) {
+          seen.set(key, { claim: v.claim, reason: v.reason, confidence: v.confidence });
+        }
+      }
+    }
+  }
+  return [...seen.values()].sort((a, b) => b.confidence - a.confidence);
+}
+
 /** Map a multi-round judge result to the UI verdict shape. Pure. */
 export function toVerdict(
   panelId: string,
@@ -155,6 +189,7 @@ export function toVerdict(
     panelId,
     judges: judgesFromRounds(result),
     dimensions: dimensionsFromAggregate(result),
+    violations: violationsFromRounds(result),
     synthesizedScore: agg.finalScore,
     preGateScore: agg.meanPreGateScore,
     gateTripped: agg.gateTripped,
@@ -189,6 +224,7 @@ export async function judgeLive(
           panelId: panel.panelId,
           judges: [],
           dimensions: [],
+          violations: [],
           synthesizedScore: 0,
           preGateScore: 0,
           gateTripped: false,

@@ -9,6 +9,7 @@ const result: JudgeResult = {
       panelId: 'mirror',
       judges: [{ role: 'referee', score: 4.4, note: 'floor' }],
       dimensions: [{ id: 'grounding', label: 'Grounding', score: 4 }],
+      violations: [{ claim: 'floor claim', reason: 'unsupported', confidence: 0.8 }],
       synthesizedScore: 4.4,
       preGateScore: 4.6,
       gateTripped: true,
@@ -27,6 +28,7 @@ const result: JudgeResult = {
         { id: 'confidence', label: 'Answer confidence', score: 6 },
         { id: 'breadth_depth', label: 'Breadth & depth', score: 8 },
       ],
+      violations: [{ claim: 'ours claim', reason: 'not in sources', confidence: 0.85 }],
       synthesizedScore: 5.9,
       preGateScore: 6.4,
       gateTripped: false,
@@ -50,6 +52,9 @@ describe('toAnalysisData', () => {
     expect(data.gateTripped).toBe(false);
     expect(data.floorScore).toBe(4.4);
     expect(data.floorGateTripped).toBe(true);
+    expect(data.violations).toEqual([
+      { claim: 'ours claim', reason: 'not in sources', confidence: 0.85 },
+    ]);
   });
 
   it('includes the ②-vs-③ margin and gate state in the synthesis text', () => {

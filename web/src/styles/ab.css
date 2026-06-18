@@ -875,6 +875,16 @@ a.hit__title:hover { color: var(--algolia-blue); }
 .arail__judging-pending { color: var(--fg3); font-style: italic; }
 .arail__judging-time { font-family: var(--font-mono); color: var(--fg3); }
 .arail__timing { font-size: var(--fs-caption); color: var(--fg3); margin: var(--s-2) 0 0; font-family: var(--font-mono); }
+
+/* Flagged-claims card — shows WHY the grounding gate tripped. */
+.arail__card--flagged { border-color: rgba(225, 29, 72, 0.35); background: rgba(225, 29, 72, 0.04); }
+.arail__card--flagged .arail__card-title { color: var(--color-danger); }
+.violations { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--s-2); }
+.violation { padding: var(--s-2) var(--s-3); background: var(--bg-card); border-left: 3px solid var(--color-danger); border-radius: var(--radius-xs); }
+.violation__claim { font-size: var(--fs-body-sm); color: var(--fg1); margin: 0; font-style: italic; }
+.violation__reason { font-size: var(--fs-caption); color: var(--fg2); margin: 4px 0 0; line-height: 1.45; }
+.violation__conf { color: var(--fg3); font-family: var(--font-mono); }
+.violation__note { font-size: var(--fs-caption); color: var(--fg3); margin: var(--s-3) 0 0; line-height: 1.45; }
 @media (prefers-reduced-motion: reduce) { .arail__spinner { animation: none; } }
 
 .analysis__live {
@@ -965,6 +975,19 @@ a.hit__title:hover { color: var(--algolia-blue); }
 
 /* Synthesis text */
 .analysis__synthesis { font-size: var(--fs-body-sm); color: var(--fg2); line-height: var(--lh-base); margin: 0; }
+
+/* Config diff — the real ②→③ tuning/hardening specifics. */
+.cfg { display: flex; flex-direction: column; gap: var(--s-3); }
+.cfg__row { display: flex; flex-direction: column; gap: 4px; padding-bottom: var(--s-3); border-bottom: 1px solid var(--border-subtle); }
+.cfg__row:last-child { border-bottom: 0; padding-bottom: 0; }
+.cfg__dim { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: var(--ls-wide); color: var(--fg3); }
+.cfg__vals { display: flex; flex-direction: column; gap: 2px; font-size: var(--fs-caption); }
+.cfg__askai { color: var(--fg3); }
+.cfg__ours { color: var(--algolia-blue); font-weight: 600; }
+.cfg__detail { list-style: none; margin: 4px 0 0; padding: 0 0 0 var(--s-2); display: flex; flex-direction: column; gap: 3px; border-left: 2px solid var(--algolia-blue-100); }
+.cfg__detail li { font-size: var(--fs-caption); color: var(--fg2); line-height: 1.4; }
+.cfg__src { font-size: 10px; color: var(--fg3); margin: var(--s-3) 0 0; line-height: 1.45; }
+.cfg__src code { font-family: var(--font-mono); font-size: 9px; color: var(--fg2); background: var(--bg-inset); padding: 1px 4px; border-radius: var(--radius-xs); }
 
 /* ---------- Mobile: stacked workspace, full-width rail ---------- */
 @media (max-width: 767px) {

@@ -158,6 +158,20 @@ describe("toVerdict", () => {
     expect(v.dimensions[0]).toMatchObject({ id: "grounding", label: "Grounding", score: 6.5 });
   });
 
+  it("surfaces the Skeptic's flagged claims (the WHY behind a gate trip), highest-confidence first", () => {
+    const mr = multiRound();
+    // Inject skeptic violations into round 0.
+    const skeptic = mr.perRound[0].judgments.find((j) => j.temperament === "skeptic")!;
+    (skeptic as { groundingViolations: unknown[] }).groundingViolations = [
+      { claim: "Algolia guarantees 99.999% uptime", reason: "no source says this", confidence: 0.9 },
+      { claim: "typo tolerance is free on all plans", reason: "not in sources", confidence: 0.6 },
+    ];
+    const v = toVerdict("tuned", mr);
+    expect(v.violations).toHaveLength(2);
+    expect(v.violations[0].claim).toContain("99.999% uptime"); // higher confidence first
+    expect(v.violations[0].reason).toBeTruthy();
+  });
+
   it("carries synthesized/pre-gate scores, gate state and narrative", () => {
     const v = toVerdict("tuned", multiRound({ finalScore: 3, meanPreGate: 6.4, gateTripped: true }));
     expect(v.synthesizedScore).toBe(3);
