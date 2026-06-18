@@ -55,9 +55,18 @@ describe('AnalysisRail', () => {
     expect(html).not.toContain('arail__grid');
   });
 
-  it('open + judging shows a scoring status line, not the grid', () => {
-    const html = renderToStaticMarkup(<AnalysisRail open {...base} state="judging" />);
-    expect(html).toContain('Judges scoring');
+  it('open + judging shows streamed progress (count + per-panel scores), not the grid', () => {
+    const html = renderToStaticMarkup(
+      <AnalysisRail
+        open
+        {...base}
+        state="judging"
+        progress={{ total: 2, done: [{ panelId: 'mirror', score: 4.4, gateTripped: true }] }}
+      />,
+    );
+    expect(html).toContain('Judging on the fast panel');
+    expect(html).toContain('1/2'); // 1 of 2 panels judged so far
+    expect(html).toContain('4.4'); // the landed ② score
     expect(html).not.toContain('arail__grid');
   });
 

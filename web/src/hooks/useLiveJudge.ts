@@ -14,10 +14,16 @@ import type { ColumnId } from '../types/chat';
 import type { Submission } from './useComparison';
 import type { AgentResult } from './useAgentColumn';
 import type { AnalysisData } from '../components/AnalysisRail';
-import { requestJudge, toJudgeSource, type JudgePanelInput } from '../lib/judgeClient';
+import { streamJudge, toJudgeSource, type JudgePanelInput } from '../lib/judgeClient';
 import { toAnalysisData } from '../lib/analysis';
 
 export type LiveJudgeState = 'idle' | 'streaming' | 'judging' | 'done' | 'error';
+
+/** Per-panel progress as the judge streams verdicts in (parallel finish order). */
+export interface JudgeProgress {
+  total: number;
+  done: { panelId: string; score: number; gateTripped: boolean }[];
+}
 
 export interface LiveJudgeOptions {
   oursPanelId: ColumnId;
@@ -32,6 +38,8 @@ export interface LiveJudgeApi {
   state: LiveJudgeState;
   data?: AnalysisData;
   error?: string;
+  /** Live per-panel progress while state === 'judging' (streamed). */
+  progress?: JudgeProgress;
   report: (result: AgentResult) => void;
 }
 
@@ -42,6 +50,7 @@ export function useLiveJudge(
   const [state, setState] = useState<LiveJudgeState>('idle');
   const [data, setData] = useState<AnalysisData>();
   const [error, setError] = useState<string>();
+  const [progress, setProgress] = useState<JudgeProgress>();
 
   const optsRef = useRef(opts);
   optsRef.current = opts;
@@ -59,6 +68,7 @@ export function useLiveJudge(
       setState('idle');
       setData(undefined);
       setError(undefined);
+      setProgress(undefined);
       return;
     }
     if (submission.seq === seqRef.current) return;
@@ -67,6 +77,7 @@ export function useLiveJudge(
     setState('streaming');
     setData(undefined);
     setError(undefined);
+    setProgress(undefined);
   }, [submission]);
 
   const report = useCallback((result: AgentResult) => {
@@ -96,7 +107,29 @@ export function useLiveJudge(
     const query = subRef.current?.query ?? '';
     const firedSeq = seqRef.current;
     setState('judging');
-    requestJudge({ question: query, ...(rounds ? { rounds } : {}), panels })
+    setProgress({ total: panels.length, done: [] });
+    streamJudge(
+      { question: query, ...(rounds ? { rounds } : {}), panels },
+      {
+        onPhase: (p) => {
+          if (seqRef.current === firedSeq) setProgress({ total: p.panels, done: [] });
+        },
+        onPanel: (v) => {
+          if (seqRef.current !== firedSeq || v.error) return; // superseded / failed panel
+          setProgress((prev) =>
+            prev
+              ? {
+                  total: prev.total,
+                  done: [
+                    ...prev.done.filter((d) => d.panelId !== v.panelId),
+                    { panelId: v.panelId, score: v.synthesizedScore, gateTripped: v.gateTripped },
+                  ],
+                }
+              : prev,
+          );
+        },
+      },
+    )
       .then((res) => {
         if (seqRef.current !== firedSeq) return; // superseded
         setData(toAnalysisData(res, oursPanelId, floorPanelId));
@@ -109,5 +142,5 @@ export function useLiveJudge(
       });
   }, []);
 
-  return { state, data, error, report };
+  return { state, data, error, progress, report };
 }

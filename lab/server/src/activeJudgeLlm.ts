@@ -19,14 +19,34 @@ export interface ActiveJudgeLlm {
   model: string;
 }
 
-export async function makeActiveJudgeLlm(): Promise<ActiveJudgeLlm> {
+export interface ActiveJudgeOpts {
+  /**
+   * LIVE judge mode: pick a fast model for the indicative on-screen verdict.
+   * For gemini that's gemini-2.5-flash (override via JUDGE_LIVE_MODEL) — ~5–10×
+   * faster than pro. The batch `cli judge` (authoritative) leaves this off and
+   * keeps the slow, accurate pro model.
+   */
+  fastLive?: boolean;
+}
+
+/** The fast model used for the live/indicative judge, per provider. */
+function liveModelFor(env: ReturnType<typeof getEnv>, provider: string, fallback: string): string {
+  if (provider === "gemini") return env.JUDGE_LIVE_MODEL ?? "gemini-2.5-flash";
+  // OpenAI: no confirmed faster judge model wired — keep the resolved default.
+  return env.JUDGE_LIVE_MODEL ?? fallback;
+}
+
+export async function makeActiveJudgeLlm(opts: ActiveJudgeOpts = {}): Promise<ActiveJudgeLlm> {
   const env = getEnv();
   const spec = await resolveActiveProvider(env);
   const apiKey = env[spec.keyVar] ?? "";
+  const model = opts.fastLive
+    ? liveModelFor(env, spec.provider, spec.judgeModel)
+    : spec.judgeModel;
   const rawLlm =
     spec.provider === "gemini"
-      ? makeGeminiComplete({ apiKey, model: spec.judgeModel })
-      : makeOpenAIComplete({ apiKey, model: spec.judgeModel });
+      ? makeGeminiComplete({ apiKey, model })
+      : makeOpenAIComplete({ apiKey, model });
   const llm = makeJudgeLlm(rawLlm, DEFAULT_JUDGE_CONFIG.rubric);
-  return { llm, provider: spec.provider, model: spec.judgeModel };
+  return { llm, provider: spec.provider, model };
 }

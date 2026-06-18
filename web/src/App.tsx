@@ -172,6 +172,7 @@ export default function App() {
             state={live.state}
             data={live.data}
             error={live.error}
+            progress={live.progress}
           />
         </div>
       </main>

@@ -96,6 +96,9 @@ const server = createServer(async (req, res) => {
   if (req.method === "POST" && (req.url ?? "").startsWith("/api/judge")) {
     let body = "";
     for await (const chunk of req) body += chunk;
+    // Stream per-panel progress as Server-Sent Events when the client asks for it
+    // (Accept: text/event-stream) — otherwise return one JSON blob (back-compat).
+    const wantsStream = (req.headers.accept ?? "").includes("text/event-stream");
     try {
       const judgeReq = JSON.parse(body || "{}") as LiveJudgeRequest;
       if (!judgeReq.question || !judgeReq.question.trim()) {
@@ -108,17 +111,41 @@ const server = createServer(async (req, res) => {
         res.end(JSON.stringify({ error: "panels is required and must be non-empty" }));
         return;
       }
-      const { llm, provider, model } = await makeActiveJudgeLlm();
+      // fastLive: the on-screen verdict is indicative → use the fast model.
+      const { llm, provider, model } = await makeActiveJudgeLlm({ fastLive: true });
       const rounds = judgeReq.rounds ?? DEFAULT_LIVE_ROUNDS;
       console.log(
-        `[judge-api] judging ${judgeReq.panels.length} panel(s) on ${provider}/${model}, rounds=${rounds}`,
+        `[judge-api] judging ${judgeReq.panels.length} panel(s) on ${provider}/${model}, rounds=${rounds}, stream=${wantsStream}`,
       );
+
+      if (wantsStream) {
+        res.writeHead(200, {
+          "Content-Type": "text/event-stream",
+          "Cache-Control": "no-cache",
+          Connection: "keep-alive",
+        });
+        const send = (event: string, data: unknown) =>
+          res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+        send("phase", { phase: "judging", panels: judgeReq.panels.length, provider, model, rounds });
+        const out = await judgeLive(judgeReq, makeLlmScorer(llm), (verdict) =>
+          send("panel", verdict),
+        );
+        send("result", out);
+        res.end();
+        return;
+      }
+
       const out = await judgeLive(judgeReq, makeLlmScorer(llm));
       res.writeHead(200, { "Content-Type": "application/json" });
       res.end(JSON.stringify(out));
     } catch (e) {
-      res.writeHead(500, { "Content-Type": "application/json" });
-      res.end(JSON.stringify({ error: (e as Error).message }));
+      if (wantsStream && res.headersSent) {
+        res.write(`event: error\ndata: ${JSON.stringify({ error: (e as Error).message })}\n\n`);
+        res.end();
+      } else {
+        res.writeHead(500, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ error: (e as Error).message }));
+      }
     }
     return;
   }

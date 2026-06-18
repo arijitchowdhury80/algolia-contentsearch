@@ -79,6 +79,38 @@ interface Props {
   state?: AnalysisState;
   data?: AnalysisData;
   error?: string;
+  /** Streamed per-panel progress while judging (so it's never a dead spinner). */
+  progress?: {
+    total: number;
+    done: { panelId: string; score: number; gateTripped: boolean }[];
+  };
+}
+
+const PANEL_NAME: Record<string, string> = { website: '①', mirror: '②', tuned: '③' };
+
+/** Live judging progress: a count + each panel's score as it lands. */
+function JudgingView({ progress }: { progress?: Props['progress'] }) {
+  const done = progress?.done ?? [];
+  const total = progress?.total ?? 0;
+  return (
+    <div className="arail__judging" role="status" aria-live="polite">
+      <div className="arail__judging-head">
+        <span className="arail__spinner" aria-hidden="true" />
+        <span>Judging on the fast panel… {total ? `${done.length}/${total}` : ''}</span>
+      </div>
+      <ul className="arail__judging-list">
+        {done.map((d) => (
+          <li key={d.panelId}>
+            <span className="arail__judging-name">{PANEL_NAME[d.panelId] ?? d.panelId}</span>
+            <span className={`arail__judging-score ${d.gateTripped ? 'is-weak' : scoreTone(d.score)}`}>
+              {d.score.toFixed(1)} ✓
+            </span>
+          </li>
+        ))}
+        {done.length < total && <li className="arail__judging-pending">scoring…</li>}
+      </ul>
+    </div>
+  );
 }
 
 function statusText(state: AnalysisState, error?: string): string {
@@ -274,6 +306,7 @@ export function AnalysisRail({
   state = 'idle',
   data,
   error,
+  progress,
 }: Props) {
   if (!open) {
     return (
@@ -332,6 +365,8 @@ export function AnalysisRail({
       <div className="arail__body">
         {view ? (
           <Analysis data={view} />
+        ) : state === 'judging' ? (
+          <JudgingView progress={progress} />
         ) : (
           <div
             className={`analysis__status is-${state}`}

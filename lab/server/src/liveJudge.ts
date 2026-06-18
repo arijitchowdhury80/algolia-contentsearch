@@ -87,8 +87,13 @@ export type ArtifactScorer = (
   rounds: number,
 ) => Promise<MultiRoundResult>;
 
-/** Default number of live rounds — fewer than the batch default for latency. */
-export const DEFAULT_LIVE_ROUNDS = 2;
+/**
+ * Default number of live rounds. The live panel is INDICATIVE (the batch
+ * `cli judge` is authoritative), so it runs a SINGLE round for latency — the
+ * multi-round voted gate / zero-flicker guarantee matters for the authoritative
+ * batch verdict, not the on-screen spinner.
+ */
+export const DEFAULT_LIVE_ROUNDS = 1;
 
 /** Build a blind judge Artifact from one requested panel. Pure. */
 export function buildLiveArtifact(
@@ -159,35 +164,43 @@ export function toVerdict(
 }
 
 /**
- * Judge every requested panel's displayed answer. A per-panel judging failure is
- * isolated into that verdict's `error` so one bad answer never fails the request.
+ * Judge every requested panel's displayed answer. Panels are judged IN PARALLEL
+ * (each is independent) for latency; a per-panel failure is isolated into that
+ * verdict's `error` so one bad answer never fails the request. `onPanel` fires as
+ * each panel's verdict resolves, enabling streamed progress to the UI. The
+ * returned `panels` preserve the request order regardless of finish order.
  */
 export async function judgeLive(
   req: LiveJudgeRequest,
   score: ArtifactScorer,
+  onPanel?: (verdict: LiveJudgeVerdict) => void,
 ): Promise<LiveJudgeResult> {
   const rounds = Math.max(1, req.rounds ?? DEFAULT_LIVE_ROUNDS);
-  const panels: LiveJudgeVerdict[] = [];
 
-  for (const panel of req.panels) {
-    try {
-      const artifact = buildLiveArtifact(req, panel);
-      const result = await score(artifact, rounds);
-      panels.push(toVerdict(panel.panelId, result));
-    } catch (e) {
-      panels.push({
-        panelId: panel.panelId,
-        judges: [],
-        dimensions: [],
-        synthesizedScore: 0,
-        preGateScore: 0,
-        gateTripped: false,
-        borderline: false,
-        rationale: "",
-        error: (e as Error).message,
-      });
-    }
-  }
+  const panels = await Promise.all(
+    req.panels.map(async (panel): Promise<LiveJudgeVerdict> => {
+      let verdict: LiveJudgeVerdict;
+      try {
+        const artifact = buildLiveArtifact(req, panel);
+        const result = await score(artifact, rounds);
+        verdict = toVerdict(panel.panelId, result);
+      } catch (e) {
+        verdict = {
+          panelId: panel.panelId,
+          judges: [],
+          dimensions: [],
+          synthesizedScore: 0,
+          preGateScore: 0,
+          gateTripped: false,
+          borderline: false,
+          rationale: "",
+          error: (e as Error).message,
+        };
+      }
+      onPanel?.(verdict);
+      return verdict;
+    }),
+  );
 
   return { rounds, panels };
 }
