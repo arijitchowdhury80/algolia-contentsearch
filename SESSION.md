@@ -1,8 +1,134 @@
 # SESSION.md — Algolia-Central2 (Visibility Agents)
 
-_Last updated: 2026-06-17 ~11:20am EDT_
+_Last updated: 2026-06-18 ~1:05am EDT_
 
-## ▶ RESUME (2026-06-17 ~11:20am) — START HERE (latest; supersedes ALL blocks below)
+## ▶ RESUME (2026-06-18 ~1am) — START HERE (latest; supersedes ALL blocks below)
+
+**This session DID BOTH workstreams Arijit asked for ("do both, A first") + the UX rework he requested mid-session. All BUILT + VERIFIED. NOTHING COMMITTED YET (next action = commit).**
+
+### ✅ A — ③ false-refusal FIXED + DEPLOYED (was diagnosed-only)
+- Captured ③'s ACTUAL searchIndex query via the SSE `9:` frames (`/tmp/probe_agent_query.mjs`). On "typo tolerance" it searched `"Algolia typo tolerance handling"` then broadened to `"typo tolerance configuration"` → both off-topic → refused. Replaying those strings on the index = exact same off-topic hits ⇒ **100% the reformulation STRING** (no hidden tool params). Data-proven across typo-tolerance/vector-search/synonyms (`/tmp/probe_reformulations.mjs`, `/tmp/probe_gen.mjs`): the **bare concept term wins**; padding with **"Algolia"** + framing words poisons ranking (NOT burial — old theory overturned again).
+- Fix: rewrote ONLY the RETRIEVAL section → **`scripts/setup/instructions_case3_reformulation_fix_v2.md`** (corrects v1's wrong "burial" rationale, adds "never include the word Algolia", tightens to bare concept term + examples). **DEPLOYED live to ③ `b5c4de23`** (`agent_admin.mjs update`, 9161 chars, published). Runtime-verified: typo-tolerance/vector-search/synonyms now search the bare term → canonical docs → full grounded+cited answers (were refusals). Grounding **bait set still clean** (off-topic refuses, no fabrication). Rollback = `instructions_case3_grounded_lead_v1.md`.
+- **FOLLOW-UP (not done):** re-measure ③ vs ② via batch `cli judge` on full transcripts (the live panel can't — see caveat below). Update `docs/experiment/finding-typo-tolerance-false-refusal.md` in-repo (still has old burial theory; corrected only in memory).
+
+### ✅ B — 3-dim judge + permanent analysis rail BUILT (feature-builder; Arijit chose "full workstream B now")
+- Workspace + full status: **`docs/workspace/judge-3dim-and-rail/_status.md`** (read it).
+- **Judge:** rubric → 3 dims `grounding`(x2, gated) / `confidence` / `breadth_depth`; synthesis default `"mean"` (avg of 3 judges); new `RoundAggregate.judgeComposites`; grounding hard-floor PRESERVED + now also a scored dim. Files: `lab/judge/src/{rubric,types,synthesis,prompt}.ts`. **judge 65 tests + tsc clean.**
+- **Server:** `liveJudge` verdict adds `dimensions[]` + per-judge composite (0–10). **server 33 tests + tsc clean.**
+- **UI:** `AnalysisDrawer`→**`AnalysisRail`** (new) = permanent, collapsible, **pinnable** right rail that **pushes** the lanes (flex sibling in `.lab__workspace`); per-dim color bars + ②-vs-③ margin + per-judge + config-diff + synthesis; **lanes `resize:horizontal`**; rail left-edge **drag-resize**; open/pinned/width persisted to localStorage. `judgeClient`/`analysis.ts`/`useLiveJudge` carry `dimensions`; old drawer + test deleted; `AnalysisRail.test` added. **web tsc + 87 tests.** 4 browser proofs in `docs/workspace/judge-3dim-and-rail/proof/`.
+- **Engagement dim DROPPED** from the composite (Arijit's 3 dims explicit) — deferred.
+
+### ⏳ FIRST ACTIONS NEXT SESSION
+1. **COMMIT everything** (A + B). Suggested commits: (a) `fix(agent): ③ reformulation v2 — bare concept term, kills "Algolia"/framing padding`; (b) `feat(judge): 3-dimension composite (grounding/confidence/breadth_depth) + judgeComposites`; (c) `feat(web): permanent collapsible+pinnable analysis rail, per-dim bars, resizable lanes (push)`. Push to `main` needs Arijit's explicit OK.
+2. **Re-measure ③ vs ② via batch `cli judge`** (workstream-A's win + the new 3-dim numbers).
+3. Redeploy the judge backend to the VPS (new 3-dim code) + redeploy web to Vercel so the rail/3-dim go live. (VPS rebuild cmd in [[project-vps-judge-backend]].)
+
+### ⚠ Caveat surfaced this session (important)
+The LIVE judge gated ③ to 3.0 on typo-tolerance in the browser proof EVEN THOUGH the agent answers it well now — because the UI passes THIN browser source snippets, so the skeptic flags a full-answer claim the thin sources don't cover. This is CORRECT hard-floor behavior given thin sources, and it's the documented "live judge is indicative" caveat. **Authoritative numbers = batch `cli judge` on full transcripts, NOT the live panel.**
+
+### Throwaway probes (fine to delete): `/tmp/probe_agent_query.mjs`, `/tmp/probe_reformulations.mjs`, `/tmp/probe_gen.mjs`, `/tmp/probe_tuned.mjs`.
+
+---
+
+## ▶ RESUME (2026-06-18 ~12:05am) — superseded by the ~1am block above
+
+**This session: (1) DEPLOYED the live-judge backend end-to-end to Arijit's VPS over HTTPS — verified working on the live Vercel deploy; (2) root-caused the ③ "always fails" bug and CORRECTED the documented theory; (3) locked the design for the two next builds. Both next builds are scoped + unblocked but NOT started.**
+
+### Cross-session memory to read first
+`MEMORY.md` → top section. Key files: [[project-vps-judge-backend]] (DONE), [[project-case3-refusal-diagnosis]] (CORRECTED bug cause), [[project-judging-multidimensional]] (next build + grounding decision), [[project-poc-and-prod-direction]], [[project-lab-ux-redesign]].
+
+### ⏳ FIRST ACTIONS NEXT SESSION — "do BOTH" (Arijit, 2026-06-18). Suggested order: A first.
+
+**A — FIX ③'s false-refusal (contained product win):**
+1. **Capture ③'s ACTUAL searchIndex query.** Run the ③ agent (`b5c4de23-769b-4b38-9051-a19add9dee06` on app `VVKSSPDMJX`, index `visibility_www_tuned`) on "How does Algolia handle typo tolerance?" with tool-call logging so you see the exact reformulated query string it sends. (Use the lab agent path / `callCompletions`; the `a:` frames carry the hits, need the query arg.)
+2. **Fix the reformulation rule** in the prompt so the query retrieves the canonical doc. Candidate: `scripts/setup/instructions_case3_reformulation_fix_v1.md` — but VALIDATE it actually pulls the #1 doc (don't assume; the autocorrect run showed prompt-rewording often doesn't win). Validate by: re-run the probe-style search with the new reformulation → does "How does Algolia handle typing mistakes?" come back in top hits? → re-ask in the lab → judge score should jump from 1.1.
+3. Deploy the fixed prompt: `node scripts/setup/agent_admin.mjs update b5c4de23-769b-4b38-9051-a19add9dee06 <file>`. Re-measure ③ vs ②.
+   - **WHY this, not the index:** PROVEN this session — a sane keyword query on the tuned index returns the typo docs at **#1–2** (only 6 hits), identical under removeWordsIfNoResults allOptional/lastWords/none. The index is fine. The agent's reformulation retrieves the WRONG docs (its 9 live hits were all off-topic). NOT "burial", NOT over-refusal. See [[project-case3-refusal-diagnosis]]. Probe: `/tmp/probe_tuned.mjs` (throwaway; admin REST + native fetch; MCP algolia token is REVOKED/401).
+
+**B — JUDGE PANEL + 3-DIM JUDGE REWORK (bigger build; route via frontend-builder for UI + TDD for judge logic):**
+- **Judge → 3-dimension composite:** D1 grounding · D2 answer confidence · D3 breadth+depth. Each of 3 judges (Skeptic/Referee/Advocate) gives a composite across the 3; final = AVERAGE of the 3 judges. **DECISION (Arijit 2026-06-18): grounding = HARD FLOOR *and* a scored dimension** (a real violation still hard-caps; keeps "110% grounded"). Touch `lab/judge/{rubric,synthesis,types,prompt}.ts`, `lab/server/src/{liveJudge,judgeStep}.ts`. Keep zero-flicker ([[feedback-zero-flicker-judge]]) + reliability SOP.
+- **Permanent analysis panel:** convert the on-demand `AnalysisDrawer` → a **permanent, collapsible right RAIL** filling the dead right-side space (lanes are fixed-width `clamp(340px,30%,400px)` in a horizontal scroll rail — `web/src/styles/ab.css:314` — so ~600px sits empty with 3 lanes). Color-coded composite + per-dimension bars + ②-vs-③ margin + per-judge breakdown; collapses to a strip. **Build the layout AROUND the new 3-dim judge output — once.** Idle = honest CTA, NEVER mock/zeros. Files: `AnalysisDrawer.tsx`→rail, `App.tsx` (drawerOpen toggle), `lib/analysis.ts`, `ab.css`. See [[project-judging-multidimensional]] (UI decision section).
+
+### Where we stopped (exact)
+Just finished diagnosing ③ + getting the grounding decision. Asked Arijit "dive into A now, or checkpoint?" → he ran `/persist`. So: nothing of A/B is started yet. The browser (Playwright MCP) was left open on the live app showing the typo-tolerance result (③ refusal, ② good answer, judge ③ 1.1 / ② 3.0).
+
+### Decisions locked this session
+1. **Judge backend host = Caddy on the VPS** (NOT Cloudflare Tunnel — Arijit's Cloudflare is behind corp SSO; long approval). HTTPS via Let's Encrypt at `judge.contentengagement.info`.
+2. **Auth = shared-secret header (`x-lab-key` vs `LAB_API_KEY`) + per-IP rate-limit** (opt-in; protects the Gemini bill). Known POC limit: VITE_ key is in public JS; rate-limit is the real backstop.
+3. **Key handling:** everything confined to the project `.secrets/` (NEVER `~/.ssh/`). Arijit directive.
+4. **③ bug lever = agent reformulation prompt, NOT the index** (data-proven).
+5. **3-dim judge: grounding = hard floor + scored dimension.**
+6. **Both A and B to be done** ("do both"); A first (contained), B is the bigger build.
+
+### Reference files (read these)
+- `~/.claude/projects/.../memory/project-vps-judge-backend.md` — full VPS deploy state, commands, what's live.
+- `~/.claude/projects/.../memory/project-case3-refusal-diagnosis.md` — corrected ③ root cause + evidence.
+- `~/.claude/projects/.../memory/project-judging-multidimensional.md` — 3-dim judge + permanent-panel design + grounding decision.
+- `docs/experiment/finding-typo-tolerance-false-refusal.md` — the OLD (now-contradicted) "burial" theory. Update it when fixing A.
+- `scripts/setup/instructions_case3_grounded_lead_v1.md` — live ③ prompt (refusal + reformulation rules at lines 17/20/26).
+- `/tmp/probe_tuned.mjs` — throwaway tuned-index probe (re-run to test reformulations).
+
+### Live infra state (all verified this session)
+- **Judge backend LIVE:** VPS `chowmes` (Hostinger `72.61.72.147`, user `chowmesadmin`, key at `.secrets/chowmes_ed25519`, SSH host-key file `.secrets/known_hosts`). Containers: `lab-judge` (Docker, `127.0.0.1:8787`, `--env-file ~/lab-judge/judge.env` = GOOGLE_API_KEY+LLM_PROVIDER=gemini+LAB_API_KEY) + `caddy` (`--network host`, Let's Encrypt). Repo cloned at `~/lab-judge` @ `7f1b4c3`. UFW now 22/80/443. Rebuild: `cd ~/lab-judge && git pull && sudo docker build -t lab-judge -f Dockerfile.judge . && sudo docker rm -f lab-judge && sudo docker run -d --name lab-judge --restart unless-stopped -p 127.0.0.1:8787:8787 --env-file judge.env lab-judge`.
+- **SSH (zsh: inline opts, vars don't word-split):** `ssh -i .secrets/chowmes_ed25519 -o IdentitiesOnly=yes -o BatchMode=yes -o UserKnownHostsFile=.secrets/known_hosts chowmesadmin@72.61.72.147 "..."`.
+- **Vercel:** `algolia-contentsearch.vercel.app` — redeployed with `VITE_LAB_API_URL=https://judge.contentengagement.info` + `VITE_LAB_API_KEY` (= `.secrets/lab_api_key.txt`). Judges VERIFIED lighting up live (chip + lane pills + drawer). CLI authed `arijitchowdhury-5926`; redeploy `cd web && npx vercel --prod`.
+- **Domain** `contentengagement.info` (Hostinger DNS), A-record `judge → 72.61.72.147`.
+
+### What has NOT been done (no false completion)
+- **A (③ fix) NOT started** — only diagnosed. Agent's exact reformulated query NOT yet captured.
+- **B (3-dim judge + permanent panel) NOT started** — only scoped + grounding decision made.
+- `docs/experiment/finding-typo-tolerance-false-refusal.md` still states the OLD (wrong) burial theory — not yet corrected in-repo (corrected only in memory).
+- Algolia MCP token is REVOKED (401) — used admin REST instead; not re-auth'd.
+- Live-judge numbers are INDICATIVE only (thin browser source snippets cap even good answers — ② good answer scored 3.0); batch `cli judge` is authoritative.
+- The 12-month algolia.com real query corpus NOT yet obtained.
+
+### Files written/changed this session
+- **Committed + pushed (`7f1b4c3` on main):** `lab/server/src/auth.ts` (new), `lab/server/src/auth.test.ts` (new, 14 tests), `lab/server/src/webserver.ts` (auth wiring), `web/src/lib/judgeClient.ts` (sends `x-lab-key`), `web/src/vite-env.d.ts` (VITE_LAB_API_KEY type).
+- **Uncommitted/local:** `.secrets/` (chowmes_ed25519, known_hosts, lab_api_key.txt — all gitignored), `.playwright-mcp/` (browser snapshots), `/tmp/probe_tuned.mjs`, `CLAUDE.md` + `SESSION.md` (modified).
+- **On the VPS:** `~/lab-judge/{Dockerfile.judge, Caddyfile, judge.env}` + cloned repo.
+- **Memory:** updated `project-vps-judge-backend.md`, `project-judging-multidimensional.md`, created `project-case3-refusal-diagnosis.md`, updated `MEMORY.md` + `session_pointer.md`.
+
+---
+
+## ▶ RESUME (2026-06-17 ~2:15pm) — superseded by the 2026-06-18 block above
+
+**This session: finished the Lab UX redesign (D2+D4), made ① work on the live deploy (browser-direct), prepped the judge backend for hosting, and pivoted to a high-stakes product phase. Everything COMMITTED + PUSHED.**
+
+### Cross-session memory to read first
+`MEMORY.md` → "▶ CURRENT DIRECTION": [[project-poc-and-prod-direction]], [[project-judging-multidimensional]], [[project-vps-judge-backend]]. (Lab UX redesign is now [[project-lab-ux-redesign]] = done.)
+
+### ⏳ FIRST ACTIONS NEXT SESSION (Arijit drives the order)
+1. **Deploy the judge backend to Arijit's VPS.** Arijit will give SSH details. The backend is now JUDGE-ONLY (① no longer needs it). Steps: clone repo on VPS (needs `lab/judge` + `lab/autocorrect` siblings); `cd lab/server && npm install`; env `GOOGLE_API_KEY` (from `.env.local`) + `LLM_PROVIDER=gemini` + `PORT`; run under pm2/systemd; **serve over HTTPS** (Caddy + subdomain, OR Cloudflare Tunnel — REQUIRED: the HTTPS Vercel frontend can't call a plain-http backend). Then set **`VITE_LAB_API_URL`** = the HTTPS URL in Vercel Production (via the authed `vercel` CLI) → redeploy → verify score pills + drawer light up live. VPS currently runs only a "Hermes" agent (idle). `render.yaml` is a fallback host. Arijit offered SSH so Claude can do it end-to-end. Ask: VPS OS + domain-or-tunnel.
+2. **Rework the judge → 3-dimension composite.** D1 grounding · D2 answer confidence · D3 answer breadth+depth. Each of the 3 judges gives a composite across the 3; final = AVERAGE of the 3 judges. Grounding becomes a weighted dimension (confirm with Arijit whether it stays a hard floor too). Touch `lab/judge/{rubric,synthesis,types,prompt}.ts`, `lab/server/src/{liveJudge,judgeStep}.ts`, UI `web/src/lib/analysis.ts` + `AnalysisDrawer.tsx` (extend per-judge rows → per-dimension). Keep zero-flicker + reliability SOP. See [[project-judging-multidimensional]].
+3. **Real test corpus:** Arijit is sourcing the **last 12 months of algolia.com queries** → build a test set from them + run through the judge+autocorrect loop. See [[project-poc-and-prod-direction]].
+
+### WHY now (stakes) — [[project-poc-and-prod-direction]]
+POC with **Adobe + Contentstack** (live customers soon); production target = **Algolia.com itself** (very significant). Build production-grade, multi-tenant-aware, real-query-driven.
+
+### What SHIPPED this session (all committed + pushed; origin/main `e4759d3`)
+- **D2 — analysis drawer + lane score pills + verdict chip** (commit in `74e8c6c`). `AnalysisPanel`→`AnalysisDrawer` (right slide-out, role=dialog, Esc/focus-trap/restore). `lib/score.ts` (scoreTone + gate-aware laneTone). `AnalysisData.laneScores` (both ②+③). Header verdict chip. Dropped the bottom-40% split → full-height rail.
+- **D4 — persistent composer + follow-up + multi-turn** (`74e8c6c`). `QueryBar`→`Composer` (centered hero → docked). `lib/followup.ts` (conservative `detectFollowUp`) + `FollowUpCallout`. Engine was already wired — pure surfacing. Multi-turn verified live.
+- **① browser-direct** (`5b1659e`) — the big fix. algolia.com search = Algolia Autocomplete on incumbent app `1QDAWL72TQ`/`ALGOLIA_WWW_PROD_V2` over the public CORS-safe search API. New `lib/incumbentSearch.ts` (reuses `keywordSearch.ts` + `removeWordsIfNoResults:allOptional` to mirror the site). Removed `websiteClient.ts`. **VERIFIED on the live Vercel URL** — ① returns ranked hits, no backend.
+- **Judge backend deployable** (`e4759d3`) — `webserver.ts` binds `$PORT` + lazy-imports Playwright (judge-only boot); `render.yaml` blueprint.
+- **Fixes from review + sample-testing:** monotonic submission seq in `useComparison` (stale-score-after-Reset bug); `useLiveJudge` clears to idle on Reset; relative→absolute citation URLs (`sourceUrl`).
+- **Verified retrieval finding** `docs/experiment/finding-localized-duplicate-retrieval.md` (corrected an earlier wrong hypothesis — localized dupes are corpus-wide, not tuned-specific).
+- Quality gates: internal code-review (0 Critical), ui-validator (0 FAIL/1 WARN — vault SOP unreadable here, validated vs checklist), **86 web tests green**, tsc clean. 9 browser proofs in `docs/workspace/lab-ux-redesign/proof-0*.png`.
+
+### Live infra state
+- Vercel `algolia-contentsearch.vercel.app` — latest deploy Ready; ①+②+③ work, follow-ups work. **Judges DON'T work on the deploy yet** (no backend → silent: chip shows "Analysis", no score pills). That's the next task (VPS).
+- `VITE_INCUMBENT_APP_ID`/`SEARCH_KEY`/`INDEX` confirmed set in Vercel prod (so ① works deployed).
+- Local: judge backend `cd lab/server && npx tsx src/webserver.ts` (:8787); web `cd web && npm run dev` (:5173/5175). Throwaway probes in `/tmp/*.mjs` (verify_retrieval, probe_incumbent, probe_allopt) — not committed, fine to delete.
+
+### NOT done (no false completion)
+- Judges NOT working on the Vercel deploy (need the VPS backend + `VITE_LAB_API_URL`).
+- Judge multi-dimensional rework NOT started.
+- 12-month query test set not yet obtained/built.
+- ui-validator NOT run against the live vault SOP (Google-Drive mount `EPERM` in this env).
+- Pre-existing: ① weblist titles still show raw HTML entities (`&rsquo;`/`&mdash;`) — minor decode fix deferred.
+
+---
+
+## ▶ RESUME (2026-06-17 ~11:20am) — superseded by the 2026-06-17 ~2:15pm block above
 
 **This session: (1) committed the big 2026-06-14 batch as clean logical commits + set a gitignore policy for eval run outputs; (2) ran UX research and locked ADR-001 (Answer-Quality Lab redesign); (3) started building the redesign — D3 + D1 done.**
 
