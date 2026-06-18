@@ -10,8 +10,15 @@ _Last updated: 2026-06-18 ~1:05am EDT_
 - **Why:** Arijit hit a 7–10 min live judge (he was testing the OLD code on Vercel/VPS — the new code is LOCAL only). Root cause: gemini-2.5-pro × 2 rounds × 2 panels SEQUENTIAL + 429 retry-backoff + no progress UI.
 - **Fix (live judge is indicative; batch `cli judge` stays authoritative on pro):** live model → **gemini-2.5-flash** (`makeActiveJudgeLlm({fastLive})`, override `JUDGE_LIVE_MODEL`); **DEFAULT_LIVE_ROUNDS 2→1**; **panels judged in PARALLEL** (`judgeLive` + `onPanel` cb, order preserved); **`/api/judge` streams SSE** (phase/panel/result/error on `Accept: text/event-stream`); `judgeClient.streamJudge` + `useLiveJudge.progress` + `AnalysisRail` JudgingView (spinner + live count + per-panel score as it lands). **~7-10 min → ~15-25s.** Browser-proven (proof-5/6).
 - **Full-screen:** lanes were capped `clamp(340,30%,400px)` → big empty right margin. Now `.rail__cell flex:1 1 0; min-width:360px` → lanes fill the width; rail still scrolls for many lanes; a resized lane keeps its width (`[style*=width]→flex-grow:0`).
-- **⚠ DEPLOY GAP (important):** ALL of A + B + speed/streaming/full-screen is LOCAL + committed only. **The VPS judge backend + Vercel still run the OLD slow single-score judge.** Testing must be LOCAL (`lab/server` :8787 + `web` :5173) until redeployed. Redeploy = next-session item #3.
 - Scout/esteelauder Akamai "Access Denied" screenshot Arijit shared = FYI only (different tool), no action taken.
+
+### ✅ DEPLOYED (~2:05am) — everything is now LIVE on Vercel + VPS
+- **Pushed** all 8 commits to origin/main (`7f1b4c3..3f4462b`) → Vercel auto-rebuilt the frontend.
+- **VPS judge backend redeployed** (`git pull` + `docker build` + restart on `chowmesadmin@72.61.72.147` `~/lab-judge`, now @ `3f4462b`). Verified: `/health` ok, auth ENABLED, **SSE streaming confirmed** (`event: phase`→`panel`→`result`, model `gemini-2.5-flash`).
+- **End-to-end verified on `algolia-contentsearch.vercel.app`:** new full-screen UX + permanent rail + 3-dim bars + streamed flash judge, completed in ~28s (proof-8-vercel-live.png). Sequence done right (backend before relying on frontend) — no SSE/JSON mismatch window in practice.
+- **Timing instrumentation** also shipped: per-lane "· 24.1s" + judge "judged in Xs" + live streamed count + server `[judge-api] done in Ns` log (commit 3f4462b).
+- Authorization: Arijit gave standing OK to execute deploys/pushes ("don't keep asking, keys are in env, it's your job to execute") — applies to this deploy flow.
+- Remaining: re-measure ③ vs ② via batch `cli judge` (authoritative, vs the indicative live panel which thin-source-gates).
 
 ### ✅ A — ③ false-refusal FIXED + DEPLOYED (was diagnosed-only)
 - Captured ③'s ACTUAL searchIndex query via the SSE `9:` frames (`/tmp/probe_agent_query.mjs`). On "typo tolerance" it searched `"Algolia typo tolerance handling"` then broadened to `"typo tolerance configuration"` → both off-topic → refused. Replaying those strings on the index = exact same off-topic hits ⇒ **100% the reformulation STRING** (no hidden tool params). Data-proven across typo-tolerance/vector-search/synonyms (`/tmp/probe_reformulations.mjs`, `/tmp/probe_gen.mjs`): the **bare concept term wins**; padding with **"Algolia"** + framing words poisons ranking (NOT burial — old theory overturned again).
