@@ -14,6 +14,8 @@ interface ImportMetaEnv {
   readonly VITE_INCUMBENT_INDEX: string;
   /** Optional: lab backend base URL for the live judge (defaults to localhost:8787). */
   readonly VITE_LAB_API_URL?: string;
+  /** Optional: shared secret sent as x-lab-key to the hosted judge backend. */
+  readonly VITE_LAB_API_KEY?: string;
 }
 
 interface ImportMeta {

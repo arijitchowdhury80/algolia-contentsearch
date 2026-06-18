@@ -29,20 +29,45 @@ import {
   DEFAULT_LIVE_ROUNDS,
   type LiveJudgeRequest,
 } from "./liveJudge.js";
+import { API_KEY_HEADER, isAuthorized, clientIp, RateLimiter } from "./auth.js";
 
 // Hosts (Render/Railway/Fly) inject $PORT; fall back to CAPTURE_PORT for local dev.
 const PORT = Number(process.env.PORT ?? process.env.CAPTURE_PORT ?? 8787);
+
+// Protection for the public endpoint (see auth.ts). Both opt-in:
+//  - LAB_API_KEY unset => auth OPEN (local dev / localhost-only deploy).
+//  - RATE_LIMIT <= 0    => rate limit disabled.
+const LAB_API_KEY = process.env.LAB_API_KEY;
+const RATE_LIMIT = Number(process.env.RATE_LIMIT ?? 30);
+const RATE_WINDOW_MS = Number(process.env.RATE_WINDOW_MS ?? 60_000);
+const limiter = new RateLimiter(RATE_LIMIT, RATE_WINDOW_MS);
 
 const server = createServer(async (req, res) => {
   // Permissive CORS — search-only data, local dev tool.
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  res.setHeader("Access-Control-Allow-Headers", `Content-Type, ${API_KEY_HEADER}`);
 
   if (req.method === "OPTIONS") {
     res.writeHead(204);
     res.end();
     return;
+  }
+
+  // Gate the cost-bearing API routes (judge/website): rate-limit then shared key.
+  // /health stays open for the tunnel + uptime checks. No-op until LAB_API_KEY is set.
+  if (req.method === "POST" && (req.url ?? "").startsWith("/api/")) {
+    const ip = clientIp(req.headers, req.socket.remoteAddress ?? undefined);
+    if (!limiter.check(ip)) {
+      res.writeHead(429, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: "rate limit exceeded — slow down" }));
+      return;
+    }
+    if (!isAuthorized(req.headers[API_KEY_HEADER], LAB_API_KEY)) {
+      res.writeHead(401, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: "unauthorized" }));
+      return;
+    }
   }
 
   if (req.method === "POST" && (req.url ?? "").startsWith("/api/website")) {
@@ -110,4 +135,9 @@ const server = createServer(async (req, res) => {
 
 server.listen(PORT, () => {
   console.log(`[lab-api] listening on :${PORT}  (POST /api/judge · POST /api/website · GET /health)`);
+  console.log(
+    `[lab-api] auth ${LAB_API_KEY ? "ENABLED (x-lab-key required)" : "OPEN (no LAB_API_KEY set)"} · rate-limit ${
+      RATE_LIMIT > 0 ? `${RATE_LIMIT}/${RATE_WINDOW_MS}ms per IP` : "disabled"
+    }`,
+  );
 });

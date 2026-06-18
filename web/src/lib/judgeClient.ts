@@ -73,9 +73,14 @@ export async function requestJudge(
   req: JudgeRequest,
   fetchImpl: typeof fetch = fetch,
 ): Promise<JudgeResult> {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  // Shared-secret gate on the hosted backend (see lab/server/src/auth.ts). Unset
+  // locally, so local dev keeps working against the open localhost backend.
+  const apiKey = import.meta.env.VITE_LAB_API_KEY as string | undefined;
+  if (apiKey) headers['x-lab-key'] = apiKey;
   const res = await fetchImpl(`${labApiBase()}/api/judge`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers,
     body: JSON.stringify(req),
   });
   if (!res.ok) {
