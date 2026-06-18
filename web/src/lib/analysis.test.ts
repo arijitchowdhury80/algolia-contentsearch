@@ -8,6 +8,7 @@ const result: JudgeResult = {
     {
       panelId: 'mirror',
       judges: [{ role: 'referee', score: 4.4, note: 'floor' }],
+      dimensions: [{ id: 'grounding', label: 'Grounding', score: 4 }],
       synthesizedScore: 4.4,
       preGateScore: 4.6,
       gateTripped: true,
@@ -20,6 +21,11 @@ const result: JudgeResult = {
         { role: 'skeptic', score: 6.5, note: 'grounded but thin' },
         { role: 'referee', score: 7.8, note: 'on topic' },
         { role: 'advocate', score: 8.4, note: 'strong synthesis' },
+      ],
+      dimensions: [
+        { id: 'grounding', label: 'Grounding', score: 7 },
+        { id: 'confidence', label: 'Answer confidence', score: 6 },
+        { id: 'breadth_depth', label: 'Breadth & depth', score: 8 },
       ],
       synthesizedScore: 5.9,
       preGateScore: 6.4,
@@ -36,6 +42,14 @@ describe('toAnalysisData', () => {
     expect(data.synthesizedScore).toBe(5.9);
     expect(data.judges.map((j) => j.role).sort()).toEqual(['advocate', 'referee', 'skeptic']);
     expect(data.judges.find((j) => j.role === 'advocate')!.score).toBe(8.4);
+  });
+
+  it('carries the ③ 3-dimension breakdown and the ② floor score', () => {
+    const data = toAnalysisData(result, 'tuned', 'mirror');
+    expect(data.dimensions.map((d) => d.id)).toEqual(['grounding', 'confidence', 'breadth_depth']);
+    expect(data.gateTripped).toBe(false);
+    expect(data.floorScore).toBe(4.4);
+    expect(data.floorGateTripped).toBe(true);
   });
 
   it('includes the ②-vs-③ margin and gate state in the synthesis text', () => {

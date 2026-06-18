@@ -1,10 +1,11 @@
 /**
- * analysis — map a live JudgeResult into the AnalysisDrawer's AnalysisData.
- * Pure. The ③ Our System panel drives the judges + headline score; the ② Ask AI
- * panel (the floor) is folded into the synthesis as the real margin. Every judged
- * panel's score is also surfaced in `laneScores` for the always-visible lane pills.
+ * analysis — map a live JudgeResult into the AnalysisRail's AnalysisData.
+ * Pure. The ③ Our System panel drives the judges + headline composite + the
+ * 3-dimension breakdown; the ② Ask AI panel (the floor) is folded in as the real
+ * ②-vs-③ margin. Every judged panel's score is also surfaced in `laneScores` for
+ * the always-visible lane pills.
  */
-import type { AnalysisData } from '../components/AnalysisDrawer';
+import type { AnalysisData } from '../components/AnalysisRail';
 import type { LaneScore } from './score';
 import type { JudgeResult } from './judgeClient';
 
@@ -31,15 +32,16 @@ export function toAnalysisData(
     throw new Error(`live judge result missing the "${oursPanelId}" panel`);
   }
   const floor = result.panels.find((p) => p.panelId === floorPanelId);
+  const floorOk = floor && !floor.error;
 
   const marginBits: string[] = [
     `③ Our System scored ${ours.synthesizedScore.toFixed(1)}/10 (${gateNote(ours.gateTripped, ours.borderline)})`,
   ];
-  if (floor && !floor.error) {
-    const delta = ours.synthesizedScore - floor.synthesizedScore;
+  if (floorOk) {
+    const delta = ours.synthesizedScore - floor!.synthesizedScore;
     const verb = delta >= 0 ? 'ahead of' : 'behind';
     marginBits.push(
-      `② Ask AI scored ${floor.synthesizedScore.toFixed(1)} — ③ is ${Math.abs(delta).toFixed(1)} ${verb} the floor.`,
+      `② Ask AI scored ${floor!.synthesizedScore.toFixed(1)} — ③ is ${Math.abs(delta).toFixed(1)} ${verb} the floor.`,
     );
   }
   const synthesis = `${marginBits.join(' ')} ${ours.rationale}`.trim();
@@ -57,7 +59,13 @@ export function toAnalysisData(
 
   return {
     synthesizedScore: ours.synthesizedScore,
+    gateTripped: ours.gateTripped,
+    borderline: ours.borderline,
+    dimensions: ours.dimensions,
     judges: ours.judges.map((j) => ({ role: j.role, score: j.score, note: j.note })),
+    ...(floorOk
+      ? { floorScore: floor!.synthesizedScore, floorGateTripped: floor!.gateTripped }
+      : {}),
     configDiff: CONFIG_DIFF,
     synthesis,
     laneScores,

@@ -19,7 +19,7 @@ describe('requestJudge', () => {
   const okResult: JudgeResult = {
     rounds: 2,
     panels: [
-      { panelId: 'tuned', judges: [{ role: 'skeptic', score: 6, note: 'n' }], synthesizedScore: 5.9, preGateScore: 6.1, gateTripped: false, borderline: false, rationale: 'r' },
+      { panelId: 'tuned', judges: [{ role: 'skeptic', score: 6, note: 'n' }], dimensions: [{ id: 'grounding', label: 'Grounding', score: 7 }], synthesizedScore: 5.9, preGateScore: 6.1, gateTripped: false, borderline: false, rationale: 'r' },
     ],
   };
 

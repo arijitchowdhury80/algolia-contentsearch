@@ -4,12 +4,14 @@
  * One query bar fans out to a full-height horizontal lane rail (ADR-001 D1):
  * ① Current Website Search, ② Ask AI, ③ Our System (and N more in later phases).
  * Each judged lane shows its always-visible verdict score pill (D2); the full
- * analysis (judges + config diff + synthesis) opens on demand in a right drawer,
- * triggered by the header verdict chip or any lane's ⚖ pill. Panels own their own
- * threads; this shell only holds the shared submission/reset signals, the live
- * judge wiring, and the transcript export (eval tie-in, §10).
+ * 3-dimension analysis (composite + per-dimension bars + ②-vs-③ margin + judges)
+ * lives in a PERMANENT, collapsible, pinnable right RAIL that pushes the lanes
+ * (resizable via its left edge; lanes themselves resize natively). The header
+ * verdict chip and lane ⚖ pills expand it. Panels own their own threads; this
+ * shell holds the shared submission/reset signals, the live judge wiring, the
+ * rail state (persisted), and the transcript export (eval tie-in, §10).
  */
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { buildColumns, type ColumnConfig } from './config/columns';
 import { useComparison } from './hooks/useComparison';
 import { useLiveJudge, type LiveJudgeOptions } from './hooks/useLiveJudge';
@@ -19,15 +21,80 @@ import { ComparisonKey } from './components/ComparisonKey';
 import { LaneRail } from './components/LaneRail';
 import { WebsiteColumn } from './components/WebsiteColumn';
 import { AgentColumn } from './components/AgentColumn';
-import { AnalysisDrawer } from './components/AnalysisDrawer';
+import { AnalysisRail } from './components/AnalysisRail';
 import { laneTone } from './lib/score';
+
+const RAIL_MIN = 300;
+const RAIL_MAX = 720;
+const RAIL_DEFAULT = 380;
+
+/** Read a persisted rail setting, tolerating SSR / disabled storage. */
+function readRail<T>(key: string, fallback: T, parse: (s: string) => T): T {
+  try {
+    const v = localStorage.getItem(key);
+    return v === null ? fallback : parse(v);
+  } catch {
+    return fallback;
+  }
+}
+function writeRail(key: string, value: string) {
+  try {
+    localStorage.setItem(key, value);
+  } catch {
+    /* storage unavailable — non-fatal */
+  }
+}
 
 export default function App() {
   // Built once; throws loudly at startup if any VITE_* var is missing.
   const columns = useMemo(() => buildColumns(), []);
   const { submission, clearSeq, hasRun, submit, reset, register, buildTranscript } = useComparison();
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const openDrawer = () => setDrawerOpen(true);
+
+  // Permanent analysis rail: open/pinned/width persisted across reloads.
+  const [railOpen, setRailOpen] = useState(() => readRail('lab.rail.open', true, (s) => s === '1'));
+  const [railPinned, setRailPinned] = useState(() => readRail('lab.rail.pinned', false, (s) => s === '1'));
+  const [railWidth, setRailWidth] = useState(() =>
+    readRail('lab.rail.width', RAIL_DEFAULT, (s) => Number(s) || RAIL_DEFAULT),
+  );
+
+  const setOpen = useCallback((open: boolean) => {
+    setRailOpen(open);
+    writeRail('lab.rail.open', open ? '1' : '0');
+  }, []);
+  const expandRail = useCallback(() => setOpen(true), [setOpen]);
+  const toggleOpen = useCallback(() => setRailOpen((o) => {
+    const next = !o;
+    writeRail('lab.rail.open', next ? '1' : '0');
+    return next;
+  }), []);
+  const togglePin = useCallback(() => setRailPinned((p) => {
+    const next = !p;
+    writeRail('lab.rail.pinned', next ? '1' : '0');
+    if (next) { setRailOpen(true); writeRail('lab.rail.open', '1'); } // pinning forces open
+    return next;
+  }), []);
+
+  // Left-edge drag to resize the rail (pointer capture; rail is right-docked).
+  const dragRef = useRef<{ id: number } | null>(null);
+  const onResizeStart = useCallback((e: React.PointerEvent) => {
+    e.preventDefault();
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+    dragRef.current = { id: e.pointerId };
+    const onMove = (ev: PointerEvent) => {
+      if (!dragRef.current) return;
+      const next = Math.max(RAIL_MIN, Math.min(RAIL_MAX, window.innerWidth - ev.clientX));
+      setRailWidth(next);
+    };
+    const onUp = (ev: PointerEvent) => {
+      dragRef.current = null;
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+      setRailWidth((w) => { writeRail('lab.rail.width', String(w)); return w; });
+      void ev;
+    };
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+  }, []);
 
   // Live judging: the two agent lanes (② mirror, ③ tuned) gate judging; ③ is ours.
   const judgeOpts = useMemo<LiveJudgeOptions>(
@@ -61,7 +128,7 @@ export default function App() {
         register={register}
         onResult={live.report}
         score={laneScores?.[config.id]}
-        onOpenAnalysis={openDrawer}
+        onOpenAnalysis={expandRail}
         onReply={submit}
       />
     );
@@ -76,8 +143,7 @@ export default function App() {
           <button
             type="button"
             className="verdict-chip"
-            onClick={openDrawer}
-            aria-haspopup="dialog"
+            onClick={expandRail}
             title="Open the live analysis & synthesis"
           >
             <span className="verdict-chip__icon" aria-hidden="true">⚖</span>
@@ -92,18 +158,24 @@ export default function App() {
         </div>
       )}
       <main className="lab__main">
-        <div className="lab__panels">
-          <LaneRail columns={columns} renderColumn={renderColumn} />
+        <div className={`lab__workspace${railOpen ? ' has-rail' : ''}`}>
+          <div className="lab__panels">
+            <LaneRail columns={columns} renderColumn={renderColumn} />
+          </div>
+          <AnalysisRail
+            open={railOpen}
+            pinned={railPinned}
+            width={railWidth}
+            onToggleOpen={toggleOpen}
+            onTogglePin={togglePin}
+            onResizeStart={onResizeStart}
+            state={live.state}
+            data={live.data}
+            error={live.error}
+          />
         </div>
       </main>
       <Composer onSubmit={submit} hero={!hasRun} />
-      <AnalysisDrawer
-        open={drawerOpen}
-        onClose={() => setDrawerOpen(false)}
-        state={live.state}
-        data={live.data}
-        error={live.error}
-      />
     </div>
   );
 }

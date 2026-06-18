@@ -31,9 +31,18 @@ export interface JudgeRequest {
   panels: JudgePanelInput[];
 }
 
+/** One scored rubric dimension (grounding / confidence / breadth_depth), 1–10. */
+export interface JudgeDimension {
+  id: string;
+  label: string;
+  score: number;
+}
+
 export interface JudgeVerdict {
   panelId: string;
   judges: { role: JudgeRole; score: number; note: string }[];
+  /** 3-dimension breakdown for the analysis rail's per-dimension bars. */
+  dimensions: JudgeDimension[];
   synthesizedScore: number;
   preGateScore: number;
   gateTripped: boolean;

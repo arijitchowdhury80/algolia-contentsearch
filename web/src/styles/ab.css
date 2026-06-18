@@ -254,7 +254,9 @@
   display: flex;
   flex-direction: column;
 }
-.lab__panels { flex: 1 1 auto; min-height: 0; display: flex; }
+/* Workspace = lanes (left, fluid) + permanent analysis rail (right, pushes). */
+.lab__workspace { flex: 1 1 auto; min-height: 0; display: flex; gap: var(--s-4); }
+.lab__panels { flex: 1 1 auto; min-width: 0; min-height: 0; display: flex; }
 
 .rail-wrap { height: 100%; width: 100%; display: flex; flex-direction: column; min-height: 0; }
 
@@ -311,7 +313,13 @@
   }
   .rail__cell {
     display: flex !important;
-    flex: 0 0 clamp(340px, 30%, 400px);
+    flex: 0 0 auto;
+    width: clamp(340px, 30%, 400px);
+    min-width: 280px;
+    max-width: 760px;
+    /* Manually adjustable lanes: native horizontal resize grip (Arijit). */
+    resize: horizontal;
+    overflow: hidden;
     scroll-snap-align: start;
   }
 }
@@ -720,55 +728,129 @@ a.hit__title:hover { color: var(--algolia-blue); }
   white-space: nowrap;
 }
 
-/* ---------- Analysis drawer (right slide-out, ADR-001 D2) ---------- */
-.drawer-layer { position: fixed; inset: 0; z-index: 50; }
-.drawer__backdrop {
-  position: absolute;
-  inset: 0;
-  background: rgba(15, 23, 42, 0.32);
-  animation: drawer-fade var(--dur-fast) var(--ease-out);
-}
-.drawer {
-  position: absolute;
-  top: 0;
-  right: 0;
-  height: 100%;
-  width: clamp(380px, 32vw, 460px);
+/* ---------- Analysis RAIL (permanent, collapsible, pushes lanes) ---------- */
+.arail {
+  flex: 0 0 auto;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   background: var(--bg-card);
-  border-left: 1px solid var(--border-subtle);
-  box-shadow: var(--shadow-lg, var(--shadow-md));
-  animation: drawer-slide var(--dur-base, 0.2s) var(--ease-out);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  position: relative;
 }
-.drawer__head {
+.arail--collapsed { width: 48px; }
+.arail--open { /* width set inline (user-resizable) */ }
+
+/* Left-edge resize handle (drag to set rail width). */
+.arail__resize {
+  position: absolute;
+  top: 0; left: -3px; bottom: 0;
+  width: 8px;
+  cursor: col-resize;
+  z-index: 2;
+  touch-action: none;
+}
+.arail__resize::after {
+  content: '';
+  position: absolute; top: 0; bottom: 0; left: 3px;
+  width: 2px; background: transparent;
+}
+.arail__resize:hover::after { background: var(--algolia-blue); }
+
+.arail__head {
   flex: 0 0 auto;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--s-3);
-  padding: var(--s-4) var(--s-4) var(--s-3);
+  gap: var(--s-2);
+  padding: var(--s-3) var(--s-3) var(--s-3) var(--s-4);
   border-bottom: 1px solid var(--border-subtle);
 }
-.drawer__title-row { display: flex; align-items: center; gap: var(--s-3); }
-.drawer__title { font-size: var(--fs-body); font-weight: 600; color: var(--ink); margin: 0; }
-.drawer__close {
-  flex: 0 0 auto;
+.arail__title-row { display: flex; align-items: center; gap: var(--s-2); min-width: 0; }
+.arail__title { font-size: var(--fs-body); font-weight: 600; color: var(--ink); margin: 0; white-space: nowrap; }
+.arail__actions { display: flex; align-items: center; gap: 2px; flex: 0 0 auto; }
+.arail__btn {
+  border: 0; background: transparent; color: var(--fg3);
+  font-size: 14px; line-height: 1; padding: 6px 8px;
+  border-radius: var(--radius-sm); cursor: pointer;
+}
+.arail__btn:hover:not(:disabled) { background: var(--bg-inset); color: var(--fg1); }
+.arail__btn:focus-visible { outline: 2px solid var(--algolia-blue); outline-offset: 2px; }
+.arail__btn:disabled { opacity: 0.4; cursor: default; }
+.arail__btn.is-on { background: var(--algolia-blue-100); filter: none; }
+.arail__body { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; overflow-y: auto; }
+
+/* Collapsed strip (click to expand). */
+.arail__strip {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-4) 0;
   border: 0;
   background: transparent;
-  color: var(--fg3);
-  font-size: 16px;
-  line-height: 1;
-  padding: 6px 8px;
-  border-radius: var(--radius-sm);
   cursor: pointer;
+  width: 100%;
 }
-.drawer__close:hover { background: var(--bg-inset); color: var(--fg1); }
-.drawer__close:focus-visible { outline: 2px solid var(--algolia-blue); outline-offset: 2px; }
-.drawer__body { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; overflow-y: auto; }
+.arail__strip:hover { background: var(--bg-inset); }
+.arail__strip:focus-visible { outline: 2px solid var(--algolia-blue); outline-offset: -2px; }
+.arail__strip-icon { font-size: 16px; color: var(--fg3); }
+.arail__strip-score { font-family: var(--font-display); font-size: var(--fs-body); font-weight: 700; }
+.arail__strip-score.is-strong { color: var(--color-success); }
+.arail__strip-score.is-mid { color: var(--color-warning); }
+.arail__strip-score.is-weak { color: var(--color-danger); }
+.arail__strip-label {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  font-size: var(--fs-caption);
+  font-weight: 600;
+  color: var(--fg2);
+  letter-spacing: var(--ls-wide);
+  margin-top: var(--s-2);
+}
+.arail__strip-chevron { color: var(--fg3); font-size: 14px; margin-top: auto; }
 
-@keyframes drawer-fade { from { opacity: 0; } to { opacity: 1; } }
-@keyframes drawer-slide { from { transform: translateX(100%); } to { transform: translateX(0); } }
+/* Rail content grid (cards stack vertically). */
+.arail__grid { display: flex; flex-direction: column; gap: var(--s-4); padding: var(--s-4); }
+.arail__card {
+  display: flex; flex-direction: column; min-width: 0;
+  background: var(--bg-page);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: var(--s-3);
+}
+.arail__card-head {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--s-2); margin-bottom: var(--s-3);
+}
+.arail__card-title { font-size: var(--fs-body-sm); font-weight: 600; color: var(--ink); margin: 0; }
+.arail__empty { font-size: var(--fs-caption); color: var(--fg3); margin: 0; }
+.arail__gate { font-size: var(--fs-caption); margin: var(--s-2) 0 0; font-weight: 600; }
+.arail__gate.is-tripped { color: var(--color-danger); }
+.arail__gate.is-borderline { color: var(--color-warning); }
+.arail__delta { font-family: var(--font-display); font-size: var(--fs-body); font-weight: 700; }
+.arail__delta.is-ahead { color: var(--color-success); }
+.arail__delta.is-behind { color: var(--color-danger); }
+
+/* Per-dimension bars. */
+.dimbars { display: flex; flex-direction: column; gap: var(--s-3); }
+.dimbar { display: flex; flex-direction: column; gap: 4px; }
+.dimbar__head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--s-2); }
+.dimbar__label { font-size: var(--fs-body-sm); color: var(--fg1); font-weight: 600; }
+.dimbar__val { font-family: var(--font-mono); font-size: var(--fs-body-sm); font-weight: 600; }
+.dimbar__val.is-strong { color: var(--color-success); }
+.dimbar__val.is-mid { color: var(--color-warning); }
+.dimbar__val.is-weak { color: var(--color-danger); }
+.dimbar__track { height: 8px; border-radius: var(--radius-pill); background: var(--bg-inset); overflow: hidden; }
+.dimbar__fill { display: block; height: 100%; border-radius: var(--radius-pill); transition: width var(--dur-base, 0.2s) var(--ease-out); }
+.dimbar__fill.is-strong { background: var(--color-success); }
+.dimbar__fill.is-mid { background: var(--color-warning); }
+.dimbar__fill.is-weak { background: var(--color-danger); }
+.dimbar__sub { font-size: 10px; color: var(--fg3); text-transform: uppercase; letter-spacing: var(--ls-wide); }
 
 .analysis__live {
   font-size: 10px;
@@ -859,16 +941,23 @@ a.hit__title:hover { color: var(--algolia-blue); }
 /* Synthesis text */
 .analysis__synthesis { font-size: var(--fs-body-sm); color: var(--fg2); line-height: var(--lh-base); margin: 0; }
 
-/* ---------- Mobile: stacked rail, full-screen drawer ---------- */
+/* ---------- Mobile: stacked workspace, full-width rail ---------- */
 @media (max-width: 767px) {
   .lab { height: auto; min-height: 100vh; overflow: visible; }
   .lab__main { display: block; padding-bottom: var(--s-6); }
+  .lab__workspace { display: block; }
   .lab__panels { display: block; height: auto; }
   .rail-wrap { height: auto; }
   .rail { min-height: 60vh; }
-  .analysis__grid { overflow: visible; }
-  /* Drawer becomes a full-screen sheet. */
-  .drawer { width: 100%; border-left: 0; }
+  /* Lanes are full-width and not resizable on mobile (tab switcher governs). */
+  .rail__cell { resize: none; }
+  /* Rail stacks below the lanes, full width; no edge-drag on touch. */
+  .arail { margin-top: var(--s-4); }
+  .arail--open { width: 100% !important; }
+  .arail--collapsed { width: 100%; }
+  .arail__resize { display: none; }
+  .arail__strip { flex-direction: row; justify-content: center; padding: var(--s-3); }
+  .arail__strip-label { writing-mode: horizontal-tb; margin: 0; }
 }
 
 /* ---------- Mobile header ---------- */

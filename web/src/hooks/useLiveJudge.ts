@@ -13,7 +13,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ColumnId } from '../types/chat';
 import type { Submission } from './useComparison';
 import type { AgentResult } from './useAgentColumn';
-import type { AnalysisData } from '../components/AnalysisDrawer';
+import type { AnalysisData } from '../components/AnalysisRail';
 import { requestJudge, toJudgeSource, type JudgePanelInput } from '../lib/judgeClient';
 import { toAnalysisData } from '../lib/analysis';
 
