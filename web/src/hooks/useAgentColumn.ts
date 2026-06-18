@@ -22,6 +22,10 @@ export type AgentLaneStatus = 'idle' | 'streaming' | 'done' | 'error';
 export interface AgentColumnState {
   messages: Message[];
   status: AgentLaneStatus;
+  /** Wall-clock when the current submission started (Date.now()), for a live timer. */
+  startedAt: number | null;
+  /** Final answer latency in ms once done/error; null while streaming/idle. */
+  elapsedMs: number | null;
 }
 
 /** Final outcome of one lane for a given submission — fed to the live judge. */
@@ -31,6 +35,8 @@ export interface AgentResult {
   status: 'done' | 'error';
   answer: string;
   sources: Source[];
+  /** Answer latency in ms (agent call wall-clock). */
+  elapsedMs: number;
 }
 
 interface Params {
@@ -81,6 +87,8 @@ function hitsToSources(hits: Record<string, unknown>[]): Source[] {
 export function useAgentColumn({ config, submission, clearSeq, register, onResult }: Params): AgentColumnState {
   const [messages, setMessages] = useState<Message[]>([]);
   const [status, setStatus] = useState<AgentLaneStatus>('idle');
+  const [startedAt, setStartedAt] = useState<number | null>(null);
+  const [elapsedMs, setElapsedMs] = useState<number | null>(null);
 
   const messagesRef = useRef(messages);
   messagesRef.current = messages;
@@ -101,12 +109,18 @@ export function useAgentColumn({ config, submission, clearSeq, register, onResul
     if (clearSeq === 0) return;
     setMessages([]);
     setStatus('idle');
+    setStartedAt(null);
+    setElapsedMs(null);
   }, [clearSeq]);
 
   useEffect(() => {
     if (!submission) return;
     let cancelled = false;
     const { query, seq } = submission;
+    const t0 = performance.now();
+    setStartedAt(Date.now());
+    setElapsedMs(null);
+    const elapsed = () => Math.round(performance.now() - t0);
 
     const history = buildConversationHistory(messagesRef.current);
     const userMsg: Message = { id: nextId(), role: 'user', content: query };
@@ -149,12 +163,14 @@ export function useAgentColumn({ config, submission, clearSeq, register, onResul
             indexName: config.indexName,
           });
           setStatus('error');
+          setElapsedMs(elapsed());
           onResultRef.current?.({
             columnId: config.id,
             seq,
             status: 'error',
             answer: res.content || res.error,
             sources: [],
+            elapsedMs: elapsed(),
           });
           return;
         }
@@ -167,12 +183,14 @@ export function useAgentColumn({ config, submission, clearSeq, register, onResul
           indexName: config.indexName,
         });
         setStatus('done');
+        setElapsedMs(elapsed());
         onResultRef.current?.({
           columnId: config.id,
           seq,
           status: 'done',
           answer: res.content,
           sources,
+          elapsedMs: elapsed(),
         });
       })
       .catch((err: unknown) => {
@@ -184,12 +202,14 @@ export function useAgentColumn({ config, submission, clearSeq, register, onResul
           sourceType: 'error',
         });
         setStatus('error');
+        setElapsedMs(elapsed());
         onResultRef.current?.({
           columnId: config.id,
           seq,
           status: 'error',
           answer: message,
           sources: [],
+          elapsedMs: elapsed(),
         });
       });
 
@@ -199,5 +219,5 @@ export function useAgentColumn({ config, submission, clearSeq, register, onResul
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [submission?.seq]);
 
-  return { messages, status };
+  return { messages, status, startedAt, elapsedMs };
 }

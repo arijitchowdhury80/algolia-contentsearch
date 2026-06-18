@@ -12,6 +12,8 @@
  * scores (the lesson from the old persistent panel was "no fake numbers").
  */
 import { scoreTone, laneTone, type LaneScore } from '../lib/score';
+import { useElapsed } from '../hooks/useElapsed';
+import { formatMs } from '../lib/time';
 
 export type JudgeRole = 'skeptic' | 'referee' | 'advocate';
 
@@ -84,19 +86,32 @@ interface Props {
     total: number;
     done: { panelId: string; score: number; gateTripped: boolean }[];
   };
+  /** Judge timing: live timer while judging + final duration when done. */
+  judgeStartedAt?: number | null;
+  judgeMs?: number | null;
 }
 
 const PANEL_NAME: Record<string, string> = { website: '①', mirror: '②', tuned: '③' };
 
-/** Live judging progress: a count + each panel's score as it lands. */
-function JudgingView({ progress }: { progress?: Props['progress'] }) {
+/** Live judging progress: an elapsed timer + count + each panel's score as it lands. */
+function JudgingView({
+  progress,
+  startedAt,
+}: {
+  progress?: Props['progress'];
+  startedAt?: number | null;
+}) {
   const done = progress?.done ?? [];
   const total = progress?.total ?? 0;
+  const elapsed = useElapsed(startedAt ?? null, true);
   return (
     <div className="arail__judging" role="status" aria-live="polite">
       <div className="arail__judging-head">
         <span className="arail__spinner" aria-hidden="true" />
-        <span>Judging on the fast panel… {total ? `${done.length}/${total}` : ''}</span>
+        <span>
+          Judging on the fast panel… {total ? `${done.length}/${total}` : ''}
+          {startedAt ? <span className="arail__judging-time"> · {formatMs(elapsed)}</span> : null}
+        </span>
       </div>
       <ul className="arail__judging-list">
         {done.map((d) => (
@@ -177,7 +192,7 @@ function Bar({ label, score, max = 10, sub }: { label: string; score: number; ma
   );
 }
 
-function Analysis({ data }: { data: AnalysisData }) {
+function Analysis({ data, judgeMs }: { data: AnalysisData; judgeMs?: number | null }) {
   const delta =
     data.floorScore !== undefined ? data.synthesizedScore - data.floorScore : undefined;
   return (
@@ -191,6 +206,9 @@ function Analysis({ data }: { data: AnalysisData }) {
             <span className="analysis__score-unit">/10</span>
           </div>
         </div>
+        {judgeMs != null && (
+          <p className="arail__timing">⏱ judged in {formatMs(judgeMs)}</p>
+        )}
         {data.gateTripped && (
           <p className="arail__gate is-tripped">⚠ Grounding gate tripped — capped for an unsupported claim.</p>
         )}
@@ -307,6 +325,8 @@ export function AnalysisRail({
   data,
   error,
   progress,
+  judgeStartedAt,
+  judgeMs,
 }: Props) {
   if (!open) {
     return (
@@ -364,9 +384,9 @@ export function AnalysisRail({
 
       <div className="arail__body">
         {view ? (
-          <Analysis data={view} />
+          <Analysis data={view} judgeMs={judgeMs} />
         ) : state === 'judging' ? (
-          <JudgingView progress={progress} />
+          <JudgingView progress={progress} startedAt={judgeStartedAt} />
         ) : (
           <div
             className={`analysis__status is-${state}`}

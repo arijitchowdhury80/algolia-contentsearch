@@ -873,6 +873,8 @@ a.hit__title:hover { color: var(--algolia-blue); }
 .arail__judging-score.is-mid { color: var(--color-warning); }
 .arail__judging-score.is-weak { color: var(--color-danger); }
 .arail__judging-pending { color: var(--fg3); font-style: italic; }
+.arail__judging-time { font-family: var(--font-mono); color: var(--fg3); }
+.arail__timing { font-size: var(--fs-caption); color: var(--fg3); margin: var(--s-2) 0 0; font-family: var(--font-mono); }
 @media (prefers-reduced-motion: reduce) { .arail__spinner { animation: none; } }
 
 .analysis__live {

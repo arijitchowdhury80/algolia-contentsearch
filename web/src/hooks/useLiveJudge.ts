@@ -40,6 +40,10 @@ export interface LiveJudgeApi {
   error?: string;
   /** Live per-panel progress while state === 'judging' (streamed). */
   progress?: JudgeProgress;
+  /** Wall-clock (Date.now()) when judging started, for a live timer. */
+  judgeStartedAt: number | null;
+  /** Final judge wall-clock in ms once done/error. */
+  judgeMs: number | null;
   report: (result: AgentResult) => void;
 }
 
@@ -51,6 +55,8 @@ export function useLiveJudge(
   const [data, setData] = useState<AnalysisData>();
   const [error, setError] = useState<string>();
   const [progress, setProgress] = useState<JudgeProgress>();
+  const [judgeStartedAt, setJudgeStartedAt] = useState<number | null>(null);
+  const [judgeMs, setJudgeMs] = useState<number | null>(null);
 
   const optsRef = useRef(opts);
   optsRef.current = opts;
@@ -69,6 +75,8 @@ export function useLiveJudge(
       setData(undefined);
       setError(undefined);
       setProgress(undefined);
+      setJudgeStartedAt(null);
+      setJudgeMs(null);
       return;
     }
     if (submission.seq === seqRef.current) return;
@@ -106,7 +114,10 @@ export function useLiveJudge(
 
     const query = subRef.current?.query ?? '';
     const firedSeq = seqRef.current;
+    const judgeT0 = performance.now();
     setState('judging');
+    setJudgeStartedAt(Date.now());
+    setJudgeMs(null);
     setProgress({ total: panels.length, done: [] });
     streamJudge(
       { question: query, ...(rounds ? { rounds } : {}), panels },
@@ -133,14 +144,16 @@ export function useLiveJudge(
       .then((res) => {
         if (seqRef.current !== firedSeq) return; // superseded
         setData(toAnalysisData(res, oursPanelId, floorPanelId));
+        setJudgeMs(Math.round(performance.now() - judgeT0));
         setState('done');
       })
       .catch((e: unknown) => {
         if (seqRef.current !== firedSeq) return;
+        setJudgeMs(Math.round(performance.now() - judgeT0));
         setError(e instanceof Error ? e.message : String(e));
         setState('error');
       });
   }, []);
 
-  return { state, data, error, progress, report };
+  return { state, data, error, progress, judgeStartedAt, judgeMs, report };
 }

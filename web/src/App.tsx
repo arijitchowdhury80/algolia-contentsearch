@@ -173,6 +173,8 @@ export default function App() {
             data={live.data}
             error={live.error}
             progress={live.progress}
+            judgeStartedAt={live.judgeStartedAt}
+            judgeMs={live.judgeMs}
           />
         </div>
       </main>

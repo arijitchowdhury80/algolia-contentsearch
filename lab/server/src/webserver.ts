@@ -117,6 +117,9 @@ const server = createServer(async (req, res) => {
       console.log(
         `[judge-api] judging ${judgeReq.panels.length} panel(s) on ${provider}/${model}, rounds=${rounds}, stream=${wantsStream}`,
       );
+      const judgeT0 = Date.now();
+      const logDone = () =>
+        console.log(`[judge-api] done in ${((Date.now() - judgeT0) / 1000).toFixed(1)}s`);
 
       if (wantsStream) {
         res.writeHead(200, {
@@ -132,12 +135,14 @@ const server = createServer(async (req, res) => {
         );
         send("result", out);
         res.end();
+        logDone();
         return;
       }
 
       const out = await judgeLive(judgeReq, makeLlmScorer(llm));
       res.writeHead(200, { "Content-Type": "application/json" });
       res.end(JSON.stringify(out));
+      logDone();
     } catch (e) {
       if (wantsStream && res.headersSent) {
         res.write(`event: error\ndata: ${JSON.stringify({ error: (e as Error).message })}\n\n`);

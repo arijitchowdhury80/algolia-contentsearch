@@ -5,6 +5,8 @@ import { ColumnHeader, type StatusTone } from './ColumnHeader';
 import { ChatMessage } from './ChatMessage';
 import { FollowUpCallout } from './FollowUpCallout';
 import { detectFollowUp } from '../lib/followup';
+import { useElapsed } from '../hooks/useElapsed';
+import { formatMs } from '../lib/time';
 import type { AgentColumnConfig } from '../config/columns';
 import type { Submission } from '../hooks/useComparison';
 import type { LaneSnapshot } from '../hooks/useComparison';
@@ -25,7 +27,8 @@ interface Props {
 }
 
 export function AgentColumn({ config, submission, clearSeq, register, onResult, score, onOpenAnalysis, onReply }: Props) {
-  const { messages, status } = useAgentColumn({ config, submission, clearSeq, register, onResult });
+  const { messages, status, startedAt, elapsedMs } = useAgentColumn({ config, submission, clearSeq, register, onResult });
+  const liveMs = useElapsed(startedAt, status === 'streaming');
 
   // Autoscroll to the latest turn while streaming.
   const threadRef = useRef<HTMLDivElement>(null);
@@ -60,6 +63,10 @@ export function AgentColumn({ config, submission, clearSeq, register, onResult, 
     tone = refused ? 'info' : 'success';
     label = refused ? 'Refused (grounded)' : 'Answered';
   }
+
+  // Always-visible "time taken": ticks live while streaming, freezes on finish.
+  const shownMs = status === 'streaming' ? liveMs : elapsedMs;
+  if (shownMs != null && status !== 'idle') label = `${label} · ${formatMs(shownMs)}`;
 
   return (
     <section className="lane" aria-label={`${config.title} lane`}>
