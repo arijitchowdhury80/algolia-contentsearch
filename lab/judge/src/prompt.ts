@@ -44,9 +44,10 @@ const GROUNDING_NOTE =
   "topic isn't covered, or that simply routes the user to official help (docs, " +
   "support, or a contact/demo link) is NOT a fabricated factual claim — never " +
   "count it as a grounding violation. This protects honest disclaimers ONLY; it " +
-  "does NOT excuse a weak answer. An empty, evasive, or incomplete response must " +
-  "still score LOW on Completeness, Depth, and Clarity. Absence of fabrication is " +
-  "not the same as a good answer — do not reward a non-answer.";
+  "does NOT excuse a weak answer. An empty, evasive, or thin response must still " +
+  "score LOW on Breadth & depth, and a needless deferral when the sources DO " +
+  "support an answer is weak Confidence. Absence of fabrication is not the same " +
+  "as a good answer — do not reward a non-answer.";
 
 /** Authoritative block when the artifact is expected to refuse (out-of-scope prompt). */
 const REFUSAL_DIRECTIVE =

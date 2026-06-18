@@ -14,6 +14,7 @@
  */
 import {
   judgeArtifactMultiRound,
+  ALGOLIA_ANSWER_RUBRIC,
   DEFAULT_JUDGE_CONFIG,
   type Artifact,
   type LlmComplete,
@@ -49,10 +50,20 @@ export interface LiveJudgeRequest {
   panels: LivePanelInput[];
 }
 
+/** One scored rubric dimension, round+judge averaged, for the UI's per-dim bars. */
+export interface VerdictDimension {
+  id: string;
+  label: string;
+  /** Mean raw score on the rubric's 1–10 scale. */
+  score: number;
+}
+
 export interface LiveJudgeVerdict {
   panelId: string;
-  /** One per temperament: averaged weighted score + that judge's round-0 note. */
+  /** One per temperament: round-averaged composite (0–10) + that judge's round-0 note. */
   judges: { role: Temperament; score: number; note: string }[];
+  /** The 3-dimension breakdown (grounding / confidence / breadth_depth), 1–10. */
+  dimensions: VerdictDimension[];
   /** Final 0–10 after consensus + voted gate (aggregate.finalScore). */
   synthesizedScore: number;
   /** Stable pre-gate consensus (aggregate.meanPreGateScore). */
@@ -107,25 +118,26 @@ export function buildLiveArtifact(
   };
 }
 
-/** Average each judge's weighted score across rounds; note = its round-0 summary. */
+/** Each judge's round-averaged composite (0–10); note = its round-0 summary. */
 function judgesFromRounds(
   result: MultiRoundResult,
 ): { role: Temperament; score: number; note: string }[] {
-  const sums = new Map<Temperament, { total: number; n: number }>();
-  for (const round of result.perRound) {
-    for (const j of round.judgments) {
-      const cur = sums.get(j.temperament) ?? { total: 0, n: 0 };
-      cur.total += j.weightedScore;
-      cur.n += 1;
-      sums.set(j.temperament, cur);
-    }
-  }
   const round0 = result.perRound[0]?.judgments ?? [];
-  return [...sums.entries()].map(([role, { total, n }]) => ({
-    role,
-    score: n === 0 ? 0 : total / n,
-    note: round0.find((j) => j.temperament === role)?.summary ?? "",
+  return result.aggregate.judgeComposites.map((c) => ({
+    role: c.temperament,
+    score: c.composite,
+    note: round0.find((j) => j.temperament === c.temperament)?.summary ?? "",
   }));
+}
+
+/** Map the round-averaged dimension means to the UI's per-dimension shape, in rubric order. */
+function dimensionsFromAggregate(
+  result: MultiRoundResult,
+): VerdictDimension[] {
+  const means = result.aggregate.dimensionMeans;
+  return ALGOLIA_ANSWER_RUBRIC.dimensions
+    .filter((d) => means[d.id] !== undefined)
+    .map((d) => ({ id: d.id, label: d.label, score: means[d.id] }));
 }
 
 /** Map a multi-round judge result to the UI verdict shape. Pure. */
@@ -137,6 +149,7 @@ export function toVerdict(
   return {
     panelId,
     judges: judgesFromRounds(result),
+    dimensions: dimensionsFromAggregate(result),
     synthesizedScore: agg.finalScore,
     preGateScore: agg.meanPreGateScore,
     gateTripped: agg.gateTripped,
@@ -165,6 +178,7 @@ export async function judgeLive(
       panels.push({
         panelId: panel.panelId,
         judges: [],
+        dimensions: [],
         synthesizedScore: 0,
         preGateScore: 0,
         gateTripped: false,

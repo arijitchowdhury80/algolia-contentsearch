@@ -22,15 +22,16 @@ describe("buildJudgePrompt", () => {
     expect(prompt).toContain(skeptic.persona);
   });
 
-  it("includes every APPLICABLE rubric dimension and drops the N/A optional one", () => {
-    // engagement is marked N/A on GROUNDED_ARTIFACT -> must be absent.
-    expect(prompt).toContain("groundedness");
-    expect(prompt).toContain("completeness");
-    expect(prompt).toContain("citation");
+  it("includes every dimension of the 3-dimension rubric", () => {
+    expect(prompt).toContain("grounding");
+    expect(prompt).toContain("confidence");
+    expect(prompt).toContain("breadth_depth");
+    // the dropped legacy dimensions must not appear
     expect(prompt).not.toContain("engagement");
+    expect(prompt).not.toContain("conciseness");
   });
 
-  it("surfaces the groundedness x2 weight and the sources as ground truth", () => {
+  it("surfaces the grounding x2 weight and the sources as ground truth", () => {
     expect(prompt).toContain("weight x2");
     expect(prompt).toContain("[S1]");
     expect(prompt).toContain("grounding violation");

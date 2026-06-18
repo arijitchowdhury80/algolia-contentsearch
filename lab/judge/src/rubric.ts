@@ -7,64 +7,40 @@ import type {
 } from "./types.js";
 
 /**
- * Default rubric for the Algolia answer-quality experiment.
- * Groundedness is weight x2 and is the gated, CRITICAL dimension.
- * Engagement is optional (only scored for conversational answers).
+ * Default rubric for the Algolia answer-quality experiment — 3-dimension model
+ * (Arijit, 2026-06-18). The verdict is a composite across exactly three facets:
+ * Grounding, Answer confidence, and Breadth & depth. Grounding is weight x2 and
+ * is BOTH a scored dimension AND the hard floor (a verified violation still caps
+ * the whole score via the gate — see DEFAULT_GATE / aggregateRounds). The earlier
+ * 7-dimension rubric folded into these three: citation quality → Grounding;
+ * completeness + depth + logical structure → Breadth & depth; decisiveness is the
+ * new Confidence dimension. (Two-way "engagement" is deferred — not scored here.)
  */
 export const ALGOLIA_ANSWER_RUBRIC: Rubric = {
-  name: "Algolia answer quality v1",
+  name: "Algolia answer quality v2 (3-dimension)",
   min: 1,
   max: 10,
   dimensions: [
     {
-      id: "groundedness",
-      label: "Groundedness",
+      id: "grounding",
+      label: "Grounding",
       description:
-        "Is every factual claim traceable to a provided source? Penalise any claim not supported by the sources. This is CRITICAL — score conservatively.",
+        "Is EVERY factual claim traceable to a provided source, with no hallucination or unsupported assertion? Citations must actually support the claim they attach to. This is CRITICAL — score conservatively; even one unsupported claim is a serious problem. (An honest 'this isn't covered' statement or a routing link to official help is NOT a violation.)",
       weight: 2,
     },
     {
-      id: "completeness",
-      label: "Completeness",
+      id: "confidence",
+      label: "Answer confidence",
       description:
-        "Does the answer fully address the question, covering the parts a strong answer would include?",
+        "How decisive and self-assured is the answer GIVEN its sources? A strong answer commits to a clear, direct response and states what it knows plainly. Penalise needless hedging, vague qualifiers, or refusing/deferring when the sources actually support an answer. IMPORTANT: confidence is decisiveness given the sources — it is NEVER a licence to overstate; claims beyond the sources are a Grounding failure, not confidence credit. A correct, clean refusal to a genuinely unanswerable question is itself confident — score it high.",
       weight: 1,
     },
     {
-      id: "depth",
-      label: "Depth / rigor",
+      id: "breadth_depth",
+      label: "Breadth & depth",
       description:
-        "Does the answer go beyond surface level — explaining mechanism, trade-offs, and nuance where warranted?",
+        "Does the answer cover the question broadly (the parts a strong answer would include) AND go deep where it matters — mechanism, specific parameters/settings/names, trade-offs, and nuance that the sources provide — in a clear, logically layered structure? Reward complete, substantive, well-organised answers; penalise thin, shallow, partial, or rambling ones. Depth must come from the sources, not padding.",
       weight: 1,
-    },
-    {
-      id: "clarity",
-      label: "Clarity & logical layering",
-      description:
-        "Is the answer well-structured, with ideas layered in a logical order that is easy to follow?",
-      weight: 1,
-    },
-    {
-      id: "conciseness",
-      label: "Conciseness",
-      description:
-        "Is the answer free of filler and repetition, saying what is needed without padding?",
-      weight: 1,
-    },
-    {
-      id: "citation",
-      label: "Citation quality",
-      description:
-        "Are citations present where claims are made, and do the cited sources actually support the claim?",
-      weight: 1,
-    },
-    {
-      id: "engagement",
-      label: "Engagement / two-way",
-      description:
-        "For conversational answers only: does it advance a genuine two-way exchange? Reward, specifically: (a) APPROPRIATE CLARIFICATION — when the question is genuinely ambiguous it asks one crisp clarifying question (after a brief best-effort answer, never a bare stall); and when the question is already clear it does NOT ask, it just answers (penalise needless 'what do you mean?' over-asking as much as failing to clarify when needed); (b) NON-REPETITION across turns — a follow-up adds new, grounded detail and builds on the prior turn rather than restating it; (c) at most ONE forward move per turn (a clarifier OR one high-signal follow-up question, never generic 'anything else?', never both). A clarifying or follow-up question that asserts an unverified fact is a grounding failure, not engagement credit. (Skip entirely for one-shot answers.)",
-      weight: 1,
-      optional: true,
     },
   ],
 };
@@ -110,9 +86,15 @@ export const DEFAULT_GATE: HardGateConfig = {
   gatingTemperaments: ["skeptic"],
 };
 
+/**
+ * Final pre-gate score = the simple MEAN of the three judges' composites
+ * (Arijit, 2026-06-18: "final = average of the 3 judges"). The skeptic still
+ * governs the grounding HARD FLOOR via the gate; it is no longer up-weighted in
+ * the quality average. The "trimmed-skeptic-weighted" rule remains available for
+ * callers that want it, but is no longer the default.
+ */
 export const DEFAULT_SYNTHESIS: SynthesisConfig = {
-  rule: "trimmed-skeptic-weighted",
-  skepticWeight: 1.5,
+  rule: "mean",
 };
 
 export const DEFAULT_JUDGE_CONFIG: JudgeConfig = {

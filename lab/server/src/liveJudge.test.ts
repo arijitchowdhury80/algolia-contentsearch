@@ -78,7 +78,12 @@ function multiRound(opts?: {
       gateTripped: opts?.gateTripped ?? false,
       borderline: opts?.borderline ?? false,
       finalScore: opts?.finalScore ?? 5.9,
-      dimensionMeans: { groundedness: 6.5 },
+      dimensionMeans: { grounding: 6.5, confidence: 7, breadth_depth: 8 },
+      judgeComposites: [
+        { judgeId: "skeptic", temperament: "skeptic", composite: 6.5 },
+        { judgeId: "referee", temperament: "referee", composite: 8 },
+        { judgeId: "advocate", temperament: "advocate", composite: 9 },
+      ],
     },
   };
 }
@@ -134,13 +139,23 @@ describe("buildLiveArtifact", () => {
 // --- toVerdict --------------------------------------------------------------
 
 describe("toVerdict", () => {
-  it("produces one entry per temperament with averaged score + round-0 note", () => {
+  it("produces one entry per temperament with round-averaged composite + round-0 note", () => {
     const v = toVerdict("tuned", multiRound());
     expect(v.panelId).toBe("tuned");
     expect(v.judges.map((j) => j.role).sort()).toEqual(["advocate", "referee", "skeptic"]);
     const skeptic = v.judges.find((j) => j.role === "skeptic")!;
-    expect(skeptic.score).toBeCloseTo(6.5); // (6 + 7) / 2
+    expect(skeptic.score).toBeCloseTo(6.5); // aggregate.judgeComposites skeptic
     expect(skeptic.note).toBe("skeptic r0");
+  });
+
+  it("surfaces the 3-dimension breakdown in rubric order", () => {
+    const v = toVerdict("tuned", multiRound());
+    expect(v.dimensions.map((d) => d.id)).toEqual([
+      "grounding",
+      "confidence",
+      "breadth_depth",
+    ]);
+    expect(v.dimensions[0]).toMatchObject({ id: "grounding", label: "Grounding", score: 6.5 });
   });
 
   it("carries synthesized/pre-gate scores, gate state and narrative", () => {

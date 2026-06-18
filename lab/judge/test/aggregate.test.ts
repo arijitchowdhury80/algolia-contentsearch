@@ -8,50 +8,53 @@ import {
 import { flatScores } from "./helpers.js";
 
 describe("weightedAggregate", () => {
-  it("returns the flat value when every applicable dimension scores the same", () => {
+  it("returns the flat value when every dimension scores the same", () => {
     const scores = flatScores(8);
-    const agg = weightedAggregate(scores, ALGOLIA_ANSWER_RUBRIC, {
-      notApplicableDimensions: ["engagement"],
-    });
+    const agg = weightedAggregate(scores, ALGOLIA_ANSWER_RUBRIC);
     expect(agg).toBe(8);
   });
 
-  it("weights groundedness x2: a low groundedness pulls the mean down harder", () => {
-    // 6 applicable dims (engagement N/A). Groundedness weight 2, others 1 -> total 7.
-    // All 10 except groundedness=2 -> (2*2 + 10*5) / 7 = 54/7 ≈ 7.714
+  it("weights grounding x2: a low grounding pulls the mean down harder", () => {
+    // 3 dims: grounding(x2), confidence(x1), breadth_depth(x1) -> total weight 4.
+    // All 10 except grounding=2 -> (2*2 + 10 + 10) / 4 = 24/4 = 6
     const scores = flatScores(10).map((d) =>
-      d.dimensionId === "groundedness" ? { ...d, score: 2 } : d,
+      d.dimensionId === "grounding" ? { ...d, score: 2 } : d,
     );
-    const agg = weightedAggregate(scores, ALGOLIA_ANSWER_RUBRIC, {
-      notApplicableDimensions: ["engagement"],
-    });
-    expect(agg).toBeCloseTo(54 / 7, 5);
+    const agg = weightedAggregate(scores, ALGOLIA_ANSWER_RUBRIC);
+    expect(agg).toBeCloseTo(24 / 4, 5);
 
-    // Sanity: if a weight-1 dim were 2 instead, the mean would be HIGHER than
-    // when groundedness is the low one, proving the x2 weighting bites.
+    // Sanity: if a weight-1 dim were the low one instead, the mean would be
+    // HIGHER, proving the grounding x2 weighting bites harder.
+    // grounding=10, confidence=2, breadth_depth=10 -> (2*10 + 2 + 10)/4 = 32/4 = 8
     const scoresAlt = flatScores(10).map((d) =>
-      d.dimensionId === "completeness" ? { ...d, score: 2 } : d,
+      d.dimensionId === "confidence" ? { ...d, score: 2 } : d,
     );
-    const aggAlt = weightedAggregate(scoresAlt, ALGOLIA_ANSWER_RUBRIC, {
-      notApplicableDimensions: ["engagement"],
-    });
+    const aggAlt = weightedAggregate(scoresAlt, ALGOLIA_ANSWER_RUBRIC);
     expect(aggAlt).toBeGreaterThan(agg);
+    expect(aggAlt).toBeCloseTo(32 / 4, 5);
   });
 
   it("treats a missing dimension score as the rubric minimum (not free)", () => {
-    const scores = flatScores(10).filter((d) => d.dimensionId !== "completeness");
-    const agg = weightedAggregate(scores, ALGOLIA_ANSWER_RUBRIC, {
-      notApplicableDimensions: ["engagement"],
-    });
-    // completeness missing -> counted as min (1), weight 1 of total 7.
-    // (10*6 ... but completeness=1) => (2*10 + 1 + 10*4)/7 = (20+1+40)/7 = 61/7
-    expect(agg).toBeCloseTo(61 / 7, 5);
+    const scores = flatScores(10).filter((d) => d.dimensionId !== "breadth_depth");
+    const agg = weightedAggregate(scores, ALGOLIA_ANSWER_RUBRIC);
+    // breadth_depth missing -> counted as min (1), weight 1 of total 4.
+    // (2*10 + 10 + 1)/4 = 31/4
+    expect(agg).toBeCloseTo(31 / 4, 5);
   });
 
-  it("excludes optional dimensions marked not-applicable", () => {
-    const withEngagement = applicableDimensions(ALGOLIA_ANSWER_RUBRIC, []);
-    const withoutEngagement = applicableDimensions(ALGOLIA_ANSWER_RUBRIC, ["engagement"]);
-    expect(withEngagement.length).toBe(withoutEngagement.length + 1);
+  it("supports optional dimensions via the applicability filter", () => {
+    // The 3-dimension production rubric has no optional dims; verify the
+    // mechanism still works on a synthetic rubric with one.
+    const withOptional = {
+      ...ALGOLIA_ANSWER_RUBRIC,
+      dimensions: [
+        ...ALGOLIA_ANSWER_RUBRIC.dimensions,
+        { id: "extra", label: "Extra", description: "", weight: 1, optional: true },
+      ],
+    };
+    const all = applicableDimensions(withOptional, []);
+    const dropped = applicableDimensions(withOptional, ["extra"]);
+    expect(all.length).toBe(dropped.length + 1);
   });
 });
 

@@ -200,6 +200,29 @@ export function aggregateRounds(
     if (n > 0) dimensionMeans[dim] = sum / n;
   }
 
+  // Per-judge composite (weightedScore → 0-10), averaged across rounds. The
+  // final pre-gate score is the mean of these; the UI shows them individually.
+  const compSums = new Map<
+    string,
+    { temperament: Judgment["temperament"]; total: number; n: number }
+  >();
+  for (const js of perRoundJudgments) {
+    for (const j of js) {
+      const cur =
+        compSums.get(j.judgeId) ?? { temperament: j.temperament, total: 0, n: 0 };
+      cur.total += toFinalScale(j.weightedScore, rubric);
+      cur.n += 1;
+      compSums.set(j.judgeId, cur);
+    }
+  }
+  const judgeComposites = [...compSums.entries()].map(
+    ([judgeId, { temperament, total, n }]) => ({
+      judgeId,
+      temperament,
+      composite: n === 0 ? 0 : total / n,
+    }),
+  );
+
   const meanPreGateScore = mean(perRoundPreGate);
   const gateTripFraction = rounds === 0 ? 0 : maxRecurrence;
   const gateTripped = rounds > 0 && claimGate.tripped;
@@ -218,6 +241,7 @@ export function aggregateRounds(
     borderline,
     finalScore,
     dimensionMeans,
+    judgeComposites,
   };
 }
 

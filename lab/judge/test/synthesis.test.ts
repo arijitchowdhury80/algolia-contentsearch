@@ -56,7 +56,7 @@ describe("consensusScore", () => {
         makeJudgment("advocate", "advocate", 10),
       ],
       ALGOLIA_ANSWER_RUBRIC,
-      DEFAULT_SYNTHESIS,
+      { rule: "trimmed-skeptic-weighted", skepticWeight: 1.5 },
     );
     const plainMean = consensusScore(
       [
@@ -248,9 +248,27 @@ describe("aggregateRounds — claim-level gate (zero-flicker)", () => {
     const perRound = [round(4, 7, 10), round(4, 7, 10)];
     const agg = aggregateRounds(perRound, opts.rubric, opts.synthesis, opts.gate, 0.5);
     expect(agg.dimensionMeans).toBeDefined();
-    expect(agg.dimensionMeans.completeness).toBeCloseTo(7, 5);
-    expect(agg.dimensionMeans.groundedness).toBeCloseTo(7, 5);
-    // "engagement" is omitted for one-shot answers → not in the means.
+    // the 3-dimension model: grounding / confidence / breadth_depth
+    expect(agg.dimensionMeans.grounding).toBeCloseTo(7, 5);
+    expect(agg.dimensionMeans.confidence).toBeCloseTo(7, 5);
+    expect(agg.dimensionMeans.breadth_depth).toBeCloseTo(7, 5);
+    // a dropped legacy dimension is absent from the means.
     expect(agg.dimensionMeans.engagement).toBeUndefined();
+  });
+
+  it("reports each judge's round-averaged composite (0-10), driving the mean final", () => {
+    // flat scores → each judge's composite == its rescaled flat value.
+    const perRound = [round(4, 7, 10), round(4, 7, 10)];
+    const agg = aggregateRounds(perRound, opts.rubric, opts.synthesis, opts.gate, 0.5);
+    const byId = new Map(agg.judgeComposites.map((c) => [c.judgeId, c]));
+    expect(agg.judgeComposites).toHaveLength(3);
+    expect(byId.get("skeptic")!.composite).toBeCloseTo(((4 - 1) / 9) * 10, 5);
+    expect(byId.get("referee")!.composite).toBeCloseTo(((7 - 1) / 9) * 10, 5);
+    expect(byId.get("advocate")!.composite).toBeCloseTo(((10 - 1) / 9) * 10, 5);
+    expect(byId.get("advocate")!.temperament).toBe("advocate");
+    // final pre-gate is the MEAN of the three composites (Arijit's rule).
+    const meanOfComposites =
+      agg.judgeComposites.reduce((s, c) => s + c.composite, 0) / 3;
+    expect(agg.meanPreGateScore).toBeCloseTo(meanOfComposites, 5);
   });
 });

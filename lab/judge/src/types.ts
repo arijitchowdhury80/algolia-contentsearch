@@ -293,9 +293,24 @@ export interface RoundAggregate {
    * Mean raw (1-10) score per rubric dimension, averaged across all judges and
    * all rounds. Keyed by dimensionId; omits dimensions not scored (e.g.
    * engagement on a one-shot answer). Feeds the autocorrect loop's
-   * weakest-dimension diagnosis.
+   * weakest-dimension diagnosis AND the UI's per-dimension bars.
    */
   readonly dimensionMeans: Readonly<Record<string, number>>;
+  /**
+   * Each judge's COMPOSITE (its weighted-mean score across the rubric
+   * dimensions, on the 0-10 final scale), averaged across all rounds. The final
+   * pre-gate score is the mean of these composites. Surfaced for the UI's
+   * per-judge breakdown and for transparency.
+   */
+  readonly judgeComposites: readonly JudgeComposite[];
+}
+
+/** One judge's round-averaged composite score, on the 0-10 final scale. */
+export interface JudgeComposite {
+  readonly judgeId: string;
+  readonly temperament: Temperament;
+  /** Round-averaged composite on 0-10. */
+  readonly composite: number;
 }
 
 export interface MultiRoundResult {
