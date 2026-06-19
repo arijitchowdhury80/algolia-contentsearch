@@ -20,10 +20,14 @@ _Last updated: 2026-06-18 ~10:30pm EDT_
   - tech-keyword `fb933ecc…` · tech-neural `c1c425b1…` · marketer-keyword `4d671dd3…` · marketer-neural `4af0897c…` · academy-keyword `be89f47d…` · academy-neural `74ebd5ef…` · support-keyword `6851a346…` · support-neural `979bbb4b…`
   - Grounding verified: all 10 decline off-topic/competitor/adjacent cleanly; scoping confirmed (specialists see only their `source` slice).
 
+### DONE (deploy)
+- **Integration smoke** — `cli pipeline --limit 1` ran all 4 panels → judge → 2×2 leaderboard end-to-end (machinery proven). Caveats: both multi panels gated on grounding (coordinator synthesis); neural not yet on (P3/P4 keyword-mode) → NOT an authoritative neural verdict.
+- **✅ BACKEND DEPLOYED LIVE on the VPS** (replaced the old judge-only backend). Host `72.61.72.147` user `chowmesadmin` (key `.secrets/chowmes_ed25519`, `-o IdentitiesOnly=yes -o UserKnownHostsFile=.secrets/known_hosts`). Branch checked out at `~/lab-judge`; container **`ac2-lab-backend`** (healthy, `127.0.0.1:8787`) via `deploy/docker-compose.yml` (builds repo-root `Dockerfile`); Caddy fronts **`https://judge.contentengagement.info`**. VERIFIED: /health 200 local+public, auth 401 w/o key, authed `/api/answer` returns a grounded P1 answer. **Hermes + Caddy untouched.** VPS env `~/lab-judge/deploy/.env` (regen: `node scripts/setup/build_deploy_env.mjs` → `scp deploy/.env`). Redeploy: `ssh … 'cd ~/lab-judge && git fetch origin <branch> && git checkout -f -B <branch> FETCH_HEAD && sudo docker compose -f deploy/docker-compose.yml up -d --build'`.
+
 ### PENDING / NEXT
-1. **Integration smoke** — `cd lab/server && npx tsx src/cli.ts pipeline --limit 1 --rounds 1` (4 panels answer → judge end-to-end; exercises the coordinator's `buildRetrievalQuery` keyword-padding mitigation). Heavy Gemini load — may rate-limit.
-2. **Neural enablement** (P3/P4) — `node scripts/setup/enable_neural.mjs` still 412 after ~3h. Decision: wait (likely long/overnight aggregation) OR push a larger event volume. Non-blocking — P3/P4 run keyword-mode until the flip. See [[project-neural-needs-events]].
-3. **Deploy** (Vercel + Render) — only on Arijit's go. Render env needs the 10 `ALGOLIA_AGENT_*_ID`s + `ALGOLIA_PROVIDER_GEMINI_ID` + `ALGOLIA_AGENT_MODEL` + `GOOGLE_API_KEY` + `ALGOLIA_ADMIN_API_KEY` (server-only) + `VITE_*` on Vercel.
+1. **Frontend (Vercel)** — deploy the NEW 2×2 `web/` build. `VITE_LAB_API_URL=https://judge.contentengagement.info` (already wired) + `VITE_ALGOLIA_APP_ID`, `VITE_ALGOLIA_SEARCH_API_KEY`, and the x-lab-key shared secret. The OLD 3-panel Vercel frontend now mismatches the new 4-panel backend → redeploy needed.
+2. **Neural enablement** (P3/P4) — `node scripts/setup/enable_neural.mjs` still 412 (~3.5h+). Wait (likely long/overnight aggregation) or push more events. Non-blocking — P3/P4 run keyword-mode until the flip. See [[project-neural-needs-events]].
+3. **Authoritative batch run** — after neural is on: `cli pipeline` over the full v3 set for the real 2×2 verdict (the 1-question smoke is indicative only).
 
 ### KEY DECISIONS THIS SESSION
 - **Neural axis = synthetic event bootstrap** (Arijit, 2026-06-18): neural needs aggregated events; fresh index 412s. Pushed events; `enable_neural.mjs` flips when ready. Validity caveat accepted.
