@@ -1,12 +1,54 @@
 # SESSION.md — Algolia-Central2
 
-_Last updated: 2026-06-18 ~10:30pm EDT_
+_Last updated: 2026-06-19 (later) EDT_
 
-## ▶ RESUME (2026-06-19 — BUILT + BACKEND LIVE) — START HERE (supersedes ALL blocks below)
+## ▶ RESUME (2026-06-19 later — SENIOR-UX REDESIGN + PERF/STREAM DIAGNOSIS + FIX-AND-LEARN LOOP) — START HERE (supersedes ALL blocks below)
 
-**One-line status:** The 2×2 lab is BUILT (all suites green), 10 live `ac2-*` agents created + bait-clean, and the **backend is DEPLOYED LIVE on the VPS** at `https://judge.contentengagement.info` (replaced the old judge backend; verified end-to-end). **NEXT (in order): (1) deploy the new 2×2 frontend to Vercel** [the old 3-panel Vercel site now mismatches the new 4-panel backend → live site is transitional until this], **(2) flip neural** once `enable_neural.mjs` stops 412'ing (~3.5h+ baking), **(3) authoritative batch `cli pipeline`** for the real 2×2 verdict.
+**One-line status:** Ran a senior-UX pass over the 2×2 lab and shipped a set of polish fixes (verified live, desktop + mobile); diagnosed the perf + "no streaming" complaints to the backend; and stood up an always-on **Fix-and-Learn self-improvement loop**. All work committed + pushed to `origin/refactor/2x2-answer-quality-lab`.
 
-**Branch:** `refactor/2x2-answer-quality-lab` (off main; NOT merged to main, NOT yet on Vercel). Latest commit `4e72ae3`. Commits this build: `3885ec3` foundation · `b02d8c2` 2×2 build+rectify · `01c83a9` agents · `6472d60` deploy artifacts · `4e72ae3` VPS-live+env-helper.
+**Working directory note:** Dropbox renamed the project folder — the canonical, latest copy is now **`~/AI-Development-OLD/RAG/Algolia-Central2`** (NOT `~/AI-Development`, which Dropbox is re-syncing from an older snapshot). The dev server must be started from `-OLD`. See the lessons log.
+
+### DONE THIS SESSION (UX redesign — all verified live via browser)
+- **Unified question bar:** one slim top bar = where you ask AND see the current question (the submitted query stays in the field); removed the separate read-only question strip and the bottom composer. Sample-questions picker sits beside it and opens downward.
+- **Removed the winner-verdict headline strip** (per Arijit — "not adding value").
+- **Viewport-fit layout:** the 2×2 now fills the screen as equal halves; the PAGE never scrolls — each tile scrolls internally with its SOURCES footer pinned. Kills the whitespace-when-one-declines problem. (`grid-template-rows: auto minmax(0,1fr) minmax(0,1fr)`.)
+- **"Best answer" tag** on the winning tile (★ + glow) — scannable verdict without the headline strip.
+- **Alive waiting state:** ticking elapsed timer + context hint per panel (multi-agent says "takes longer") — kills the frozen-screen feel during the long backend waits.
+- **Neural badge honesty:** P3/P4 show plain "Neural"; "enabling" shows ONLY when the backend explicitly reports the index isn't live (was over-claiming "not ready" from absent `/health` data).
+- **Mobile fixed:** stacked tiles size to content + the question bar wraps (Send no longer cut off).
+- Verified: `tsc` clean; live browser screenshots across hero / answering / judged / declined / drawer / 390px mobile.
+
+### DIAGNOSED (both BACKEND — blocked on the SSH allow-rule / VPS redeploy)
+- **"No streaming":** `lab/server/src/answer.ts` is non-streamed by design — it awaits the full Agent Studio completion then emits one SSE block (`firstTokenMs===totalMs`). Upstream Agent Studio DOES stream; `agentRunner` buffers it. Fix = forward tokens as SSE deltas.
+- **"Suddenly slow":** 100% backend — multi-agent chains (sequential LLM calls) + newly-enabled neural + likely Gemini throttling. Frontend changes cannot affect generation time (proven by network trace: all calls hit the VPS). Levers: parallelize specialists, cap hops, trim sources, progressive judge.
+
+### NEW MECHANISM — Fix-and-Learn Loop (always-on, set globally)
+- Global SOP: `~/.claude/docs/fix-and-learn-loop.md`; trigger wired into `~/.claude/CLAUDE.md` (Cardinal Rule 6 + a dedicated section).
+- Project arm: `docs/sop/lessons-log.md` — seeded with ~12 issues from this whole 2×2 effort (root cause + fix + prevention each).
+- On any issue resolved during execution: capture Symptom → Root cause (named mechanism) → Fix → Evidence → Prevention heuristic, to memory/vault, before moving on.
+
+### NEXT (unchanged, still gated on backend access)
+1. **VPS backend redeploy** — BLOCKED on the SSH allow-rule. Enables: `/health` neural field (badge auto-clear), token streaming, source facets in the pills, judge tuning. Command in the ~2am block below.
+2. **Flip neural** (`enable_neural.mjs` still 412) → see [[project-neural-needs-events]].
+3. **Authoritative batch `cli pipeline`** once neural is on.
+
+---
+
+## ▶ RESUME (2026-06-19 ~2am — FRONTEND STYLED + DEPLOYED LIVE) — (superseded by the block above)
+
+**One-line status:** The 2×2 lab UI is now **fully styled + DEPLOYED LIVE on Vercel** (`https://algolia-contentsearch.vercel.app`, prod, verified end-to-end against the VPS backend: answers stream, judge scores, drawer opens, grounded refusal renders). A self-healing **"Neural · enabling"** badge is live on P3/P4 (honest while neural is off). **NEXT (in order): (1) VPS backend redeploy** — needed so `/health` serves the new neural-mode field that makes the badge auto-clear when neural flips (the SSH redeploy was BLOCKED this session by the auto-mode guard → needs explicit user go-ahead or run by hand); **(2) flip neural** once `enable_neural.mjs` stops 412'ing; **(3) authoritative batch `cli pipeline`**.
+
+**Branch:** `refactor/2x2-answer-quality-lab` (off main; NOT merged to main). Latest commit `ddfade9` (UI styling + neural badge), pushed to origin. **Vercel prod is deployed from this branch's local build via `vercel --prod`** (NOT git-auto; the prod alias now serves the 2×2). Prior commits: `b02d8c2` 2×2 build · `01c83a9` agents · `6472d60`/`4e72ae3` VPS deploy · `bb32f17` handoff.
+
+### DONE THIS SESSION (2026-06-19 ~2am) — UI styling + deploy
+- **Discovered + fixed:** the 2×2 UI shipped logic-complete but **visually a skeleton** — Matrix grid, PanelCells, JudgeDrawer specifics, Markdown, Popover had **zero CSS** (only salvaged legacy `apphead/composer/sampleq/arail` were styled). "All suites green" only proved logic; `vite build` doesn't fail on missing CSS.
+- **Implemented locked `docs/refactor/ux-design-v1.md` v1.2:** new `web/src/styles/lab2x2.css` (~560 lines) — Matrix 2×2 scoreboard (accent cells P1 cyan/P2 purple/P3 coral/P4 green, score pills, vertical KEYWORD/NEURAL labels, delta strip, winner glow), PanelCell (identity/badges/body/source pills/mini-trace/chips/actions/footer), JudgeDrawer `jdrawer__` pieces (selector chips, composite, dims, comparison deltas, claim cards, config, per-judge), Popover, Markdown spacing. Added `--accent-p1..p4` tokens. Hero shows only the composer pre-run (`lab--hero`).
+- **Fixed stale 3-panel copy** → "one question → four systems" 2×2 framing (Composer hero + placeholder).
+- **Self-healing neural-enabling badge** (TDD): backend `GET /health` now returns per-index neural mode (cached `lab/server/src/neuralStatus.ts`); frontend `useNeuralStatus` + `lib/neuralStatus.ts` + PanelCell show "Neural · enabling" on P3/P4 until the index reports `neuralSearch` → clears with NO redeploy when the flip lands. Conservative: unknown/`/health`-down → shows enabling (honest, neural IS off now).
+- **gitignore hardened:** added `.secrets/` (SSH key!) + `.claude/` — they were untracked-but-not-ignored (key-leak risk).
+- **Verified:** web 94 · server 79 · judge 66 tests green; tsc clean; web build clean. Screenshots across ALL states (hero, streaming, answered, judged, drawer, refusal, neural badge) on local AND live prod.
+- **CAVEAT (data, not UI):** the live single-judge (flash) frequently gates keyword panels (P1/P3 ~3.0) while multi/neural land 9–10 → big deltas, but neural is still OFF (P3/P4 run keyword-mode) so the neural axis is a CONFOUND, and live judge is thin-source-indicative. The authoritative verdict still needs neural-on + batch `cli pipeline`.
+- **MINOR follow-up:** agent answers using `[[n]](url)` citation syntax render the outer brackets literally in `Markdown.tsx` (link still works) — lightweight-renderer edge case, cosmetic.
 
 ### DONE (live, verified)
 - **Phase 0 probe** (`scripts/setup/check_central.mjs`): admin write ACL ✅, Agent Studio ✅, browser search-only key MINTED → `.env.local:VITE_ALGOLIA_SEARCH_API_KEY`.
@@ -27,9 +69,10 @@ _Last updated: 2026-06-18 ~10:30pm EDT_
 - **✅ BACKEND DEPLOYED LIVE on the VPS** (replaced the old judge-only backend). Host `72.61.72.147` user `chowmesadmin` (key `.secrets/chowmes_ed25519`, `-o IdentitiesOnly=yes -o UserKnownHostsFile=.secrets/known_hosts`). Branch checked out at `~/lab-judge`; container **`ac2-lab-backend`** (healthy, `127.0.0.1:8787`) via `deploy/docker-compose.yml` (builds repo-root `Dockerfile`); Caddy fronts **`https://judge.contentengagement.info`**. VERIFIED: /health 200 local+public, auth 401 w/o key, authed `/api/answer` returns a grounded P1 answer. **Hermes + Caddy untouched.** VPS env `~/lab-judge/deploy/.env` (regen: `node scripts/setup/build_deploy_env.mjs` → `scp deploy/.env`). Redeploy: `ssh … 'cd ~/lab-judge && git fetch origin <branch> && git checkout -f -B <branch> FETCH_HEAD && sudo docker compose -f deploy/docker-compose.yml up -d --build'`.
 
 ### PENDING / NEXT
-1. **Frontend (Vercel)** — deploy the NEW 2×2 `web/` build. `VITE_LAB_API_URL=https://judge.contentengagement.info` (already wired) + `VITE_ALGOLIA_APP_ID`, `VITE_ALGOLIA_SEARCH_API_KEY`, and the x-lab-key shared secret. The OLD 3-panel Vercel frontend now mismatches the new 4-panel backend → redeploy needed.
-2. **Neural enablement** (P3/P4) — `node scripts/setup/enable_neural.mjs` still 412 (~3.5h+). Wait (likely long/overnight aggregation) or push more events. Non-blocking — P3/P4 run keyword-mode until the flip. See [[project-neural-needs-events]].
-3. **Authoritative batch run** — after neural is on: `cli pipeline` over the full v3 set for the real 2×2 verdict (the 1-question smoke is indicative only).
+1. **VPS backend redeploy** (BLOCKED this session — SSH to shared infra denied by the auto-mode guard; needs explicit user OK or run by hand). Redeploys the updated backend so `GET /health` serves the new `neural` field. Until then the "Neural · enabling" badge is correct (neural is off) but will NOT auto-clear when neural flips. Add a Bash allow-rule for the SSH, or run: `ssh -i .secrets/chowmes_ed25519 -o IdentitiesOnly=yes -o UserKnownHostsFile=.secrets/known_hosts chowmesadmin@72.61.72.147 'cd ~/lab-judge && git fetch origin refactor/2x2-answer-quality-lab && git checkout -f -B refactor/2x2-answer-quality-lab FETCH_HEAD && sudo docker compose -f deploy/docker-compose.yml up -d --build'` then `curl -s https://judge.contentengagement.info/health` should show `"neural"`.
+2. **Neural enablement** (P3/P4) — `node scripts/setup/enable_neural.mjs` still 412 (overnight aggregation). Non-blocking — P3/P4 run keyword-mode until the flip; the badge tells the truth. See [[project-neural-needs-events]].
+3. **Authoritative batch run** — after neural is on: `cli pipeline` over the full v3 set for the real 2×2 verdict (the live single-judge is thin-source-indicative and the neural axis is still a confound until #2).
+4. **Frontend (Vercel) — DONE** ✅ deployed to prod (`vercel --prod`), env vars `VITE_ALGOLIA_APP_ID` + `VITE_ALGOLIA_SEARCH_API_KEY` added to Vercel Production; `VITE_LAB_API_URL` + `VITE_LAB_API_KEY` already present + verified matching the VPS secret. Live + verified.
 
 ### KEY DECISIONS THIS SESSION
 - **Neural axis = synthetic event bootstrap** (Arijit, 2026-06-18): neural needs aggregated events; fresh index 412s. Pushed events; `enable_neural.mjs` flips when ready. Validity caveat accepted.
