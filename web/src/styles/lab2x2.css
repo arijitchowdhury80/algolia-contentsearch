@@ -380,6 +380,16 @@
 .pcell__thinking .dot:nth-child(3) { animation-delay: 0.4s; }
 @keyframes pcell-dot { 0%,100% { opacity: 0.3; transform: translateY(0); } 50% { opacity: 1; transform: translateY(-3px); } }
 
+/* ---- Traffic-light dot (dimension + per-judge scores) ---- */
+.traffic-dot {
+  display: inline-block; width: 9px; height: 9px; border-radius: 50%;
+  flex: 0 0 auto; box-shadow: 0 0 0 2px color-mix(in srgb, currentColor 14%, transparent);
+}
+.traffic-dot.is-strong { background: var(--color-success); color: var(--color-success); }
+.traffic-dot.is-mid    { background: var(--color-warning); color: var(--color-warning); }
+.traffic-dot.is-weak   { background: var(--color-danger);  color: var(--color-danger); }
+.dimbar__rhs, .jdrawer__judge-rhs { display: inline-flex; align-items: center; gap: 7px; }
+
 /* ---- Alive waiting state: ticking timer + context so it never reads frozen ---- */
 .pcell__waiting { display: flex; flex-direction: column; gap: 8px; padding: var(--s-2) 0; }
 .pcell__waiting-row { display: flex; align-items: center; gap: 10px; }

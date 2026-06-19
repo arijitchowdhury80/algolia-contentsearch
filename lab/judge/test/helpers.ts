@@ -32,7 +32,7 @@ export function makeJudgment(
   judgeId: string,
   temperament: Temperament,
   flatValue: number,
-  violations: { confidence: number }[] = [],
+  violations: { confidence: number; kind?: "contradicted" | "unverifiable" }[] = [],
 ): Judgment {
   const dimensionScores = flatScores(flatValue);
   return {
@@ -43,6 +43,7 @@ export function makeJudgment(
       claim: `claim ${i}`,
       reason: "not in sources",
       confidence: v.confidence,
+      ...(v.kind ? { kind: v.kind } : {}),
     })),
     summary: `${judgeId} verdict`,
     weightedScore: weightedAggregate(dimensionScores, ALGOLIA_ANSWER_RUBRIC, {

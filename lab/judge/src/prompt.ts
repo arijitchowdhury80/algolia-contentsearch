@@ -27,7 +27,7 @@ function renderSources(artifact: Artifact): string {
   const body = artifact.sources
     .map((s) => `[${s.id}]${s.label ? ` ${s.label}` : ""}: ${s.text}`)
     .join("\n");
-  return `SOURCES (the ONLY ground truth — a claim not supported here is a grounding violation):\n${body}`;
+  return `SOURCES (the ground truth you can see — may be PARTIAL/thin):\n${body}`;
 }
 
 /**
@@ -66,11 +66,15 @@ const REFUSAL_DIRECTIVE =
 export const JUDGE_OUTPUT_CONTRACT = `Respond with ONLY a JSON object, no prose around it, of this exact shape:
 {
   "dimensionScores": [{ "dimensionId": string, "score": number, "rationale": string }],
-  "groundingViolations": [{ "claim": string, "reason": string, "confidence": number }],
+  "groundingViolations": [{ "claim": string, "reason": string, "confidence": number, "kind": "contradicted" | "unverifiable" }],
   "summary": string
 }
 - Include one entry in "dimensionScores" for EVERY rubric dimension id listed above.
-- "groundingViolations" lists factual claims NOT supported by the SOURCES. Empty array if none. "confidence" is 0-1.`;
+- "groundingViolations" lists factual claims you could not confirm against the SOURCES. Empty array if none. "confidence" is 0-1.
+- "kind" is REQUIRED for every violation and is critical:
+    • "contradicted" — the SOURCES say otherwise, OR the claim is clearly fabricated/invented (a real hallucination).
+    • "unverifiable" — the claim is plausible and simply NOT present in the provided sources (which may be partial/thin). No evidence either way.
+  Default to "unverifiable" when the only problem is "I can't find it here" — reserve "contradicted" for genuine conflicts or fabrications. Lower the grounding dimension score for unverifiable claims, but do NOT treat them as fabrication.`;
 
 /**
  * Builds the full prompt for a single blind judge. Pure: same inputs -> same

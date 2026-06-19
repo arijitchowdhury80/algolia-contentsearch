@@ -286,6 +286,10 @@ function violationsFromRounds(result: MultiRoundResult): VerdictViolation[] {
     for (const j of round.judgments) {
       if (j.temperament !== "skeptic") continue; // the designated gating judge
       for (const v of j.groundingViolations) {
+        // Show only CONTRADICTED/fabricated flags — the ones that actually gate.
+        // "unverifiable" (not-in-thin-sources) flags don't cap, so they'd make the
+        // "N unsupported" count disagree with the score; exclude them here.
+        if (v.kind === "unverifiable") continue;
         const key = v.claim.trim().toLowerCase().slice(0, 100);
         const prev = seen.get(key);
         if (!prev || v.confidence > prev.confidence) {

@@ -165,6 +165,16 @@ export interface GroundingViolation {
    * a flag is "verified" (>= verifiedConfidence in the gate config).
    */
   readonly confidence: number;
+  /**
+   * The NATURE of the flag (2026-06-19):
+   *   - "contradicted": the sources state otherwise, or the claim is clearly
+   *     fabricated/invented → a real hallucination. ONLY these trip the hard gate.
+   *   - "unverifiable": the claim simply isn't found in the (possibly thin/partial)
+   *     sources — no evidence either way. Lowers the grounding dimension score but
+   *     does NOT cap the answer (this is what made thin-source live runs all read 3.0).
+   * Absent → treated as "contradicted" (safe default: keep gating un-labelled flags).
+   */
+  readonly kind?: "contradicted" | "unverifiable";
 }
 
 /** One judge's complete assessment of one artifact in one round. */

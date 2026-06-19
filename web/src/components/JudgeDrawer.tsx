@@ -104,6 +104,20 @@ const DIM_ORDER: Array<keyof VerdictDims> = ['grounding', 'confidence', 'breadth
 // Sub-components (all self-contained, no React.memo — small tree)
 // ---------------------------------------------------------------------------
 
+/** Traffic-light dot for a 0–10 score: 🟢 ≥7.5 · 🟡 5–7.5 · 🔴 <5. */
+function TrafficDot({ score }: { score: number }) {
+  const tone = scoreTone(score); // is-strong | is-mid | is-weak
+  const word = score >= 7.5 ? 'strong' : score >= 5 ? 'fair' : 'weak';
+  return (
+    <span
+      className={`traffic-dot ${tone}`}
+      role="img"
+      aria-label={`${word} — ${score.toFixed(1)} of 10`}
+      title={`${word} — ${score.toFixed(1)}/10`}
+    />
+  );
+}
+
 /** Horizontal score bar — shared with AnalysisRail visual grammar. */
 function Bar({
   label,
@@ -131,7 +145,10 @@ function Bar({
     <div className="dimbar">
       <div className="dimbar__head">
         <span className="dimbar__label">{label}</span>
-        <span className={`dimbar__val ${tone}`}>{score.toFixed(1)}</span>
+        <span className="dimbar__rhs">
+          <TrafficDot score={score} />
+          <span className={`dimbar__val ${tone}`}>{score.toFixed(1)}</span>
+        </span>
       </div>
       <div
         className="dimbar__track"
@@ -584,8 +601,11 @@ function PerJudgeBlock({ perJudge }: { perJudge: PerJudgeResult[] }) {
             <div className="jdrawer__judge-head">
               <span className="jdrawer__judge-icon" aria-hidden="true">{JUDGE_ICON[j.role]}</span>
               <span className="jdrawer__judge-role">{JUDGE_LABEL[j.role]}</span>
-              <span className={`jdrawer__judge-score ${scoreTone(j.score)}`}>
-                {j.score.toFixed(1)}
+              <span className="jdrawer__judge-rhs">
+                <TrafficDot score={j.score} />
+                <span className={`jdrawer__judge-score ${scoreTone(j.score)}`}>
+                  {j.score.toFixed(1)}
+                </span>
               </span>
             </div>
             <p className="jdrawer__judge-lens">{JUDGE_LENS[j.role]}</p>

@@ -40,6 +40,32 @@ describe("evaluateHardGate", () => {
     expect(outcome.tripped).toBe(false);
   });
 
+  it("does NOT trip on a high-confidence UNVERIFIABLE flag (not-in-thin-sources)", () => {
+    // The fix: a claim merely absent from partial sources must not cap the score.
+    const panel = [
+      makeJudgment("skeptic", "skeptic", 9, [{ confidence: 0.95, kind: "unverifiable" }]),
+      makeJudgment("referee", "referee", 9),
+      makeJudgment("advocate", "advocate", 9),
+    ];
+    const outcome = evaluateHardGate(panel, DEFAULT_GATE);
+    expect(outcome.tripped).toBe(false);
+    expect(applyGate(9.5, outcome)).toBe(9.5); // not capped
+  });
+
+  it("TRIPS on a high-confidence CONTRADICTED flag (real fabrication)", () => {
+    const panel = [
+      makeJudgment("skeptic", "skeptic", 9, [{ confidence: 0.95, kind: "contradicted" }]),
+    ];
+    const outcome = evaluateHardGate(panel, DEFAULT_GATE);
+    expect(outcome.tripped).toBe(true);
+    expect(applyGate(9.5, outcome)).toBe(DEFAULT_GATE.cap);
+  });
+
+  it("counts an UNLABELLED violation as contradicted (safe default — still gates)", () => {
+    const panel = [makeJudgment("skeptic", "skeptic", 9, [{ confidence: 0.9 }])];
+    expect(evaluateHardGate(panel, DEFAULT_GATE).tripped).toBe(true);
+  });
+
   it("ignores violations raised only by non-gating judges (advocate)", () => {
     const panel = [
       makeJudgment("skeptic", "skeptic", 9),

@@ -7,7 +7,7 @@ import type {
 /** Shape the LLM is contracted to emit (see prompt.JUDGE_OUTPUT_CONTRACT). */
 export interface RawJudgeOutput {
   dimensionScores: { dimensionId: string; score: number; rationale?: string }[];
-  groundingViolations?: { claim: string; reason?: string; confidence?: number }[];
+  groundingViolations?: { claim: string; reason?: string; confidence?: number; kind?: string }[];
   summary?: string;
 }
 
@@ -97,6 +97,9 @@ export function parseJudgeOutput(
       claim: String(v.claim),
       reason: String(v.reason ?? ""),
       confidence: clamp(Number(v.confidence ?? 1), 0, 1),
+      // Only "unverifiable" is special (it won't trip the gate); anything else
+      // (incl. absent/garbled) defaults to "contradicted" — the safe, gating value.
+      kind: v.kind === "unverifiable" ? "unverifiable" : "contradicted",
     }),
   );
 

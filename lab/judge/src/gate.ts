@@ -21,6 +21,10 @@ export function verifiedGatingViolations(
   for (const j of judgments) {
     if (!gating.has(j.temperament)) continue;
     for (const v of j.groundingViolations) {
+      // Only CONTRADICTED/fabricated claims cap the score. "unverifiable" claims
+      // (not found in thin/partial sources) lower the grounding dimension but must
+      // NOT trip the hard gate — else thin live sources slam everything to the cap.
+      if (v.kind === "unverifiable") continue;
       if (v.confidence >= gate.verifiedConfidence) out.push(v);
     }
   }
