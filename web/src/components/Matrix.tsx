@@ -12,6 +12,7 @@
 import { useMemo, type ReactNode } from 'react';
 import type { PanelId, PanelJudgeResult } from '../types/chat';
 import { PANEL_CONFIGS } from '../config/columns';
+import { deriveWinnerId } from '../lib/winner';
 
 /** Lifecycle state for a single panel cell (kept for the host's convenience). */
 export type PanelStatus =
@@ -22,24 +23,6 @@ export interface MatrixProps {
   panelJudge: Partial<Record<PanelId, PanelJudgeResult>>;
   /** Exactly four <PanelCell> elements in P1–P4 (row-major) order. */
   children: [ReactNode, ReactNode, ReactNode, ReactNode];
-}
-
-const PANEL_IDS: PanelId[] = ['P1', 'P2', 'P3', 'P4'];
-
-/** Winner = highest composite; gate-tripped panels are clamped so they don't win. */
-function deriveWinner(judges: Partial<Record<PanelId, PanelJudgeResult>>): PanelId | null {
-  let best: PanelId | null = null;
-  let bestScore = -1;
-  for (const id of PANEL_IDS) {
-    const j = judges[id];
-    if (!j) continue;
-    const effective = j.gateTripped ? Math.min(j.composite, 3) : j.composite;
-    if (effective > bestScore) {
-      bestScore = effective;
-      best = id;
-    }
-  }
-  return best;
 }
 
 interface CellWrapperProps {
@@ -63,7 +46,7 @@ function CellWrapper({ panelId, isWinner, children }: CellWrapperProps) {
 
 export function Matrix({ panelJudge, children }: MatrixProps) {
   const [p1Child, p2Child, p3Child, p4Child] = children;
-  const winner = useMemo(() => deriveWinner(panelJudge), [panelJudge]);
+  const winner = useMemo(() => deriveWinnerId(panelJudge), [panelJudge]);
 
   return (
     <section className="matrix" aria-label="2×2 Answer-Quality scoreboard">

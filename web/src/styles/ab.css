@@ -788,36 +788,55 @@ a.hit__title:hover { color: var(--algolia-blue); }
 .arail__btn.is-on { background: var(--algolia-blue-100); filter: none; }
 .arail__body { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; overflow-y: auto; }
 
-/* Collapsed strip (click to expand). */
+/* Collapsed marker — a premium vertical tab on the right edge (click to open). */
 .arail__strip {
-  flex: 1 1 auto;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--s-3);
-  padding: var(--s-4) 0;
+  gap: 10px;
+  padding: 16px 12px;
   border: 0;
   background: transparent;
   cursor: pointer;
-  width: 100%;
+  position: relative;
 }
-.arail__strip:hover { background: var(--bg-inset); }
+/* accent left edge — ties to the lab's brand gradient */
+.arail__strip::before {
+  content: '';
+  position: absolute; left: 0; top: 14px; bottom: 14px;
+  width: 3px; border-radius: 3px;
+  background: linear-gradient(180deg, var(--algolia-blue), var(--accent-purple));
+}
 .arail__strip:focus-visible { outline: 2px solid var(--algolia-blue); outline-offset: -2px; }
-.arail__strip-icon { font-size: 16px; color: var(--fg3); }
-.arail__strip-score { font-family: var(--font-display); font-size: var(--fs-body); font-weight: 700; }
-.arail__strip-score.is-strong { color: var(--color-success); }
-.arail__strip-score.is-mid { color: var(--color-warning); }
-.arail__strip-score.is-weak { color: var(--color-danger); }
-.arail__strip-label {
-  writing-mode: vertical-rl;
-  text-orientation: mixed;
-  font-size: var(--fs-caption);
-  font-weight: 600;
-  color: var(--fg2);
-  letter-spacing: var(--ls-wide);
-  margin-top: var(--s-2);
+.arail__strip-icon {
+  display: grid; place-items: center;
+  width: 30px; height: 30px; border-radius: 9px;
+  background: var(--algolia-blue-100); color: var(--algolia-blue);
+  font-size: 16px;
 }
-.arail__strip-chevron { color: var(--fg3); font-size: 14px; margin-top: auto; }
+.arail__strip-label {
+  writing-mode: vertical-rl; text-orientation: mixed;
+  font-family: var(--font-display); font-size: 11px; font-weight: 700;
+  letter-spacing: 0.2em; color: var(--fg2);
+}
+.arail__strip-score {
+  display: inline-flex; flex-direction: column; align-items: center;
+  font-family: var(--font-display); font-weight: 700; line-height: 1;
+  padding: 6px 8px; border-radius: var(--radius-md);
+}
+.arail__strip-score-num { font-size: var(--fs-h4); }
+.arail__strip-score-unit { font-size: 9px; font-weight: 600; opacity: 0.7; margin-top: 1px; }
+.arail__strip-score.is-strong { color: var(--color-success); background: rgba(31,157,85,0.14); }
+.arail__strip-score.is-mid    { color: var(--color-warning); background: rgba(217,119,6,0.14); }
+.arail__strip-score.is-weak   { color: var(--color-danger);  background: rgba(225,29,72,0.14); }
+.arail__strip-score--empty    { color: var(--fg4); background: var(--bg-inset); padding: 5px 10px; border-radius: var(--radius-pill); }
+.arail__strip-open {
+  display: grid; place-items: center;
+  width: 24px; height: 24px; border-radius: 50%;
+  background: var(--bg-inset); color: var(--fg2); font-size: 14px; margin-top: 2px;
+  transition: background var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
+}
+.arail__strip:hover .arail__strip-open { background: var(--algolia-blue); color: var(--fg-on-blue); }
 
 /* Rail content grid (cards stack vertically). */
 .arail__grid { display: flex; flex-direction: column; gap: var(--s-4); padding: var(--s-4); }

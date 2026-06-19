@@ -59,9 +59,29 @@
   overflow: auto;
 }
 
-/* Category source pill popover content */
-.pcell__srcpop-cat { font-size: var(--fs-caption); font-weight: 700; color: var(--ink); margin: 0 0 4px; text-transform: capitalize; }
-.pcell__srcpop-item { font-size: var(--fs-caption); color: var(--fg2); margin: 0; line-height: 1.5; overflow: hidden; text-overflow: ellipsis; }
+/* Source pill popover content */
+.pcell__srcpop-cat {
+  font-size: 10px; font-weight: 700; color: var(--fg3); margin: 0 0 8px;
+  text-transform: uppercase; letter-spacing: var(--ls-wide);
+  padding-bottom: 6px; border-bottom: 1px solid var(--border-subtle);
+}
+/* Each source = a clickable row: title (link) + where it goes. No ambiguity. */
+.pcell__srcrow {
+  display: flex; flex-direction: column; gap: 1px;
+  padding: 6px 8px; margin: 0 -8px; border-radius: var(--radius-sm);
+  text-decoration: none; color: inherit;
+}
+.pcell__srcrow:hover { background: var(--algolia-blue-050); }
+.pcell__srcrow + .pcell__srcrow { margin-top: 2px; }
+.pcell__srcrow-title {
+  font-size: var(--fs-caption); font-weight: 600; line-height: 1.35;
+  color: var(--algolia-blue);
+}
+.pcell__srcrow:hover .pcell__srcrow-title { text-decoration: underline; }
+.pcell__srcrow-dest { font-size: 10px; color: var(--fg4); }
+.pcell__srcrow--plain .pcell__srcrow-title { color: var(--fg2); }
+.pcell__srcrow--plain:hover { background: transparent; }
+.pcell__srcrow--plain:hover .pcell__srcrow-title { text-decoration: none; }
 
 .matrix__grid {
   display: grid;

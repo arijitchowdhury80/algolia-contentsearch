@@ -288,7 +288,7 @@ function CompositeBlock({
       </p>
       {mode === 'live' && (
         <p className="jdrawer__live-note">
-          Live judging uses thin sources and 1 judge — indicative only. Run batch for the authoritative score.
+          Live judging uses thinner sources and a single round (still all 3 judges) — indicative only. Run batch for the authoritative score.
         </p>
       )}
 
@@ -639,9 +639,8 @@ function JudgeSelector({
           )}
         </button>
 
-        {/* Per-judge chips — batch only */}
-        {mode === 'batch' &&
-          perJudge.map((j) => {
+        {/* Per-judge chips — the 3 temperaments, each with its own score (live + batch) */}
+        {perJudge.map((j) => {
             const role = j.role as SelectedView;
             const isSelected = selected === role;
             return (
@@ -751,15 +750,20 @@ function Strip({
       type="button"
       className="arail__strip"
       onClick={onToggleOpen}
-      aria-label="Expand judge drawer"
-      title="Expand judge panel"
+      aria-label={laneScore ? `Open the AI judge panel — score ${laneScore.score.toFixed(1)} out of 10` : 'Open the AI judge panel'}
+      title="Open the AI judge — scores + the 3 judge personalities"
     >
       <span className="arail__strip-icon" aria-hidden="true">⚖</span>
-      {laneScore && (
-        <span className={`arail__strip-score ${tone}`}>{laneScore.score.toFixed(1)}</span>
+      <span className="arail__strip-label">JUDGE</span>
+      {laneScore ? (
+        <span className={`arail__strip-score ${tone}`}>
+          <span className="arail__strip-score-num">{laneScore.score.toFixed(1)}</span>
+          <span className="arail__strip-score-unit">/10</span>
+        </span>
+      ) : (
+        <span className="arail__strip-score arail__strip-score--empty">–</span>
       )}
-      <span className="arail__strip-label">Judge</span>
-      <span className="arail__strip-chevron" aria-hidden="true">‹</span>
+      <span className="arail__strip-open" aria-hidden="true">‹</span>
     </button>
   );
 }
@@ -822,10 +826,14 @@ function SynthesisView({
         </Expander>
       </section>
 
-      {/* Block ⑧ — per-judge detail (expander, batch only) */}
-      {mode === 'batch' && verdict.perJudge.length > 0 && (
+      {/* Block ⑧ — per-judge detail (the 3 temperaments + their scores) */}
+      {verdict.perJudge.length > 0 && (
         <section className="arail__card arail__card--expander" aria-label="Per-judge detail">
-          <Expander id={`${expId}-judges`} label={`Per-judge detail (${verdict.perJudge.length} judges)`}>
+          <Expander
+            id={`${expId}-judges`}
+            label={`The ${verdict.perJudge.length} judges — each personality's score`}
+            defaultOpen
+          >
             <PerJudgeBlock perJudge={verdict.perJudge} />
           </Expander>
         </section>

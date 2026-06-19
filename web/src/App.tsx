@@ -38,6 +38,7 @@ import { panelConfigById } from './config/columns';
 import type { PanelId, PanelJudgeResult, CrossPanelDeltas, VerdictDims, AnswerSource } from './types/chat';
 import { streamJudge } from './lib/judgeClient';
 import type { JudgeVerdict } from './lib/judgeClient';
+import { deriveWinnerId } from './lib/winner';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -396,6 +397,9 @@ export default function App() {
   const isHero = !hasRun;
   const currentQuery = submission?.query ?? '';
 
+  // Single "Best answer" winner (null when all gated / tied) — one source of truth.
+  const winnerId = judgeState === 'done' ? deriveWinnerId(panelJudge) : null;
+
   // ── Selected panel data for the JudgeDrawer ──────────────────────────────
   const drawerVerdict = selectedPanelId ? panelJudge[selectedPanelId] : undefined;
   const drawerPanelData = selectedPanelId
@@ -496,16 +500,7 @@ export default function App() {
                           : undefined
                       }
                       judge={panelJudge[id]}
-                      isWinner={
-                        judgeState === 'done' &&
-                        !!panelJudge[id] &&
-                        PANEL_IDS.every(
-                          (oid) =>
-                            !panelJudge[oid] ||
-                            (panelJudge[id]?.composite ?? -1) >=
-                              (panelJudge[oid]?.composite ?? -1),
-                        )
-                      }
+                      isWinner={id === winnerId}
                       error={p.error}
                       onOpenJudge={() => openJudge(id)}
                     />
@@ -654,8 +649,18 @@ export default function App() {
   height: auto;
   top: 50%;
   transform: translateY(-50%);
-  border-radius: var(--radius-md) 0 0 var(--radius-md);
-  box-shadow: -2px 0 12px rgba(0,0,0,0.06);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-right: 0;
+  border-radius: var(--radius-lg) 0 0 var(--radius-lg);
+  background: linear-gradient(180deg, rgba(255,255,255,0.94), rgba(255,255,255,0.82));
+  backdrop-filter: blur(18px) saturate(1.4);
+  -webkit-backdrop-filter: blur(18px) saturate(1.4);
+  box-shadow: -6px 0 24px rgba(2,16,70,0.12);
+  transition: transform var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out);
+}
+.arail--collapsed:hover {
+  transform: translateY(-50%) translateX(-3px);
+  box-shadow: -10px 0 32px rgba(2,16,70,0.18);
 }
       `}</style>
     </div>

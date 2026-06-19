@@ -82,3 +82,18 @@ Project-specific issues hit during build, their **root cause**, the **fix**, and
 - **Symptom:** `.secrets/` (VPS SSH private key) and `.claude/` were trackable.
 - **Fix:** Added both to `.gitignore` before committing.
 - **Prevention (future me):** Gitignore secret/credential directories BEFORE the first commit that could include them. Verify with `git check-ignore` before `git add`.
+
+---
+
+## 2026-06-19 — Pipeline measurement: the bottleneck is the follow-up LLM call, not retrieval
+
+- **Symptom:** Panels feel slow (15–72s). Assumption was "multi-agent + neural is inherently slow."
+- **Measured (bench_pipeline.ts — wraps the injectable runAgent + llm deps with timers, zero pipeline changes):**
+  - single·keyword 9.2s = agent **1.0s** + follow-up **8.2s**
+  - single·neural 11.0s = agent **0.5s** + follow-up **10.5s**
+  - multi·keyword 27.1s = extract 6.7s + agent 0.7s + synthesize 4.4s + follow-up **15.2s**
+  - multi·neural 25.7s = extract 4.9s + agent 0.9s + synthesize **11.1s** + follow-up 8.8s
+- **Root cause:** The actual answer retrieval (Algolia Agent Studio) is FAST (0.5–1.0s). The wall-clock is almost all **Gemini 2.5-pro LLM calls**. The dominant one is `generateFollowUp` (the suggested next-question) — 8–15s — generated **synchronously after the answer**, blocking panel completion. `maverick:extract` (intent routing) adds another 5–7s. So "neural is slow" / "multi-agent is slow" was WRONG — it's the utility LLM calls.
+- **Fix (backend, pending redeploy):** (1) make the follow-up NON-blocking (emit the answer, generate follow-up async or lazily) → single panels 9–11s → ~1s; (2) run `extract` + `follow-up` on **flash** not pro (utility calls don't need pro); (3) synthesize is the legitimate multi-agent cost (4–11s) — flash or stream it. Production runs panels in parallel, so wall-clock ≈ slowest panel + judge (~20s) — cutting the follow-up shrinks the slowest panel the most.
+- **Evidence:** `lab/server/bench_pipeline.ts` output (logged 2026-06-19).
+- **Prevention (future me):** Measure step-by-step before optimizing — the bottleneck was a non-essential feature (follow-up), not the thing everyone blamed (retrieval/neural/multi-agent). Wrap injectable deps with timers for a zero-touch profile. "We can only improve what we can measure."

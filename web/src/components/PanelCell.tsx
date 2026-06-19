@@ -15,6 +15,7 @@ import { Markdown } from './Markdown';
 import { Popover } from './Popover';
 import { scoreTone } from '../lib/score';
 import { formatMs } from '../lib/time';
+import { enrichSourcesWithUrls, domainLabel } from '../lib/sourceEnrich';
 import type { PanelConfig } from '../config/columns';
 import type { PanelDataResult, PanelJudgeResult, AnswerSource } from '../types/chat';
 
@@ -106,6 +107,26 @@ function groupByCategory(sources: AnswerSource[]): Array<[string, AnswerSource[]
   return [...map.entries()].sort((a, b) => b[1].length - a[1].length);
 }
 
+/** One source row in a pill's dropdown: the title IS the link; a muted line shows
+ *  where it goes. Removes the "which is the link vs text" ambiguity. */
+function SourceRow({ d }: { d: AnswerSource }) {
+  if (d.url) {
+    return (
+      <a className="pcell__srcrow" href={d.url} target="_blank" rel="noopener noreferrer">
+        <span className="pcell__srcrow-title">{d.title || d.url}</span>
+        <span className="pcell__srcrow-dest">{domainLabel(d.url)} <span aria-hidden="true">↗</span></span>
+      </a>
+    );
+  }
+  // No url recovered — show the title as plain (uncited) text, clearly not a link.
+  return (
+    <div className="pcell__srcrow pcell__srcrow--plain">
+      <span className="pcell__srcrow-title">{d.title || 'source'}</span>
+      <span className="pcell__srcrow-dest">not cited in the answer</span>
+    </div>
+  );
+}
+
 /** Compact fallback when no facet/URL data exists: one "N sources" chip → list. */
 function AllSourcesPill({ sources }: { sources: AnswerSource[] }) {
   return (
@@ -121,13 +142,7 @@ function AllSourcesPill({ sources }: { sources: AnswerSource[] }) {
     >
       <div className="pcell__srcpop">
         <p className="pcell__srcpop-cat">Sources used · {sources.length}</p>
-        {sources.map((d, i) => (
-          <p key={i} className="pcell__srcpop-item">
-            {d.url
-              ? <a href={d.url} target="_blank" rel="noopener noreferrer">{d.title || d.url}</a>
-              : (d.title || 'source')}
-          </p>
-        ))}
+        {sources.map((d, i) => <SourceRow key={i} d={d} />)}
       </div>
     </Popover>
   );
@@ -148,13 +163,7 @@ function CategoryPill({ cat, docs }: { cat: string; docs: AnswerSource[] }) {
     >
       <div className="pcell__srcpop">
         <p className="pcell__srcpop-cat">{cat} · {docs.length} source{docs.length !== 1 ? 's' : ''}</p>
-        {docs.map((d, i) => (
-          <p key={i} className="pcell__srcpop-item">
-            {d.url
-              ? <a href={d.url} target="_blank" rel="noopener noreferrer">{d.title || d.url}</a>
-              : (d.title || 'source')}
-          </p>
-        ))}
+        {docs.map((d, i) => <SourceRow key={i} d={d} />)}
       </div>
     </Popover>
   );
@@ -221,7 +230,9 @@ export function PanelCell({
   const isIdle = lifecycle === 'idle';
   const isJudged = lifecycle === 'judged' && !!judge;
 
-  const sources = dedupeSources(result?.sources ?? []);
+  // Back-fill source urls from the answer's [title](url) citations so the pills
+  // can group by topic (not collapse to one bucket) and every row is a real link.
+  const sources = dedupeSources(enrichSourcesWithUrls(result?.sources ?? [], answer ?? ''));
   const sourceCats = groupByCategory(sources);
   // We can only show facet categories when the payload carries URLs/facets; until
   // the backend includes them, everything is "Other" → fall back to one count chip.
