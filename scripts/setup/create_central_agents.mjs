@@ -139,17 +139,35 @@ function searchTool(index, sources) {
     ],
   };
   if (sources && sources.length) {
-    // Native source scoping: OR across the charter's sources. Carried on the
-    // tool's index config so retrieval is filtered at the source (no custom code).
+    // Native source scoping via the `filters` STRING param. Proven shape:
+    // rc3 elena-solutions-engineer.json:27-40 uses searchParameters.filters (a
+    // string), NOT facetFilters — Agent Studio 422s a raw facetFilters array
+    // ("Input should be a valid dictionary or object"). Quote values so multi-word
+    // sources (e.g. "Customer Stories") parse correctly.
     tool.indices[0].searchParameters = {
-      facetFilters: [sources.map((s) => `source:${s}`)],
+      filters: sources.map((s) => `source:"${s}"`).join(' OR '),
     };
   }
   return tool;
 }
 
-/** Create + publish ONE agent. Returns its id (or throws). */
+// Idempotency: existing ac2-* agents (name → id), populated in main() so a re-run
+// after a partial failure REUSES already-created agents instead of duplicating them.
+let EXISTING = {};
+async function listExistingAgents() {
+  const r = await call('GET', '/agent-studio/1/agents');
+  const arr = r.json.data ?? r.json.agents ?? r.json.items ?? [];
+  const map = {};
+  for (const a of arr) { const id = a.id ?? a.objectID ?? a.agentId; if (a.name && id) map[a.name] = id; }
+  return map;
+}
+
+/** Create + publish ONE agent. Returns its id (or throws). Reuses if it already exists. */
 async function createAgent({ name, instructions, index, sources }) {
+  if (EXISTING[name]) {
+    console.log(`      ${name} → ${EXISTING[name]}  (already exists — reuse, skip create)`);
+    return EXISTING[name];
+  }
   const body = {
     name,
     instructions,
@@ -230,6 +248,9 @@ function upsertEnv(updates) {
 async function main() {
   console.log(`[create_central_agents] app=${APP}  model=${MODEL}  provider=${PROVIDER_ID}`);
   console.log(`[create_central_agents] FAIRNESS: every agent uses this identical model + provider.\n`);
+  EXISTING = await listExistingAgents();
+  const reused = Object.keys(EXISTING).filter((n) => n.startsWith('ac2-'));
+  if (reused.length) console.log(`[create_central_agents] idempotent: ${reused.length} existing ac2-* agent(s) will be reused: ${reused.join(', ')}\n`);
   const ids = {};
 
   console.log('[1/3] Single agents (P1 keyword, P3 neural) ...');
@@ -254,12 +275,15 @@ async function main() {
     }
   }
 
+  // Persist ids BEFORE bait — bait is 50 slow Gemini calls; a timeout/rate-limit
+  // must never lose the just-created agent ids.
+  upsertEnv(ids);
+
   console.log('\n[3/3] Bait-testing every agent (grounding proof) ...');
   for (const [k, id] of Object.entries(ids)) {
     await bait(id, k.replace(/^ALGOLIA_AGENT_|_ID$/g, ''));
   }
 
-  upsertEnv(ids);
   console.log('\n[create_central_agents] DONE. Add the same ids to the Render backend env for deploy.');
 }
 
