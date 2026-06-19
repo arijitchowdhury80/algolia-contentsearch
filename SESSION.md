@@ -2,9 +2,11 @@
 
 _Last updated: 2026-06-18 ~10:30pm EDT_
 
-## ▶ RESUME (2026-06-18 NIGHT — BUILD UNDERWAY) — START HERE (supersedes ALL blocks below)
+## ▶ RESUME (2026-06-19 — BUILT + BACKEND LIVE) — START HERE (supersedes ALL blocks below)
 
-**Branch:** `refactor/2x2-answer-quality-lab` (off main; do NOT build on main). Foundation commit `3885ec3`.
+**One-line status:** The 2×2 lab is BUILT (all suites green), 10 live `ac2-*` agents created + bait-clean, and the **backend is DEPLOYED LIVE on the VPS** at `https://judge.contentengagement.info` (replaced the old judge backend; verified end-to-end). **NEXT (in order): (1) deploy the new 2×2 frontend to Vercel** [the old 3-panel Vercel site now mismatches the new 4-panel backend → live site is transitional until this], **(2) flip neural** once `enable_neural.mjs` stops 412'ing (~3.5h+ baking), **(3) authoritative batch `cli pipeline`** for the real 2×2 verdict.
+
+**Branch:** `refactor/2x2-answer-quality-lab` (off main; NOT merged to main, NOT yet on Vercel). Latest commit `4e72ae3`. Commits this build: `3885ec3` foundation · `b02d8c2` 2×2 build+rectify · `01c83a9` agents · `6472d60` deploy artifacts · `4e72ae3` VPS-live+env-helper.
 
 ### DONE (live, verified)
 - **Phase 0 probe** (`scripts/setup/check_central.mjs`): admin write ACL ✅, Agent Studio ✅, browser search-only key MINTED → `.env.local:VITE_ALGOLIA_SEARCH_API_KEY`.
