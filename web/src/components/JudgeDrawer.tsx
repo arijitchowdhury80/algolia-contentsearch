@@ -40,7 +40,7 @@
  *   judgeMs       — total judge wall-clock ms (displayed in the header).
  */
 
-import { useState, useId, type ReactNode } from 'react';
+import { useState, useId, useRef, type ReactNode } from 'react';
 import { scoreTone, laneTone } from '../lib/score';
 import { formatMs } from '../lib/time';
 import { Markdown } from './Markdown';
@@ -733,12 +733,63 @@ function SingleJudgeView({
 // Collapsed strip (reuse AnalysisRail's Strip grammar)
 // ---------------------------------------------------------------------------
 
+/** Vertical drag for the collapsed marker — park it anywhere up/down the right
+ *  edge; position is remembered. Distinguishes a drag from a click (so dragging
+ *  doesn't open the drawer). Returns the pinned top (px) or null = CSS-centered. */
+interface MarkerDrag {
+  top: number | null;
+  onPointerDown: (e: React.PointerEvent) => void;
+  onPointerMove: (e: React.PointerEvent) => void;
+  onPointerUp: (e: React.PointerEvent) => void;
+  /** True if the last gesture was a drag (caller suppresses the open-click). */
+  consumeMoved: () => boolean;
+}
+const MARKER_TOP_KEY = 'aql_judge_marker_top';
+function useMarkerDrag(): MarkerDrag {
+  const clampTop = (v: number) => Math.min(window.innerHeight - 96, Math.max(8, v));
+  const [top, setTop] = useState<number | null>(() => {
+    try { const v = localStorage.getItem(MARKER_TOP_KEY); return v != null ? clampTop(Number(v)) : null; }
+    catch { return null; }
+  });
+  const st = useRef<{ y: number; top: number } | null>(null);
+  const topRef = useRef<number | null>(top);
+  const movedRef = useRef(false);
+
+  return {
+    top,
+    onPointerDown: (e) => {
+      const aside = (e.currentTarget as HTMLElement).closest('.arail--collapsed') as HTMLElement | null;
+      const rectTop = aside ? aside.getBoundingClientRect().top : (top ?? 0);
+      st.current = { y: e.clientY, top: rectTop };
+      movedRef.current = false;
+      (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
+    },
+    onPointerMove: (e) => {
+      if (!st.current) return;
+      const dy = e.clientY - st.current.y;
+      if (Math.abs(dy) > 4) movedRef.current = true;
+      const next = clampTop(st.current.top + dy);
+      topRef.current = next;
+      setTop(next);
+    },
+    onPointerUp: () => {
+      if (movedRef.current && topRef.current != null) {
+        try { localStorage.setItem(MARKER_TOP_KEY, String(Math.round(topRef.current))); } catch { /* ignore */ }
+      }
+      st.current = null;
+    },
+    consumeMoved: () => { const m = movedRef.current; movedRef.current = false; return m; },
+  };
+}
+
 function Strip({
   verdict,
   onToggleOpen,
+  drag,
 }: {
   verdict?: PanelJudgeResult;
   onToggleOpen: () => void;
+  drag: MarkerDrag;
 }) {
   const laneScore = verdict
     ? { score: verdict.composite, gateTripped: verdict.gateTripped, borderline: verdict.borderline }
@@ -749,10 +800,14 @@ function Strip({
     <button
       type="button"
       className="arail__strip"
-      onClick={onToggleOpen}
-      aria-label={laneScore ? `Open the AI judge panel — score ${laneScore.score.toFixed(1)} out of 10` : 'Open the AI judge panel'}
-      title="Open the AI judge — scores + the 3 judge personalities"
+      onPointerDown={drag.onPointerDown}
+      onPointerMove={drag.onPointerMove}
+      onPointerUp={drag.onPointerUp}
+      onClick={() => { if (!drag.consumeMoved()) onToggleOpen(); }}
+      aria-label={laneScore ? `Open the AI judge panel — score ${laneScore.score.toFixed(1)} out of 10. Drag up or down to reposition.` : 'Open the AI judge panel. Drag up or down to reposition.'}
+      title="Click to open · drag up/down to reposition"
     >
+      <span className="arail__strip-grip" aria-hidden="true">⋮⋮</span>
       <span className="arail__strip-icon" aria-hidden="true">⚖</span>
       <span className="arail__strip-label">JUDGE</span>
       {laneScore ? (
@@ -890,15 +945,20 @@ export function JudgeDrawer({
   judgeMs,
 }: JudgeDrawerProps) {
   const [selectedView, setSelectedView] = useState<SelectedView>('synthesis');
+  const markerDrag = useMarkerDrag();
 
   // Reset to synthesis when the panel changes (panelId used as a change signal in future useEffect)
   void panelConfig?.id;
 
-  // Collapsed strip
+  // Collapsed strip — draggable up/down the right edge (position remembered).
   if (!open) {
     return (
-      <aside className="arail arail--collapsed jdrawer jdrawer--collapsed" aria-label="Judge drawer (collapsed)">
-        <Strip verdict={panelVerdict} onToggleOpen={onToggleOpen} />
+      <aside
+        className="arail arail--collapsed jdrawer jdrawer--collapsed"
+        aria-label="Judge drawer (collapsed)"
+        style={markerDrag.top != null ? { top: `${markerDrag.top}px`, transform: 'none' } : undefined}
+      >
+        <Strip verdict={panelVerdict} onToggleOpen={onToggleOpen} drag={markerDrag} />
       </aside>
     );
   }
