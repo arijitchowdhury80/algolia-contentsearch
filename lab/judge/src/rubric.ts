@@ -9,12 +9,15 @@ import type {
 /**
  * Default rubric for the Algolia answer-quality experiment — 3-dimension model
  * (Arijit, 2026-06-18). The verdict is a composite across exactly three facets:
- * Grounding, Answer confidence, and Breadth & depth. Grounding is weight x2 and
- * is BOTH a scored dimension AND the hard floor (a verified violation still caps
- * the whole score via the gate — see DEFAULT_GATE / aggregateRounds). The earlier
- * 7-dimension rubric folded into these three: citation quality → Grounding;
- * completeness + depth + logical structure → Breadth & depth; decisiveness is the
- * new Confidence dimension. (Two-way "engagement" is deferred — not scored here.)
+ * Grounding, Answer confidence, and Breadth & depth. All three carry EQUAL weight
+ * (x1) — the composite is their simple mean (Arijit, 2026-06-18: reconcile to
+ * equal-weight). Grounding is NOT up-weighted in the quality average; instead it
+ * is the HARD FLOOR — a verified grounding violation still caps the whole score
+ * via the gate (see DEFAULT_GATE / aggregateRounds), independent of its weight.
+ * The earlier 7-dimension rubric folded into these three: citation quality →
+ * Grounding; completeness + depth + logical structure → Breadth & depth;
+ * decisiveness is the new Confidence dimension. (Two-way "engagement" is
+ * deferred — not scored here.)
  */
 export const ALGOLIA_ANSWER_RUBRIC: Rubric = {
   name: "Algolia answer quality v2 (3-dimension)",
@@ -26,7 +29,7 @@ export const ALGOLIA_ANSWER_RUBRIC: Rubric = {
       label: "Grounding",
       description:
         "Is EVERY factual claim traceable to a provided source, with no hallucination or unsupported assertion? Citations must actually support the claim they attach to. This is CRITICAL — score conservatively; even one unsupported claim is a serious problem. (An honest 'this isn't covered' statement or a routing link to official help is NOT a violation.)",
-      weight: 2,
+      weight: 1,
     },
     {
       id: "confidence",

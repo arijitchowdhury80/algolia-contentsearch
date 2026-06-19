@@ -47,7 +47,11 @@ export interface RubricDimension {
   readonly label: string;
   /** What this dimension measures and how to score it 1-10. Shown to judges. */
   readonly description: string;
-  /** Aggregation weight. Groundedness is x2 by convention. Default 1. */
+  /**
+   * Aggregation weight. Default 1. The Algolia rubric keeps all dimensions at
+   * equal weight (x1); grounding is enforced as the HARD FLOOR via the gate, not
+   * by up-weighting it in the score.
+   */
   readonly weight: number;
   /**
    * If true, this dimension is skipped when the artifact context says it does

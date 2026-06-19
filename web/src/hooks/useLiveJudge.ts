@@ -12,7 +12,17 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ColumnId } from '../types/chat';
 import type { Submission } from './useComparison';
-import type { AgentResult } from './useAgentColumn';
+// AgentResult was previously imported from useAgentColumn (deleted in Phase 0).
+// Defined inline here until the Phase 1 panel hooks reintroduce it.
+export interface AgentResult {
+  columnId: ColumnId;
+  seq: number;
+  status: 'done' | 'error';
+  answer: string;
+  sources: { objectID?: string; title?: string; url?: string; summary?: string; chunk_text?: string; position?: number }[];
+  /** Answer latency in ms (agent call wall-clock). */
+  elapsedMs: number;
+}
 import type { AnalysisData } from '../components/AnalysisRail';
 import { streamJudge, toJudgeSource, type JudgePanelInput } from '../lib/judgeClient';
 import { toAnalysisData } from '../lib/analysis';

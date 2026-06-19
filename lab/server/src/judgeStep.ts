@@ -6,9 +6,7 @@
  *
  * Per-answer artifact construction:
  *   - type "algolia-answer"; prompt = the (possibly multi-turn) question.
- *   - sources = the panel's grounding hits (empty for the website stub / refusals).
- *   - engagement dimension applies ONLY to multi-turn (Cat 8) answers; marked
- *     not-applicable otherwise so one-shot answers aren't penalised for it.
+ *   - sources = the panel's grounding hits (empty for refusals / errored panels).
  */
 import {
   DEFAULT_JUDGE_CONFIG,
@@ -31,8 +29,11 @@ import {
 
 /** Build a blind artifact for one panel's answer. */
 function toArtifact(q: TranscriptQuestion, panel: TranscriptPanel): Artifact {
-  const prompt = q.followUp
-    ? `${q.prompt}\n(follow-up) ${q.followUp}`
+  // Cat 8 follow-up is GENERATED per panel (the MULTI-TURN invariant), so the
+  // two-way context is the panel's own follow-up, not a scripted one.
+  const followUp = panel.followUp ?? q.followUp;
+  const prompt = followUp
+    ? `${q.prompt}\n(follow-up) ${followUp}`
     : q.prompt;
 
   const sources = panel.answer.sources.map((s) => ({
@@ -41,15 +42,11 @@ function toArtifact(q: TranscriptQuestion, panel: TranscriptPanel): Artifact {
     ...(s.label ? { label: s.label } : {}),
   }));
 
-  // Engagement only matters for the two-way (multi-turn) questions.
-  const notApplicableDimensions = q.followUp ? [] : ["engagement"];
-
   return {
     type: "algolia-answer",
     prompt,
     content: panel.answer.answer,
     sources,
-    notApplicableDimensions,
     // Cat-7 out-of-scope questions: a correct refusal must score high; a
     // substantive answer is the grounding failure ("refusal wins decisively").
     ...(q.isRefusalTest ? { expectedBehavior: "refuse" as const } : {}),

@@ -8,21 +8,25 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { ColumnHeader } from './ColumnHeader';
 import type { AgentColumnConfig } from '../config/columns';
 
+// ColumnHeader is a dormant pre-refactor component (not rendered by the 2×2
+// App); these tests still exercise its pure score-pill markup. The config uses
+// the 2×2 model's P1 panel + AC2 index naming so it doesn't reference the dead
+// 3-panel ids.
 const config: AgentColumnConfig = {
-  id: 'tuned',
+  id: 'P1',
   kind: 'agent',
-  title: '③ Our System',
-  indexLabel: 'visibility_www_tuned',
-  agentLabel: 'Our System',
-  appName: 'Our build app',
+  title: 'P1 · Single · Keyword',
+  indexLabel: 'AC2_WWW_SINGLE_KEYWORD',
+  agentLabel: 'Single · Keyword',
+  appName: 'CENTRAL (0EXRPAXB56)',
   readOnly: false,
   pipeline: 'pipeline',
-  accentVar: '--algolia-blue',
+  accentVar: '--accent-p1',
   proves: 'proves',
   appId: 'APP',
   searchKey: 'KEY',
   agentId: 'AGENT',
-  indexName: 'visibility_www_tuned',
+  indexName: 'AC2_WWW_SINGLE_KEYWORD',
 };
 
 describe('ColumnHeader score pill', () => {

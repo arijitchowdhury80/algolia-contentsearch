@@ -31,8 +31,10 @@ describe("buildJudgePrompt", () => {
     expect(prompt).not.toContain("conciseness");
   });
 
-  it("surfaces the grounding x2 weight and the sources as ground truth", () => {
-    expect(prompt).toContain("weight x2");
+  it("surfaces the equal grounding weight and the sources as ground truth", () => {
+    // Grounding is equal-weight (x1) + hard floor, not up-weighted in the score.
+    expect(prompt).toContain('grounding ("Grounding", weight x1)');
+    expect(prompt).not.toContain("weight x2");
     expect(prompt).toContain("[S1]");
     expect(prompt).toContain("grounding violation");
   });

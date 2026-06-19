@@ -1,11 +1,11 @@
 /** ColumnHeader — lane identity: accent stripe, title, score pill, Index | Agent, status pill. */
-import type { ColumnConfig } from '../config/columns';
+import type { ColumnConfig, AgentColumnConfig } from '../config/columns';
 import { laneTone, type LaneScore } from '../lib/score';
 
 export type StatusTone = 'idle' | 'success' | 'warn' | 'danger' | 'info';
 
 interface Props {
-  config: ColumnConfig;
+  config: ColumnConfig | AgentColumnConfig;
   statusTone: StatusTone;
   statusLabel: string;
   /** Live verdict for this lane (judged lanes only); drives the always-visible score pill. */
@@ -23,7 +23,7 @@ const PILL_CLASS: Record<StatusTone, string> = {
 };
 
 export function ColumnHeader({ config, statusTone, statusLabel, score, onOpenAnalysis }: Props) {
-  const knownIssue = config.kind === 'agent' ? config.knownIssue : undefined;
+  const knownIssue = config.kind === 'agent' ? (config as AgentColumnConfig).knownIssue : undefined;
   const gateSuffix = score?.gateTripped ? ' · gated' : score?.borderline ? ' · borderline' : '';
 
   return (

@@ -14,7 +14,9 @@ import {
   buildLiveArtifact,
   toVerdict,
   judgeLive,
+  computeDeltas,
   type LiveJudgeRequest,
+  type LiveJudgeVerdict,
 } from "./liveJudge.js";
 
 // --- fixtures --------------------------------------------------------------
@@ -92,8 +94,8 @@ const baseReq: LiveJudgeRequest = {
   question: "What are Algolia's ranking criteria?",
   panels: [
     {
-      panelId: "tuned",
-      label: "Our System",
+      panelId: "P1",
+      label: "P1 · Single · Keyword",
       answer: "Algolia ranks by tie-breaking criteria…",
       sources: [{ id: "S1", title: "Ranking", url: "https://x", text: "ranking body" }],
     },
@@ -140,8 +142,8 @@ describe("buildLiveArtifact", () => {
 
 describe("toVerdict", () => {
   it("produces one entry per temperament with round-averaged composite + round-0 note", () => {
-    const v = toVerdict("tuned", multiRound());
-    expect(v.panelId).toBe("tuned");
+    const v = toVerdict("P1", multiRound());
+    expect(v.panelId).toBe("P1");
     expect(v.judges.map((j) => j.role).sort()).toEqual(["advocate", "referee", "skeptic"]);
     const skeptic = v.judges.find((j) => j.role === "skeptic")!;
     expect(skeptic.score).toBeCloseTo(6.5); // aggregate.judgeComposites skeptic
@@ -149,7 +151,7 @@ describe("toVerdict", () => {
   });
 
   it("surfaces the 3-dimension breakdown in rubric order", () => {
-    const v = toVerdict("tuned", multiRound());
+    const v = toVerdict("P1", multiRound());
     expect(v.dimensions.map((d) => d.id)).toEqual([
       "grounding",
       "confidence",
@@ -166,14 +168,14 @@ describe("toVerdict", () => {
       { claim: "Algolia guarantees 99.999% uptime", reason: "no source says this", confidence: 0.9 },
       { claim: "typo tolerance is free on all plans", reason: "not in sources", confidence: 0.6 },
     ];
-    const v = toVerdict("tuned", mr);
+    const v = toVerdict("P1", mr);
     expect(v.violations).toHaveLength(2);
     expect(v.violations[0].claim).toContain("99.999% uptime"); // higher confidence first
     expect(v.violations[0].reason).toBeTruthy();
   });
 
   it("carries synthesized/pre-gate scores, gate state and narrative", () => {
-    const v = toVerdict("tuned", multiRound({ finalScore: 3, meanPreGate: 6.4, gateTripped: true }));
+    const v = toVerdict("P1", multiRound({ finalScore: 3, meanPreGate: 6.4, gateTripped: true }));
     expect(v.synthesizedScore).toBe(3);
     expect(v.preGateScore).toBeCloseTo(6.4);
     expect(v.gateTripped).toBe(true);
@@ -189,8 +191,8 @@ describe("judgeLive", () => {
       question: "q",
       rounds: 2,
       panels: [
-        { panelId: "mirror", answer: "a1", sources: [] },
-        { panelId: "tuned", answer: "a2", sources: [] },
+        { panelId: "P1", answer: "a1", sources: [] },
+        { panelId: "P2", answer: "a2", sources: [] },
       ],
     };
     const seen: string[] = [];
@@ -200,7 +202,7 @@ describe("judgeLive", () => {
       return multiRound();
     });
     expect(res.rounds).toBe(2);
-    expect(res.panels.map((p) => p.panelId)).toEqual(["mirror", "tuned"]);
+    expect(res.panels.map((p) => p.panelId)).toEqual(["P1", "P2"]);
     expect(seen).toEqual(["a1", "a2"]);
   });
 
@@ -208,18 +210,124 @@ describe("judgeLive", () => {
     const req: LiveJudgeRequest = {
       question: "q",
       panels: [
-        { panelId: "mirror", answer: "boom", sources: [] },
-        { panelId: "tuned", answer: "ok", sources: [] },
+        { panelId: "P1", answer: "boom", sources: [] },
+        { panelId: "P2", answer: "ok", sources: [] },
       ],
     };
     const res = await judgeLive(req, async (artifact) => {
       if (artifact.content === "boom") throw new Error("judge exploded");
       return multiRound();
     });
-    const mirror = res.panels.find((p) => p.panelId === "mirror")!;
-    const tuned = res.panels.find((p) => p.panelId === "tuned")!;
-    expect(mirror.error).toContain("judge exploded");
-    expect(tuned.error).toBeUndefined();
-    expect(tuned.judges).toHaveLength(3);
+    const p1 = res.panels.find((p) => p.panelId === "P1")!;
+    const p2 = res.panels.find((p) => p.panelId === "P2")!;
+    expect(p1.error).toContain("judge exploded");
+    expect(p2.error).toBeUndefined();
+    expect(p2.judges).toHaveLength(3);
+  });
+});
+
+// --- followUpQuality (the MULTI-TURN signal) --------------------------------
+
+describe("judgeLive — followUpQuality", () => {
+  it("scores followUpQuality ONLY when a generated follow-up is present", async () => {
+    const req: LiveJudgeRequest = {
+      question: "How does typo tolerance work?",
+      panels: [
+        { panelId: "P1", answer: "a1", sources: [], generatedFollowUp: "Want to tune the threshold?" },
+        { panelId: "P2", answer: "a2", sources: [] }, // no follow-up
+      ],
+    };
+    const seen: string[] = [];
+    const res = await judgeLive(req, async () => multiRound(), {
+      followUpScorer: async (_q, _a, followUp) => {
+        seen.push(followUp);
+        return 8;
+      },
+    });
+    const p1 = res.panels.find((p) => p.panelId === "P1")!;
+    const p2 = res.panels.find((p) => p.panelId === "P2")!;
+    expect(p1.followUpQuality).toBe(8);
+    expect(p2.followUpQuality).toBeUndefined(); // no follow-up → not scored
+    expect(seen).toEqual(["Want to tune the threshold?"]); // scorer fired once
+  });
+
+  it("does not score followUpQuality when no scorer is injected (back-compat)", async () => {
+    const req: LiveJudgeRequest = {
+      question: "q",
+      panels: [{ panelId: "P1", answer: "a", sources: [], generatedFollowUp: "next?" }],
+    };
+    const res = await judgeLive(req, async () => multiRound());
+    expect(res.panels[0].followUpQuality).toBeUndefined();
+  });
+
+  it("does NOT fold followUpQuality into the composite", async () => {
+    const req: LiveJudgeRequest = {
+      question: "q",
+      panels: [{ panelId: "P1", answer: "a", sources: [], generatedFollowUp: "next?" }],
+    };
+    const res = await judgeLive(req, async () => multiRound({ finalScore: 5.9 }), {
+      followUpScorer: async () => 10,
+    });
+    expect(res.panels[0].composite).toBeCloseTo(5.9); // composite unchanged by follow-up
+    expect(res.panels[0].followUpQuality).toBe(10);
+  });
+});
+
+// --- cross-panel deltas -----------------------------------------------------
+
+describe("computeDeltas", () => {
+  function v(panelId: string, composite: number, error?: string): LiveJudgeVerdict {
+    return {
+      panelId,
+      judges: [],
+      perJudge: [],
+      dimensions: [],
+      dims: { grounding: 0, confidence: 0, breadthDepth: 0 },
+      violations: [],
+      flaggedClaims: [],
+      synthesizedScore: composite,
+      composite,
+      preGateScore: composite,
+      gateTripped: false,
+      borderline: false,
+      rationale: "",
+      ...(error ? { error } : {}),
+    };
+  }
+
+  it("computes multiLift, neuralLift, and compound across the 2×2", () => {
+    const d = computeDeltas([v("P1", 5), v("P2", 6.5), v("P3", 7), v("P4", 8)]);
+    expect(d.multiLift).toEqual({ keyword: 1.5, neural: 1 }); // P2−P1, P4−P3
+    expect(d.neuralLift).toEqual({ single: 2, multi: 1.5 }); // P3−P1, P4−P2
+    expect(d.compound).toBeCloseTo(3); // P4−P1
+  });
+
+  it("omits a delta when a needed panel is missing", () => {
+    const d = computeDeltas([v("P1", 5), v("P2", 6)]);
+    expect(d.multiLift).toEqual({ keyword: 1 });
+    expect(d.multiLift?.neural).toBeUndefined();
+    expect(d.compound).toBeUndefined();
+  });
+
+  it("ignores errored panels", () => {
+    const d = computeDeltas([v("P1", 5), v("P4", 8, "boom")]);
+    expect(d.compound).toBeUndefined();
+  });
+});
+
+// --- judgeLive emits deltas when ≥2 panels judged ---------------------------
+
+describe("judgeLive — deltas", () => {
+  it("attaches cross-panel deltas to the result", async () => {
+    const req: LiveJudgeRequest = {
+      question: "q",
+      panels: [
+        { panelId: "P1", answer: "a", sources: [] },
+        { panelId: "P2", answer: "b", sources: [] },
+      ],
+    };
+    const res = await judgeLive(req, async () => multiRound({ finalScore: 6 }));
+    expect(res.deltas).toBeDefined();
+    expect(res.deltas?.multiLift?.keyword).toBeCloseTo(0); // both 6 → lift 0
   });
 });
