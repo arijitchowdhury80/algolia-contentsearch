@@ -1,8 +1,37 @@
 # SESSION.md — Algolia-Central2
 
-_Last updated: 2026-06-19 (later) EDT_
+_Last updated: 2026-06-19 ~11am EDT (handoff)_
 
-## ▶ RESUME (2026-06-19 later — SENIOR-UX REDESIGN + PERF/STREAM DIAGNOSIS + FIX-AND-LEARN LOOP) — START HERE (supersedes ALL blocks below)
+## ▶ RESUME (2026-06-19 ~11am — DISCOVERY REBUILD BRAINSTORMED + LOCKED; VPS REDEPLOYED) — START HERE (supersedes ALL blocks below)
+
+**⚑ NEXT ACTION (do this first):** Write the **Phase 1 spec** for the discovery rebuild → `docs/superpowers/specs/2026-06-19-discovery-on-all-4-panels-design.md`, then invoke `superpowers:writing-plans`. The full locked design is in memory [[project-discovery-multiagent-redesign]] — read it; it has every decision + the Phase 1 component list + the RC2/RC3 porting map. We finished the `superpowers:brainstorming` interview and I had just presented the Phase 1 design for final approval when the session was handed off. So: confirm the Phase 1 design with Arijit (it's in that memory), then write the spec.
+
+**Working directory:** `~/AI-Development-OLD/RAG/Algolia-Central2` is the CANONICAL copy (Dropbox renamed the original; the new `~/AI-Development` and `~/Dropbox/AI-Development` copies are STALE/confusing — Arijit even edited the OpenAI key in the Dropbox copy by mistake). Start the dev server here. Branch `refactor/2x2-answer-quality-lab` @ `0db66dc`, clean, pushed to origin (NOT merged to main).
+
+### THE BIG DIRECTION (Arijit's verdict this session)
+The current lab is "a one-shot QnA bot, one-directional — no value." We're rebuilding it into a **two-directional discovery engine** ("peel the onion"), learning from RC2/RC3. Brainstorm is DONE and locked — see [[project-discovery-multiagent-redesign]]. Spine: purpose=BOTH (prove the lift + demo the experience); discovery on ALL 4 panels (intent→entity→expand→answer→follow-up); ONE shared thread, each panel proposes its own follow-up; multi-agent merit = the inline generic→specialist HANDOFF on P2/P4 (measured, not assumed); build = LAYER onto existing engine, PHASED (P1 discovery → P2 handoff+verification → P3 discovery-aware scoring).
+
+### DONE THIS SESSION (all committed + pushed; commits eb5d912→0db66dc)
+- **Senior-UX pass (frontend, live on localhost):** unified question bar (one top bar to ask+see the Q); removed winner-headline strip; **viewport-fit** 2×2 (page never scrolls, tiles scroll internally); **single "Best answer"** winner (no crown when all-gated or tied — `web/src/lib/winner.ts`); **3 judge personalities** (Skeptic/Referee/Advocate + scores) now shown in the drawer; **traffic-light dots** on dimensions + judges; **draggable judge marker** (vertical, position remembered) — kept DOCKED not floating (my recommendation, agreed); **alive waiting state** (ticking timer + hint); **timer sync** (all panels share one submit instant); **source pills multi-category + clickable** (URLs recovered from answer citations — `web/src/lib/sourceEnrich.ts`); mobile fixed.
+- **Scoring rework (backend, DEPLOYED to VPS):** grounding floor now fires ONLY on `kind:"contradicted"` (fabrication), NOT on `unverifiable` (not-in-thin-sources) → fixes "everything is 3.0". `lab/judge/src/{types,gate,prompt,parse}.ts` + `lab/server/src/liveJudge.ts`; 3 new gate tests. Judge 69 / server 79 / web 94 green.
+- **VPS REDEPLOYED** (SSH works — see [[project-lab-live-deployed]] for the exact cmd): `ac2-lab-backend` healthy @ `0db66dc`; `/health` now serves the neural field; **neural confirmed ON** for both indices.
+- **Pipeline MEASURED** (`lab/server/bench_pipeline.ts`): the bottleneck is the synchronous **follow-up LLM call (8–15s)**, NOT retrieval (0.5–1s). Single-panel ≈ agent 1s + follow-up 8–10s; multi ≈ extract 5–7s + agent 1s + synthesize 4–11s + follow-up 9–15s. Fix = non-blocking/flash follow-up (provider-independent; folds into the rebuild).
+- **Fix-and-Learn loop = always-on SOP** (Arijit's mechanism): `~/.claude/docs/fix-and-learn-loop.md` + CLAUDE.md Cardinal Rule 6 + vault `Standards/FixAndLearnLoopSOP.md`; project log `docs/sop/lessons-log.md` (~14 entries). On any resolved issue → Symptom/RootCause/Fix/Evidence/Prevention.
+
+### BLOCKED / not done
+- **OpenAI switch = blocked on BILLING, not the key.** New key authenticates but every completion 429s `insufficient_quota` (account has no credits). `/v1/models` 200 is misleading (free). Fix: add billing at platform.openai.com → Billing, then put the key in `-OLD/.env.local` (the file the backend reads) and `LLM_PROVIDER=openai ALGOLIA_AGENT_MODEL=gpt-5`. Provider auto-prefers OpenAI when healthy; safely on Gemini now (probe catches the 429). All 10 agents + judge on `gemini-2.5-pro`.
+- **Token STREAMING still not implemented** — root cause pinpointed: `lab/server/src/agentRunner.ts:173 const raw = await res.text()` drains the whole Agent-Studio stream before returning (upstream DOES stream the `0:"..."` frames). Fix = read `res.body` incrementally → `onToken` → SSE `delta` event → frontend. Deferred ON PURPOSE to fold into the discovery rebuild (the pipeline changes anyway).
+- **Vercel frontend NOT redeployed** — all this session's UI is local only. Run `vercel --prod` from `-OLD` to push it (Arijit's standing deploy auth applies).
+
+### Reference
+- Locked design: memory [[project-discovery-multiagent-redesign]] (READ FIRST for the rebuild).
+- RC2/RC3 to port from: `~/AI-Development-OLD/RAG/AlgoliaRAG-Google/{rc2-algolia,rc3-phoenix}`. Full research report is in this session's transcript.
+- Build home app `0EXRPAXB56`, indices `AC2_WWW_*`, agents `ac2-*` → [[project-build-home-central-app]].
+- VPS deploy mechanics + the live state → [[project-lab-live-deployed]].
+
+---
+
+## ▶ RESUME (2026-06-19 later — SENIOR-UX REDESIGN + PERF/STREAM DIAGNOSIS + FIX-AND-LEARN LOOP) — (superseded by the block above)
 
 **One-line status:** Ran a senior-UX pass over the 2×2 lab and shipped a set of polish fixes (verified live, desktop + mobile); diagnosed the perf + "no streaming" complaints to the backend; and stood up an always-on **Fix-and-Learn self-improvement loop**. All work committed + pushed to `origin/refactor/2x2-answer-quality-lab`.
 
