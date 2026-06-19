@@ -1,10 +1,14 @@
 #!/usr/bin/env node
 /**
- * Phase 1 (deferred) — flip mode:neuralSearch on the two neural indices once events aggregate.
- * NeuralSearch gates on aggregated events (proven Phase 0: 412 "SemanticSearch: no events" on a
- * fresh index). seed_neural_events.mjs pushed the signal; aggregation is async. This polls/flips:
- *   PUT /1/indexes/{ix}/settings {mode:'neuralSearch'} → 200 = enabled; 412 = still aggregating.
- * Re-run periodically until both report enabled. exit 0 iff both neural. Reads ../../.env.local.
+ * Verify (and, as a fallback, re-assert) mode:neuralSearch on the two neural indices.
+ *
+ * RESOLVED 2026-06-19: NeuralSearch is enabled per-index from the Algolia DASHBOARD →
+ * "NeuralSearch Settings" → set Event Source (the index itself) + the title attribute, pick a Blend
+ * Strategy ("Blended"), leave Adaptive Intent off, Semantic Precision "More Recall" → "Start training".
+ * That dashboard "Train" flow is what flips mode to neuralSearch — NOT a settings PUT. The earlier
+ * "412 SemanticSearch: no events" just meant training hadn't been run yet (the synthetic-event seed
+ * was a red herring, no longer needed). A trained index reports mode:neuralSearch, semanticSearch:{}.
+ * This script just GETs the mode to verify, and can re-PUT it as a fallback. exit 0 iff both neural.
  */
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -44,6 +48,8 @@ let allOk = true;
 for (const ix of NEURAL) {
   const cur = await call('GET', `/1/indexes/${ix}/settings`);
   if (cur.json.mode === 'neuralSearch') { console.log(`✅ ${ix}: already neuralSearch`); continue; }
+  // Fallback re-assert only. Real enablement is the dashboard "Train NeuralSearch" flow (see header);
+  // a trained index keeps semanticSearch:{}. Re-PUTting bare mode here is just a safety net.
   const put = await call('PUT', `/1/indexes/${ix}/settings`, { mode: 'neuralSearch' });
   if (put.status === 200) {
     await waitTask(ix, put.json.taskID);

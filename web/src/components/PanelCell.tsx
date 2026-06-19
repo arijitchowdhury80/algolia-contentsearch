@@ -111,12 +111,12 @@ function Thinking() {
 
 /** Source pill — one clickable pill per source in the answer. */
 function SourcePill({ source, index }: { source: AnswerSource; index: number }) {
-  // Derive a short label: prefer the source facet value, else clip the title.
-  const pillLabel = source.source
-    ? source.source.charAt(0).toUpperCase() + source.source.slice(1).toLowerCase()
-    : source.title.length > 28
+  // Label the pill with the DOCUMENT TITLE (clipped) — not the internal provenance
+  // ("agent"/"coordinator"), which is meaningless to a viewer.
+  const pillLabel =
+    source.title && source.title.length > 28
       ? source.title.slice(0, 26) + '…'
-      : source.title;
+      : source.title || 'source';
 
   const url = source.url || undefined;
 
@@ -141,9 +141,6 @@ function SourcePill({ source, index }: { source: AnswerSource; index: number }) 
             source.title
           )}
         </p>
-        {source.source && (
-          <p className="pcell__srcpop-meta">{source.source}</p>
-        )}
         {url && (
           <p className="pcell__srcpop-url">
             <a href={url} target="_blank" rel="noopener noreferrer">
