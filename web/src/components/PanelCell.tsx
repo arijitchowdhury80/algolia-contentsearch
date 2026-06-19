@@ -9,7 +9,7 @@
  * Props are flat; the parent (App/Matrix) owns all state. Clicking the score
  * opens the judge drawer (the single drill-in for sources/trace/why).
  */
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 
 import { Markdown } from './Markdown';
 import { Popover } from './Popover';
@@ -35,6 +35,8 @@ export interface PanelCellProps {
   isWinner?: boolean;
   /** Neural panels: whether the index is actually live in NeuralSearch mode. */
   neuralLive?: boolean;
+  /** Shared submit instant (performance.now()) so all panels' wait-timers agree. */
+  startedAt?: number | null;
   error?: string;
   /** Click the score → open the judge drawer (the single drill-in). */
   onOpenJudge?: () => void;
@@ -56,23 +58,19 @@ function Thinking() {
   );
 }
 
-/** Ticking elapsed time (whole seconds) while `active`; resets when it stops. */
-function useElapsed(active: boolean): number {
+/** Ticking elapsed time (whole seconds) while `active`, measured from the SHARED
+ *  submit instant (`startedAt`) so every panel's counter reads the same — they
+ *  all started together. Falls back to a local start if no shared clock is given. */
+function useElapsed(active: boolean, startedAt?: number | null): number {
   const [ms, setMs] = useState(0);
-  const startRef = useRef<number | null>(null);
   useEffect(() => {
-    if (!active) {
-      startRef.current = null;
-      setMs(0);
-      return;
-    }
-    startRef.current = performance.now();
-    setMs(0);
-    const id = setInterval(() => {
-      if (startRef.current != null) setMs(performance.now() - startRef.current);
-    }, 1000);
+    if (!active) { setMs(0); return; }
+    const origin = startedAt ?? performance.now();
+    const update = () => setMs(performance.now() - origin);
+    update();
+    const id = setInterval(update, 1000);
     return () => clearInterval(id);
-  }, [active]);
+  }, [active, startedAt]);
   return ms;
 }
 
@@ -213,6 +211,7 @@ export function PanelCell({
   judge,
   isWinner,
   neuralLive,
+  startedAt,
   error,
   onOpenJudge,
 }: PanelCellProps) {
@@ -223,7 +222,7 @@ export function PanelCell({
   const neuralPending = config.retrieval === 'neural' && neuralLive === false;
 
   const isStreaming = lifecycle === 'streaming';
-  const waitElapsed = useElapsed(lifecycle === 'streaming');
+  const waitElapsed = useElapsed(lifecycle === 'streaming', startedAt);
   const isAnswered = lifecycle === 'answered' || lifecycle === 'judged';
   const isRefused = lifecycle === 'refused';
   const isError = lifecycle === 'error';

@@ -400,6 +400,13 @@ export default function App() {
   // Single "Best answer" winner (null when all gated / tied) — one source of truth.
   const winnerId = judgeState === 'done' ? deriveWinnerId(panelJudge) : null;
 
+  // One shared submit instant so every panel's wait-timer reads the same elapsed
+  // (they all start together) — set once per submission.
+  const [submittedAt, setSubmittedAt] = useState<number | null>(null);
+  useEffect(() => {
+    if (submission?.seq != null) setSubmittedAt(performance.now());
+  }, [submission?.seq]);
+
   // ── Selected panel data for the JudgeDrawer ──────────────────────────────
   const drawerVerdict = selectedPanelId ? panelJudge[selectedPanelId] : undefined;
   const drawerPanelData = selectedPanelId
@@ -485,6 +492,7 @@ export default function App() {
                       key={id}
                       config={cfg}
                       neuralLive={neuralStatus[cfg.indexName]}
+                      startedAt={submittedAt}
                       lifecycle={lifecycle}
                       answer={p.answer}
                       result={
