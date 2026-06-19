@@ -33,6 +33,7 @@ import type { LeaderboardData } from './components/Leaderboard';
 
 import { useComparison } from './hooks/useComparison';
 import { usePanelAnswers } from './hooks/usePanelAnswers';
+import { useNeuralStatus } from './hooks/useNeuralStatus';
 
 import { panelConfigById } from './config/columns';
 import type { PanelId, PanelJudgeResult, CrossPanelDeltas, VerdictDims, AnswerSource } from './types/chat';
@@ -316,6 +317,9 @@ export default function App() {
   // ── Answer streaming ─────────────────────────────────────────────────────
   const { panels } = usePanelAnswers(submission);
 
+  // ── Neural-mode status (drives the honest "Neural · enabling" badge) ──────
+  const neuralStatus = useNeuralStatus();
+
   // Convenience: all 4 panels done (regardless of error) — gate for judging.
   const allPanelsDone = PANEL_IDS.every(
     (id) => panels[id].status === 'done' || panels[id].status === 'error',
@@ -422,7 +426,7 @@ export default function App() {
   const drawerPanelConfig = selectedPanelId ? panelConfigById(selectedPanelId) : undefined;
 
   return (
-    <div className="lab">
+    <div className={`lab${isHero ? ' lab--hero' : ''}`}>
       {/* ── Header ─────────────────────────────────────────────────────── */}
       <AppHeader hasRun={hasRun} onExport={handleExport} onReset={handleReset} />
 
@@ -465,6 +469,7 @@ export default function App() {
               >
                 {PANEL_IDS.map((id) => {
                   const p = panels[id];
+                  const cfg = panelConfigById(id);
                   const lifecycle = toLifecycle(
                     p.status,
                     p.answer,
@@ -474,7 +479,8 @@ export default function App() {
                   return (
                     <PanelCell
                       key={id}
-                      config={panelConfigById(id)}
+                      config={cfg}
+                      neuralLive={neuralStatus[cfg.indexName] === true}
                       lifecycle={lifecycle}
                       answer={p.answer}
                       result={

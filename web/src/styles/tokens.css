@@ -37,6 +37,15 @@
   --accent-yellow:       #FFD64D;
   --accent-green:        #00C29A;
 
+  /* Per-panel accent stripes for the 2×2 lab (P1=baseline … P4=full power).
+     Used as --cell-accent / --lane-accent via inline style in Matrix/PanelCell/
+     JudgeDrawer. The journey-to-the-corner reads cool→warm→green as you add
+     agents (right) and neural (down); P4 = the positive "winner" green. */
+  --accent-p1: var(--accent-cyan);
+  --accent-p2: var(--accent-purple);
+  --accent-p3: var(--accent-coral);
+  --accent-p4: var(--accent-green);
+
   /* -------- NEUTRALS (slate-leaning, mildly cool) -------- */
   --gray-000: #ffffff;
   --gray-050: #f7f8fb;

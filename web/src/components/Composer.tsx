@@ -40,10 +40,10 @@ export function Composer({ onSubmit, hero }: Props) {
       <div className="composer__inner">
         {hero && (
           <div className="composer__hero-head">
-            <h2 className="composer__hero-title">One conversation → every system</h2>
+            <h2 className="composer__hero-title">One question → four systems</h2>
             <p className="composer__hero-sub">
-              Ask once. The same turn fans out to ① the live website, ② Ask AI, and ③ our system —
-              then keep the conversation going to compare how each follows up.
+              Ask once. The same question fans out across our system's four configurations —
+              single vs multi-agent, keyword vs neural — then the AI judge scores each answer head-to-head.
             </p>
           </div>
         )}
@@ -70,10 +70,10 @@ export function Composer({ onSubmit, hero }: Props) {
             onChange={(e) => setValue(e.target.value)}
             placeholder={
               hero
-                ? 'Ask one question — compare all three systems side by side…'
-                : 'Ask a follow-up — goes to all systems…'
+                ? 'Ask one question — compare all four systems side by side…'
+                : 'Ask a follow-up — goes to all four systems…'
             }
-            aria-label="Query, fans out to all lanes"
+            aria-label="Query, fans out to all four panels"
             autoFocus
             enterKeyHint="search"
           />

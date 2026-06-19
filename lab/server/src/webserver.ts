@@ -34,6 +34,7 @@ import {
   runAnswerPanels,
   type AnswerRequest,
 } from "./answerService.js";
+import { makeNeuralStatusReaderFromEnv } from "./neuralStatus.js";
 
 // Hosts (Render/Railway/Fly) inject $PORT; fall back to 8787 for local dev.
 const PORT = Number(process.env.PORT ?? 8787);
@@ -45,6 +46,10 @@ const LAB_API_KEY = process.env.LAB_API_KEY;
 const RATE_LIMIT = Number(process.env.RATE_LIMIT ?? 30);
 const RATE_WINDOW_MS = Number(process.env.RATE_WINDOW_MS ?? 60_000);
 const limiter = new RateLimiter(RATE_LIMIT, RATE_WINDOW_MS);
+
+// Cached neural-mode reader for /health — lets the frontend show an honest
+// "Neural · enabling" badge that self-heals when the deferred flip lands.
+const neuralStatus = makeNeuralStatusReaderFromEnv();
 
 const server = createServer(async (req, res) => {
   // Permissive CORS — search-only data, local dev tool.
@@ -195,8 +200,11 @@ const server = createServer(async (req, res) => {
   }
 
   if (req.method === "GET" && (req.url ?? "") === "/health") {
+    // Embed the live neural-index mode (cached) so the frontend can badge the
+    // P3/P4 panels honestly while NeuralSearch is still aggregating events.
+    const neural = await neuralStatus().catch(() => ({}));
     res.writeHead(200, { "Content-Type": "application/json" });
-    res.end(JSON.stringify({ ok: true }));
+    res.end(JSON.stringify({ ok: true, neural }));
     return;
   }
 

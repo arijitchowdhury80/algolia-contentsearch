@@ -68,6 +68,13 @@ export interface PanelCellProps {
   judge?: PanelJudgeResult;
   /** True when this panel is the winner (highest composite, no gate). */
   isWinner?: boolean;
+  /**
+   * For neural panels: whether the index is actually live in NeuralSearch mode.
+   * When false/undefined on a neural panel, the retrieval badge shows the honest
+   * "Neural · enabling" state (NeuralSearch events still aggregating). Ignored
+   * for keyword panels. Self-healing — clears when the backend reports live.
+   */
+  neuralLive?: boolean;
   /** Error message (lifecycle === 'error'). */
   error?: string;
   /** Timestamp (Date.now()) when the current answer stream started. */
@@ -376,6 +383,7 @@ export function PanelCell({
   result,
   judge,
   isWinner,
+  neuralLive,
   error,
   onOpenJudge,
   onOpenSources,
@@ -383,6 +391,8 @@ export function PanelCell({
   onOpenWhy,
 }: PanelCellProps) {
   const isMulti = config.arch === 'multi';
+  // Neural panels run in keyword mode until the deferred NeuralSearch flip lands.
+  const neuralPending = config.retrieval === 'neural' && neuralLive !== true;
   const isStreaming = lifecycle === 'streaming';
   const isAnswered = lifecycle === 'answered' || lifecycle === 'judged';
   const isRefused = lifecycle === 'refused';
@@ -426,12 +436,22 @@ export function PanelCell({
             >
               {isMulti ? 'Multi-agent' : 'Single-agent'}
             </span>
-            <span
-              className={`pcell__badge pcell__badge--ret ${config.retrieval === 'neural' ? 'is-neural' : 'is-keyword'}`}
-              title={config.retrieval === 'neural' ? 'NeuralSearch retrieval (deferred flip)' : 'Keyword retrieval'}
-            >
-              {config.retrieval === 'neural' ? 'Neural' : 'Keyword'}
-            </span>
+            {config.retrieval === 'neural' ? (
+              <span
+                className={`pcell__badge pcell__badge--ret is-neural${neuralPending ? ' is-pending' : ''}`}
+                title={
+                  neuralPending
+                    ? 'NeuralSearch is still aggregating events — this panel runs in keyword mode until the flip completes. The badge clears automatically when neural goes live.'
+                    : 'NeuralSearch retrieval (live)'
+                }
+              >
+                {neuralPending ? 'Neural · enabling' : 'Neural'}
+              </span>
+            ) : (
+              <span className="pcell__badge pcell__badge--ret is-keyword" title="Keyword retrieval">
+                Keyword
+              </span>
+            )}
           </div>
         </div>
 
