@@ -12,14 +12,18 @@ _Last updated: 2026-06-18 ~10:30pm EDT_
 - **Phase 1 seed** (`seed_dedup.mjs`+test TDD-green, `seed_central.mjs`): 4 indices `AC2_WWW_{SINGLE,MULTI}_{KEYWORD,NEURAL}` on `0EXRPAXB56`, **8103 records each** (15179→en 11063→url-dedup 8103), identical sets, url-hash objectIDs. Case-3 levers on `SINGLE_KEYWORD`, 7 synonyms + `source` facet on all. Verify: `node scripts/setup/verify_seed.mjs`.
 - **Neural event clock STARTED** (`seed_neural_events.mjs`): 839 relevance-faithful events/neural-index pushed.
 
-### IN PROGRESS
-- **UltraCode build workflow `wd7g540ei`** (run id `wf_17c181fc-271`): strip old 3-panel lab → grounding instructions (single/specialist/maverick) → server brain (judge ×1 flip + Maverick coordinator `multiAgent.ts` + `/api/answer` SSE + 4-panel judge + writes `create_central_agents.mjs`) → 2×2 UI → build+adversarial verify. **Code-only, NO live API mutation.** Watch: `/workflows`.
+### DONE (build) — committed
+- **2×2 code build** (workflow `wd7g540ei`) → committed `b02d8c2`; adversarial review caught real gaps → **rectify agent** fixed them → all suites GREEN (lab/judge 66/66 · lab/server 72/72 + tsc 0 · web build 0 · scripts 9/9), independently re-verified.
+- **10 live `ac2-*` agents created + published + bait-clean** on `0EXRPAXB56` (script `01c83a9`). Source-scoping uses `searchParameters.filters` STRING (NOT facetFilters array — that 422s; proven shape rc3 elena agent). IDs (also in `.env.local`):
+  - `ALGOLIA_AGENT_P1_ID=23901423-a1de-4b6d-ac50-95bb1fbdc19e` (ac2-single-keyword)
+  - `ALGOLIA_AGENT_P3_ID=63326efb-979e-4235-97d9-ded71ff73716` (ac2-single-neural)
+  - tech-keyword `fb933ecc…` · tech-neural `c1c425b1…` · marketer-keyword `4d671dd3…` · marketer-neural `4af0897c…` · academy-keyword `be89f47d…` · academy-neural `74ebd5ef…` · support-keyword `6851a346…` · support-neural `979bbb4b…`
+  - Grounding verified: all 10 decline off-topic/competitor/adjacent cleanly; scoping confirmed (specialists see only their `source` slice).
 
-### PENDING / NEXT (supervised, AFTER workflow)
-1. **Review workflow output** (build green? adversarial review pass?), then `git commit` per phase.
-2. **Create the 10 `ac2-*` agents** (live): run `node scripts/setup/create_central_agents.mjs` (workflow authors it), bait-test, write IDs to `.env.local` (`ALGOLIA_AGENT_P1_ID`,`_P3_ID`, 8 specialist IDs).
-3. **Neural enablement** (P3/P4): `node scripts/setup/enable_neural.mjs` — poll until the async aggregation gate opens (still 412 as of 10:30pm). See [[project-neural-needs-events]].
-4. **Integration smoke** (`cli pipeline --limit 3`), then **deploy** (Vercel+Render) — only on Arijit's go.
+### PENDING / NEXT
+1. **Integration smoke** — `cd lab/server && npx tsx src/cli.ts pipeline --limit 1 --rounds 1` (4 panels answer → judge end-to-end; exercises the coordinator's `buildRetrievalQuery` keyword-padding mitigation). Heavy Gemini load — may rate-limit.
+2. **Neural enablement** (P3/P4) — `node scripts/setup/enable_neural.mjs` still 412 after ~3h. Decision: wait (likely long/overnight aggregation) OR push a larger event volume. Non-blocking — P3/P4 run keyword-mode until the flip. See [[project-neural-needs-events]].
+3. **Deploy** (Vercel + Render) — only on Arijit's go. Render env needs the 10 `ALGOLIA_AGENT_*_ID`s + `ALGOLIA_PROVIDER_GEMINI_ID` + `ALGOLIA_AGENT_MODEL` + `GOOGLE_API_KEY` + `ALGOLIA_ADMIN_API_KEY` (server-only) + `VITE_*` on Vercel.
 
 ### KEY DECISIONS THIS SESSION
 - **Neural axis = synthetic event bootstrap** (Arijit, 2026-06-18): neural needs aggregated events; fresh index 412s. Pushed events; `enable_neural.mjs` flips when ready. Validity caveat accepted.
