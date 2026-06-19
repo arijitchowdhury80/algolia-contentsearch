@@ -14,9 +14,12 @@
  * (`ALGOLIA_*`). Agent Studio providers are PER-APP, so the old VVKSSPDMJX
  * provider ids are invalid here. Provider ids are read from `.env.local`
  * (`ALGOLIA_PROVIDER_OPENAI_ID` / `ALGOLIA_PROVIDER_GEMINI_ID`) with the verified
- * CENTRAL Gemini id baked in as the default. NOTE: as of 2026-06-18 the OpenAI
- * key is DEAD (429 quota) so the resolver falls through to Gemini — but we keep
- * the OpenAI→Gemini policy intact for when the key is restored.
+ * CENTRAL Gemini id baked in as the default. NOTE (2026-06-19): the OpenAI key
+ * AUTHENTICATES (GET /v1/models → 200) but has NO QUOTA — every /v1/chat/completions
+ * returns 429 `insufficient_quota` (no billing/credits on the account). So
+ * isOpenAIHealthy's completion probe still fails and the resolver falls through to
+ * Gemini. The switch is fully wired: add billing to the OpenAI account, then it
+ * flips automatically (or pin LLM_PROVIDER=openai). GPT-5 is the default model.
  *
  * Override the auto-resolution with LLM_PROVIDER=openai|gemini (manual pin).
  */
@@ -58,8 +61,10 @@ export function providerSpecs(
   return {
     openai: {
       provider: "openai",
-      judgeModel: env.JUDGE_MODEL || "gpt-5.2",
-      agentModel: env.ALGOLIA_AGENT_MODEL || "gpt-5.2",
+      // gpt-5 is the verified-available model on this key (2026-06-19 /v1/models
+      // probe: gpt-5 / gpt-5.1 / gpt-5-pro present; gpt-5.2 does NOT exist).
+      judgeModel: env.JUDGE_MODEL || "gpt-5",
+      agentModel: env.ALGOLIA_AGENT_MODEL || "gpt-5",
       // Per-app id from env; no verified CENTRAL OpenAI id (dead key) → empty default.
       agentProviderId: env.ALGOLIA_PROVIDER_OPENAI_ID || "",
       keyVar: "OPENAI_API_KEY",

@@ -97,3 +97,13 @@ Project-specific issues hit during build, their **root cause**, the **fix**, and
 - **Fix (backend, pending redeploy):** (1) make the follow-up NON-blocking (emit the answer, generate follow-up async or lazily) → single panels 9–11s → ~1s; (2) run `extract` + `follow-up` on **flash** not pro (utility calls don't need pro); (3) synthesize is the legitimate multi-agent cost (4–11s) — flash or stream it. Production runs panels in parallel, so wall-clock ≈ slowest panel + judge (~20s) — cutting the follow-up shrinks the slowest panel the most.
 - **Evidence:** `lab/server/bench_pipeline.ts` output (logged 2026-06-19).
 - **Prevention (future me):** Measure step-by-step before optimizing — the bottleneck was a non-essential feature (follow-up), not the thing everyone blamed (retrieval/neural/multi-agent). Wrap injectable deps with timers for a zero-touch profile. "We can only improve what we can measure."
+
+---
+
+## 2026-06-19 — OpenAI key "looks alive" (models 200) but completions 429 insufficient_quota
+
+- **Symptom:** Asked to switch Gemini→GPT-5. `GET /v1/models` returned 200 and listed gpt-5/gpt-5.1/gpt-5-pro → looked ready. But every `/v1/chat/completions` returned `429 insufficient_quota`.
+- **Root cause:** `/v1/models` (listing) does NOT consume quota and is allowed for any authenticated key, so a 200 there proves auth only — NOT that the account can run completions. The account has no billing/credits → completions are quota-blocked.
+- **Fix:** Diagnosed via an actual completion (the existing `isOpenAIHealthy` probe does this correctly — it calls a real completion, so the live resolver safely stays on Gemini). Fixed the bogus default model `gpt-5.2` (doesn't exist) → `gpt-5` (verified available) so the switch is one-step-ready once billing is added.
+- **Evidence:** `/tmp/bench_gpt5.log` — all 4 panels `OpenAI 429 insufficient_quota`; `/v1/models` 200 with gpt-5* present.
+- **Prevention (future me):** To test if an OpenAI key is USABLE, probe with a real (tiny) completion, never `/v1/models`. A 200 on model-listing is necessary but not sufficient. Same for any API where read/list endpoints are free but write/compute endpoints are metered.
