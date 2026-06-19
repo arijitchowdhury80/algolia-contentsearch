@@ -1,376 +1,199 @@
 /**
- * PanelCell — one panel lane in the 2×2 Answer-Quality Lab.
+ * PanelCell — one answer tile in the 2×2 Answer-Quality Lab (premium glass redesign).
  *
- * Spec (Task 5.2):
- *   Identity:   P# · Single|Multi · Keyword|Neural + mode/agent badges
- *   Lifecycle:  idle → streaming → answered → judging → judged
- *               | refused (✋) | error
- *   Body:       streamed markdown answer (reuses Markdown.tsx); inline [n] citations
- *   Sources:    dynamic source-pill row — one pill per source actually used (Popover)
- *   Status:     ✅ grounded (0 flagged) / ⚠ n flagged · 📎 n sources · ⏱ firstToken/total
- *   Trace:      multi-only orchestration mini-trace (Maverick → Technical ✓ Marketer ·)
- *   Actions:    [Sources] [Trace] (multi) [Why it won] → callbacks to parent
+ * Layout: fixed HEADER (identity · score · time · grounding) → scrolling BODY
+ * (the streamed markdown answer) → fixed SOURCES footer (deduped pills).
+ * Plain-language labels + hover tooltips so a non-technical viewer (exec /
+ * merchandiser) can read it, while the precise terms stay for developers.
  *
- * Props are intentionally flat — the parent (Matrix) owns all state and passes
- * down slices; this component is a pure renderer with no internal async.
- *
- * Design decisions:
- *   - Reuses Markdown.tsx for zero-dep XSS-safe rendering.
- *   - Reuses Popover.tsx for the source-pill popover (same pattern as GroupedSources).
- *   - scoreTone() from lib/score for consistent color semantics.
- *   - formatMs() from lib/time for timing chips.
- *   - accentVar from PanelConfig drives the left stripe / glow via --cell-accent.
- *   - No local data-fetching; all streamed state comes via props.
+ * Props are flat; the parent (App/Matrix) owns all state. Clicking the score
+ * opens the judge drawer (the single drill-in for sources/trace/why).
  */
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
+
 import { Markdown } from './Markdown';
 import { Popover } from './Popover';
 import { scoreTone } from '../lib/score';
 import { formatMs } from '../lib/time';
 import type { PanelConfig } from '../config/columns';
-import type {
-  PanelDataResult,
-  PanelJudgeResult,
-  AnswerSource,
-  OrchestrationTrace,
-} from '../types/chat';
+import type { PanelDataResult, PanelJudgeResult, AnswerSource } from '../types/chat';
 
 // ---------------------------------------------------------------------------
-// Lifecycle state
+// Lifecycle
 // ---------------------------------------------------------------------------
 
 export type PanelLifecycle =
-  | 'idle'
-  | 'streaming'
-  | 'answered'
-  | 'judging'
-  | 'judged'
-  | 'refused'
-  | 'error';
-
-// ---------------------------------------------------------------------------
-// Props
-// ---------------------------------------------------------------------------
+  | 'idle' | 'streaming' | 'answered' | 'judging' | 'judged' | 'refused' | 'error';
 
 export interface PanelCellProps {
-  /** Static panel identity + display metadata from PANEL_CONFIGS. */
   config: PanelConfig;
-  /** Current lifecycle state. */
   lifecycle: PanelLifecycle;
-  /**
-   * Accumulated answer text (grows token-by-token while streaming;
-   * final value when answered/judged/refused).
-   */
   answer?: string;
-  /** Full payload — set when server completes the answer. */
   result?: PanelDataResult;
-  /** Judge verdict — set when judging completes for this panel. */
   judge?: PanelJudgeResult;
-  /** True when this panel is the winner (highest composite, no gate). */
   isWinner?: boolean;
-  /**
-   * For neural panels: whether the index is actually live in NeuralSearch mode.
-   * When false/undefined on a neural panel, the retrieval badge shows the honest
-   * "Neural · enabling" state (NeuralSearch events still aggregating). Ignored
-   * for keyword panels. Self-healing — clears when the backend reports live.
-   */
+  /** Neural panels: whether the index is actually live in NeuralSearch mode. */
   neuralLive?: boolean;
-  /** Error message (lifecycle === 'error'). */
   error?: string;
-  /** Timestamp (Date.now()) when the current answer stream started. */
-  streamStartedAt?: number | null;
-  /** Callback: user clicks the score badge → parent opens the judge drawer. */
+  /** Click the score → open the judge drawer (the single drill-in). */
   onOpenJudge?: () => void;
-  /** Callback: user clicks [Sources] action. */
-  onOpenSources?: () => void;
-  /** Callback: user clicks [Trace] action (multi-only). */
-  onOpenTrace?: () => void;
-  /** Callback: user clicks [Why it won] action. */
-  onOpenWhy?: () => void;
 }
 
 // ---------------------------------------------------------------------------
-// Sub-components
+// Small pieces
 // ---------------------------------------------------------------------------
 
-/** Animated streaming caret — hidden once streaming stops. */
 function Caret() {
   return <span className="pcell__caret" aria-hidden="true" />;
 }
 
-/** Thinking dots — shown while streaming with no content yet. */
 function Thinking() {
   return (
     <span className="pcell__thinking" aria-label="Thinking">
-      <span className="dot" />
-      <span className="dot" />
-      <span className="dot" />
+      <span className="dot" /><span className="dot" /><span className="dot" />
     </span>
   );
 }
 
-/** Source pill — one clickable pill per source in the answer. */
-function SourcePill({ source, index }: { source: AnswerSource; index: number }) {
-  // Label the pill with the DOCUMENT TITLE (clipped) — not the internal provenance
-  // ("agent"/"coordinator"), which is meaningless to a viewer.
-  const pillLabel =
-    source.title && source.title.length > 28
-      ? source.title.slice(0, 26) + '…'
-      : source.title || 'source';
+/** Ticking elapsed time (whole seconds) while `active`; resets when it stops. */
+function useElapsed(active: boolean): number {
+  const [ms, setMs] = useState(0);
+  const startRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (!active) {
+      startRef.current = null;
+      setMs(0);
+      return;
+    }
+    startRef.current = performance.now();
+    setMs(0);
+    const id = setInterval(() => {
+      if (startRef.current != null) setMs(performance.now() - startRef.current);
+    }, 1000);
+    return () => clearInterval(id);
+  }, [active]);
+  return ms;
+}
 
-  const url = source.url || undefined;
+function elapsedLabel(ms: number): string {
+  const s = Math.floor(ms / 1000);
+  return s < 60 ? `${s}s` : `${Math.floor(s / 60)}m ${String(s % 60).padStart(2, '0')}s`;
+}
 
+/** Map a source to its content CATEGORY (the facet a user thinks in), from its URL. */
+function categorize(s: AnswerSource): string {
+  const u = (s.url || '').toLowerCase();
+  if (!u) return 'Other';
+  if (u.includes('support.algolia.com')) return 'Support';
+  if (u.includes('academy.algolia.com') || u.includes('/academy')) return 'Academy';
+  if (u.includes('/developers') || u.includes('/api-reference') || u.includes('/api-client') || u.includes('/libraries')) return 'Developers';
+  if (u.includes('/doc')) return 'Documentation';
+  if (u.includes('/blog')) return 'Blog';
+  if (u.includes('/customers') || u.includes('/case-stud')) return 'Customer story';
+  if (u.includes('algolia.com')) return 'Website';
+  return 'Other';
+}
+
+/** Group sources by category, most-used first — "the pulls are the sources". */
+function groupByCategory(sources: AnswerSource[]): Array<[string, AnswerSource[]]> {
+  const map = new Map<string, AnswerSource[]>();
+  for (const s of sources) {
+    const c = categorize(s);
+    const arr = map.get(c);
+    if (arr) arr.push(s);
+    else map.set(c, [s]);
+  }
+  return [...map.entries()].sort((a, b) => b[1].length - a[1].length);
+}
+
+/** Compact fallback when no facet/URL data exists: one "N sources" chip → list. */
+function AllSourcesPill({ sources }: { sources: AnswerSource[] }) {
   return (
     <Popover
       className="pcell__srcpill"
-      triggerLabel={`Source ${index + 1}: ${source.title}`}
+      triggerLabel={`${sources.length} sources used`}
       label={
         <>
-          <span className="pcell__srcpill-n" aria-hidden="true">{index + 1}</span>
-          <span className="pcell__srcpill-label">{pillLabel}</span>
+          <span className="pcell__srcpill-n" aria-hidden="true">{sources.length}</span>
+          <span className="pcell__srcpill-label">sources used</span>
         </>
       }
     >
       <div className="pcell__srcpop">
-        <p className="pcell__srcpop-title">
-          {url ? (
-            <a href={url} target="_blank" rel="noopener noreferrer">
-              {source.title}
-            </a>
-          ) : (
-            source.title
-          )}
-        </p>
-        {url && (
-          <p className="pcell__srcpop-url">
-            <a href={url} target="_blank" rel="noopener noreferrer">
-              {url}
-            </a>
+        <p className="pcell__srcpop-cat">Sources used · {sources.length}</p>
+        {sources.map((d, i) => (
+          <p key={i} className="pcell__srcpop-item">
+            {d.url
+              ? <a href={d.url} target="_blank" rel="noopener noreferrer">{d.title || d.url}</a>
+              : (d.title || 'source')}
           </p>
-        )}
+        ))}
       </div>
     </Popover>
   );
 }
 
-/**
- * Orchestration mini-trace — multi panels only.
- * Renders: Maverick → Technical ✓  Marketer ✓  Academy ·  Support ·
- * Collapsed to one line by default; expandable.
- */
-function MiniTrace({ trace }: { trace: OrchestrationTrace }) {
-  const [expanded, setExpanded] = useState(false);
-
+/** A category pill: count + facet name; click lists the docs pulled from it. */
+function CategoryPill({ cat, docs }: { cat: string; docs: AnswerSource[] }) {
   return (
-    <div className="pcell__trace">
-      <button
-        type="button"
-        className="pcell__trace-trigger"
-        aria-expanded={expanded}
-        onClick={() => setExpanded((v) => !v)}
-        title={expanded ? 'Collapse orchestration trace' : 'Show orchestration trace'}
-      >
-        <span className="pcell__trace-icon" aria-hidden="true">⌁</span>
-        <span className="pcell__trace-label">Maverick</span>
-        {trace.specialists.map((s) => (
-          <span
-            key={s.name}
-            className={`pcell__trace-sp ${s.fired ? 'is-fired' : 'is-skipped'}`}
-            title={s.fired ? `${s.name}: ${s.hits} hits` : `${s.name}: not routed`}
-          >
-            {s.name.charAt(0).toUpperCase() + s.name.slice(1, 4)}
-            <span aria-hidden="true">{s.fired ? ' ✓' : ' ·'}</span>
-          </span>
+    <Popover
+      className="pcell__srcpill"
+      triggerLabel={`${docs.length} ${cat} source${docs.length !== 1 ? 's' : ''}`}
+      label={
+        <>
+          <span className="pcell__srcpill-n" aria-hidden="true">{docs.length}</span>
+          <span className="pcell__srcpill-label">{cat}</span>
+        </>
+      }
+    >
+      <div className="pcell__srcpop">
+        <p className="pcell__srcpop-cat">{cat} · {docs.length} source{docs.length !== 1 ? 's' : ''}</p>
+        {docs.map((d, i) => (
+          <p key={i} className="pcell__srcpop-item">
+            {d.url
+              ? <a href={d.url} target="_blank" rel="noopener noreferrer">{d.title || d.url}</a>
+              : (d.title || 'source')}
+          </p>
         ))}
-        <span className="pcell__trace-chevron" aria-hidden="true">
-          {expanded ? '▴' : '▾'}
-        </span>
-      </button>
-
-      {expanded && (
-        <div className="pcell__trace-detail" role="region" aria-label="Orchestration trace">
-          {trace.entities.length > 0 && (
-            <p className="pcell__trace-entities">
-              <span className="pcell__trace-key">Entities: </span>
-              {trace.entities.join(', ')}
-            </p>
-          )}
-          <ul className="pcell__trace-splist">
-            {trace.specialists.map((s) => (
-              <li key={s.name} className={`pcell__trace-spitem ${s.fired ? 'is-fired' : 'is-skipped'}`}>
-                <span className="pcell__trace-spname">{s.name}</span>
-                {s.fired ? (
-                  <span className="pcell__trace-sphits">{s.hits} hit{s.hits !== 1 ? 's' : ''}</span>
-                ) : (
-                  <span className="pcell__trace-spskip">not routed</span>
-                )}
-              </li>
-            ))}
-          </ul>
-          {trace.synthesisMs > 0 && (
-            <p className="pcell__trace-synth">
-              Synthesis: {formatMs(trace.synthesisMs)}
-            </p>
-          )}
-        </div>
-      )}
-    </div>
+      </div>
+    </Popover>
   );
 }
 
-/** Score badge — shown when judged; clicking opens the judge drawer. */
-function ScoreBadge({
-  judge,
-  isWinner,
-  onOpenJudge,
-}: {
-  judge: PanelJudgeResult;
-  isWinner?: boolean;
-  onOpenJudge?: () => void;
-}) {
-  const tone = judge.gateTripped ? 'is-weak' : scoreTone(judge.composite);
-  const gateSuffix = judge.gateTripped
-    ? ' · grounding gate'
-    : judge.borderline
-      ? ' · borderline'
-      : '';
+const STATUS: Record<PanelLifecycle, { label: string; cls: string }> = {
+  idle:      { label: 'Idle',        cls: 'pcell__pill--idle' },
+  streaming: { label: 'Answering…',  cls: 'pcell__pill--streaming' },
+  answered:  { label: 'Answered',    cls: 'pcell__pill--answered' },
+  judging:   { label: 'Scoring…',    cls: 'pcell__pill--judging' },
+  judged:    { label: 'Scored',      cls: 'pcell__pill--judged' },
+  refused:   { label: 'Declined ✋',  cls: 'pcell__pill--refused' },
+  error:     { label: 'Error',       cls: 'pcell__pill--error' },
+};
 
-  return (
-    <button
-      type="button"
-      className={`pcell__score ${tone}`}
-      onClick={onOpenJudge}
-      disabled={!onOpenJudge}
-      aria-label={`Judge score ${judge.composite.toFixed(1)} out of 10${gateSuffix}. Open judge breakdown.`}
-      title={`${judge.composite.toFixed(1)}/10${gateSuffix} — click to open judge breakdown`}
-    >
-      {isWinner && <span className="pcell__score-star" aria-label="Winner">★</span>}
-      <span className="pcell__score-num">{judge.composite.toFixed(1)}</span>
-      <span className="pcell__score-unit">/10</span>
-      <span className="pcell__score-icon" aria-hidden="true">⚖</span>
-    </button>
-  );
-}
-
-/** Lifecycle status pill in the header (idle / streaming / answered / judging…). */
 function StatusPill({ lifecycle, error }: { lifecycle: PanelLifecycle; error?: string }) {
-  const MAP: Record<PanelLifecycle, { label: string; cls: string }> = {
-    idle:      { label: 'Idle',       cls: 'pcell__pill--idle'      },
-    streaming: { label: 'Streaming…', cls: 'pcell__pill--streaming' },
-    answered:  { label: 'Answered',   cls: 'pcell__pill--answered'  },
-    judging:   { label: 'Judging…',   cls: 'pcell__pill--judging'   },
-    judged:    { label: 'Judged',     cls: 'pcell__pill--judged'    },
-    refused:   { label: 'Refused ✋',  cls: 'pcell__pill--refused'  },
-    error:     { label: error ? `Error` : 'Error', cls: 'pcell__pill--error' },
-  };
-  const { label, cls } = MAP[lifecycle];
+  const { label, cls } = STATUS[lifecycle];
   return (
-    <span
-      className={`pcell__pill ${cls}`}
-      title={lifecycle === 'error' && error ? error : undefined}
-    >
+    <span className={`pcell__pill ${cls}`} title={lifecycle === 'error' && error ? error : undefined}>
       {label}
     </span>
   );
 }
 
-/**
- * Status chips row — grounding + sources + timing.
- * Shown when answered or judged.
- */
-function StatusChips({
-  judge,
-  result,
-}: {
-  judge?: PanelJudgeResult;
-  result?: PanelDataResult;
-}) {
-  const sources = result?.sources ?? [];
-  const timing = result?.timing;
-
-  const flaggedCount = judge?.flaggedClaims.length ?? 0;
-  const gateTripped = judge?.gateTripped ?? false;
-
-  return (
-    <div className="pcell__chips" aria-label="Answer metadata">
-      {/* Grounding chip — only when we have a judge verdict */}
-      {judge && (
-        <span
-          className={`pcell__chip ${gateTripped ? 'pcell__chip--warn' : 'pcell__chip--ok'}`}
-          title={
-            gateTripped
-              ? `Grounding gate tripped — ${flaggedCount} flagged claim${flaggedCount !== 1 ? 's' : ''}`
-              : flaggedCount === 0
-                ? 'All claims grounded'
-                : `${flaggedCount} borderline claim${flaggedCount !== 1 ? 's' : ''}`
-          }
-        >
-          {gateTripped ? `⚠ ${flaggedCount} flagged` : `✅ grounded (${flaggedCount} flagged)`}
-        </span>
-      )}
-
-      {/* Source count */}
-      {sources.length > 0 && (
-        <span className="pcell__chip pcell__chip--neutral" title={`${sources.length} sources retrieved`}>
-          📎 {sources.length} source{sources.length !== 1 ? 's' : ''}
-        </span>
-      )}
-
-      {/* Timing */}
-      {timing && (
-        <span
-          className="pcell__chip pcell__chip--neutral"
-          title={`First token: ${formatMs(timing.firstTokenMs)} · Total: ${formatMs(timing.totalMs)}`}
-        >
-          ⏱ {formatMs(timing.firstTokenMs)} / {formatMs(timing.totalMs)}
-        </span>
-      )}
-    </div>
-  );
-}
-
-/** Action button row: [Sources] [Trace] [Why it won]. */
-function ActionRow({
-  config,
-  lifecycle,
-  hasTrace,
-  onOpenSources,
-  onOpenTrace,
-  onOpenWhy,
-}: {
-  config: PanelConfig;
-  lifecycle: PanelLifecycle;
-  hasTrace: boolean;
-  onOpenSources?: () => void;
-  onOpenTrace?: () => void;
-  onOpenWhy?: () => void;
-}) {
-  const showActions = lifecycle === 'answered' || lifecycle === 'judged' || lifecycle === 'refused';
-  if (!showActions) return null;
-
-  return (
-    <div className="pcell__actions" aria-label="Panel actions">
-      {onOpenSources && (
-        <button type="button" className="pcell__action" onClick={onOpenSources}>
-          Sources
-        </button>
-      )}
-      {config.arch === 'multi' && hasTrace && onOpenTrace && (
-        <button type="button" className="pcell__action" onClick={onOpenTrace}>
-          Trace
-        </button>
-      )}
-      {onOpenWhy && lifecycle === 'judged' && (
-        <button type="button" className="pcell__action" onClick={onOpenWhy}>
-          Why it won
-        </button>
-      )}
-    </div>
-  );
+/** Dedupe sources by url|title so near-identical docs don't read as repeats. */
+function dedupeSources(sources: AnswerSource[]): AnswerSource[] {
+  const seen = new Set<string>();
+  const out: AnswerSource[] = [];
+  for (const s of sources) {
+    const key = (s.url || s.title || '').trim().toLowerCase();
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    out.push(s);
+  }
+  return out;
 }
 
 // ---------------------------------------------------------------------------
-// Main PanelCell component
+// PanelCell
 // ---------------------------------------------------------------------------
 
 export function PanelCell({
@@ -383,173 +206,188 @@ export function PanelCell({
   neuralLive,
   error,
   onOpenJudge,
-  onOpenSources,
-  onOpenTrace,
-  onOpenWhy,
 }: PanelCellProps) {
   const isMulti = config.arch === 'multi';
-  // Neural panels run in keyword mode until the deferred NeuralSearch flip lands.
-  const neuralPending = config.retrieval === 'neural' && neuralLive !== true;
+  // Show "enabling" ONLY when the backend EXPLICITLY reports the index isn't live
+  // yet. When status is unknown (old /health omits the field), don't claim either
+  // way — just label it "Neural" (the panel's config, always true).
+  const neuralPending = config.retrieval === 'neural' && neuralLive === false;
+
   const isStreaming = lifecycle === 'streaming';
+  const waitElapsed = useElapsed(lifecycle === 'streaming');
   const isAnswered = lifecycle === 'answered' || lifecycle === 'judged';
   const isRefused = lifecycle === 'refused';
   const isError = lifecycle === 'error';
   const isIdle = lifecycle === 'idle';
+  const isJudged = lifecycle === 'judged' && !!judge;
 
-  const sources = result?.sources ?? [];
+  const sources = dedupeSources(result?.sources ?? []);
+  const sourceCats = groupByCategory(sources);
+  // We can only show facet categories when the payload carries URLs/facets; until
+  // the backend includes them, everything is "Other" → fall back to one count chip.
+  const hasCategories = sourceCats.length > 0 && !(sourceCats.length === 1 && sourceCats[0][0] === 'Other');
   const trace = result?.trace;
-  const hasTrace = isMulti && trace != null;
+  const timing = result?.timing;
 
-  // Derive the body variant for refused vs error vs normal.
+  const flaggedCount = judge?.flaggedClaims.length ?? 0;
+  const gateTripped = judge?.gateTripped ?? false;
+  const firedSpecialists = (trace?.specialists ?? [])
+    .filter((s) => s.fired)
+    .map((s) => s.name.charAt(0).toUpperCase() + s.name.slice(1));
+
   const bodyVariant = isRefused ? 'refusal' : isError ? 'error' : 'answer';
 
   return (
     <article
       className={`pcell${isWinner ? ' pcell--winner' : ''}${isError ? ' pcell--error' : ''}`}
       style={{ ['--cell-accent' as string]: `var(${config.accentVar})` }}
-      aria-label={`Panel ${config.id}: ${config.arch} ${config.retrieval}`}
+      aria-label={`Panel ${config.id}: ${config.arch} agent, ${config.retrieval} retrieval`}
     >
-      {/* ------------------------------------------------------------------ */}
-      {/* Header — identity + score (when judged) + status pill               */}
-      {/* ------------------------------------------------------------------ */}
+      {/* ---- Header: P# · score · time · grounding (left) · badges (right) ---- */}
       <header className="pcell__head">
-        <div className="pcell__stripe" aria-hidden="true" />
+        <div className="pcell__head-row">
+          <span
+            className="pcell__id"
+            title={`${config.id} · ${isMulti ? 'Multi-agent' : 'Single agent'} · ${config.retrieval === 'neural' ? 'Neural' : 'Keyword'} retrieval`}
+          >
+            {config.id}
+          </span>
 
-        <div className="pcell__head-top">
-          {/* Identity row */}
-          <div className="pcell__identity">
-            <span className="pcell__id">{config.id}</span>
-            <span className="pcell__sep" aria-hidden="true">·</span>
-            <span className="pcell__arch">{isMulti ? 'Multi' : 'Single'}</span>
-            <span className="pcell__sep" aria-hidden="true">·</span>
-            <span className="pcell__retrieval">{config.retrieval === 'neural' ? 'Neural' : 'Keyword'}</span>
-          </div>
+          {isJudged && judge ? (
+            <button
+              type="button"
+              className={`pcell__score ${gateTripped ? 'is-weak' : scoreTone(judge.composite)}`}
+              onClick={onOpenJudge}
+              disabled={!onOpenJudge}
+              title={`Answer-quality score ${judge.composite.toFixed(1)} / 10 — click for the full judge breakdown`}
+              aria-label={`Answer quality ${judge.composite.toFixed(1)} out of 10. Open the judge breakdown.`}
+            >
+              {isWinner && <span className="pcell__score-star" aria-hidden="true">★</span>}
+              <span className="pcell__score-num">{judge.composite.toFixed(1)}</span>
+              <span className="pcell__score-unit">/10</span>
+              <span className="pcell__score-icon" aria-hidden="true">⚖</span>
+            </button>
+          ) : (
+            <StatusPill lifecycle={lifecycle} error={error} />
+          )}
 
-          {/* Badges */}
+          {isWinner && isJudged && (
+            <span className="pcell__best" title="Highest answer-quality score across the four systems this round">
+              Best answer
+            </span>
+          )}
+
+          {timing && (
+            <span
+              className="pcell__hchip pcell__hchip--time"
+              title={`Time to first word ${formatMs(timing.firstTokenMs)} · total ${formatMs(timing.totalMs)}`}
+            >
+              ⏱ {formatMs(timing.totalMs)}
+            </span>
+          )}
+
+          {judge && isRefused && (
+            <span className="pcell__hchip pcell__hchip--ok" title="Correctly declined — the answer wasn't in the sources, so the system refused instead of guessing">
+              ✓ grounded refusal
+            </span>
+          )}
+          {judge && !isRefused && (
+            <span
+              className={`pcell__hchip ${gateTripped ? 'pcell__hchip--warn' : 'pcell__hchip--ok'}`}
+              title={gateTripped
+                ? `${flaggedCount} claim${flaggedCount !== 1 ? 's' : ''} not backed by the retrieved sources`
+                : 'Every factual claim is backed by the retrieved sources'}
+            >
+              {gateTripped ? `⚠ ${flaggedCount} unsupported` : '✓ backed by sources'}
+            </span>
+          )}
+
           <div className="pcell__badges">
             <span
               className={`pcell__badge pcell__badge--arch ${isMulti ? 'is-multi' : 'is-single'}`}
-              title={isMulti ? 'Maverick multi-agent coordinator + specialists' : 'Single Agent Studio agent'}
+              title={isMulti
+                ? 'Multi-agent: a coordinator (Maverick) routes your question to source specialists, then combines their findings.'
+                : 'Single-agent: one Algolia agent answers from one index.'}
             >
               {isMulti ? 'Multi-agent' : 'Single-agent'}
             </span>
             {config.retrieval === 'neural' ? (
               <span
                 className={`pcell__badge pcell__badge--ret is-neural${neuralPending ? ' is-pending' : ''}`}
-                title={
-                  neuralPending
-                    ? 'NeuralSearch is still aggregating events — this panel runs in keyword mode until the flip completes. The badge clears automatically when neural goes live.'
-                    : 'NeuralSearch retrieval (live)'
-                }
+                title={neuralPending
+                  ? 'NeuralSearch is still switching on for this index — running keyword for now. Clears automatically when it goes live.'
+                  : 'NeuralSearch: AI semantic retrieval that matches on meaning, not just exact keywords.'}
               >
                 {neuralPending ? 'Neural · enabling' : 'Neural'}
               </span>
             ) : (
-              <span className="pcell__badge pcell__badge--ret is-keyword" title="Keyword retrieval">
+              <span className="pcell__badge pcell__badge--ret is-keyword" title="Keyword: classic exact-term (lexical) matching.">
                 Keyword
               </span>
             )}
           </div>
         </div>
 
-        {/* Score + status row */}
-        <div className="pcell__head-bottom">
-          {judge && lifecycle === 'judged' ? (
-            <ScoreBadge judge={judge} isWinner={isWinner} onOpenJudge={onOpenJudge} />
-          ) : (
-            <StatusPill lifecycle={lifecycle} error={error} />
-          )}
-
-          {/* Index name */}
-          <span className="pcell__index" title={`Algolia index: ${config.indexName}`}>
-            {config.indexName}
-          </span>
-        </div>
+        {isMulti && isAnswered && firedSpecialists.length > 0 && (
+          <div className="pcell__traceline" title="Which source specialists the coordinator used for this answer">
+            <span className="pcell__traceline-icon" aria-hidden="true">⚡</span>
+            <b>Maverick</b> → {firedSpecialists.join(', ')}
+          </div>
+        )}
       </header>
 
-      {/* ------------------------------------------------------------------ */}
-      {/* Body — answer content                                               */}
-      {/* ------------------------------------------------------------------ */}
+      {/* ---- Body: the answer (scrolls internally) ---- */}
       <div
         className={`pcell__body pcell__body--${bodyVariant}`}
         aria-live={isStreaming ? 'polite' : undefined}
       >
-        {isIdle && (
-          <p className="pcell__idle">
-            Ask a question to see this panel's answer.
-          </p>
-        )}
-
+        {isIdle && <p className="pcell__idle">Ask a question to see this system's answer.</p>}
         {isRefused && (
           <div className="pcell__refused-tag">
-            <span aria-hidden="true">✋</span> Grounded refusal
+            <span aria-hidden="true">✋</span> Declined — the answer wasn't in the sources
           </div>
         )}
-
         {isError && (
           <div className="pcell__error-tag">
             <span aria-hidden="true">⚠</span> Unavailable
             {error && <p className="pcell__error-detail">{error}</p>}
           </div>
         )}
-
-        {/* Streamed / final markdown answer */}
         {!isIdle && answer && !isError ? (
           <div className="pcell__md">
             <Markdown text={answer} />
             {isStreaming && <Caret />}
           </div>
         ) : isStreaming && !answer ? (
-          <Thinking />
+          <div className="pcell__waiting">
+            <div className="pcell__waiting-row">
+              <Thinking />
+              <span className="pcell__waiting-time" aria-live="polite">{elapsedLabel(waitElapsed)}</span>
+            </div>
+            <p className="pcell__waiting-hint">
+              {isMulti
+                ? 'Coordinator is routing your question to source specialists, then combining their findings — multi-agent answers take longer.'
+                : config.retrieval === 'neural'
+                  ? 'Running semantic (neural) retrieval, then composing a grounded answer…'
+                  : 'Searching Algolia content, then composing a grounded answer…'}
+            </p>
+          </div>
         ) : null}
       </div>
 
-      {/* ------------------------------------------------------------------ */}
-      {/* Source pills — one per source actually returned                     */}
-      {/* ------------------------------------------------------------------ */}
+      {/* ---- Sources footer (deduped, distinguishable) ---- */}
       {(isAnswered || isRefused) && sources.length > 0 && (
-        <div className="pcell__sources" aria-label="Retrieved sources">
-          <span className="pcell__sources-label">Sources</span>
+        <div className="pcell__sources" aria-label="Sources used">
+          <span className="pcell__sources-label">
+            Sources{hasCategories ? ' · pulled from' : ''}
+          </span>
           <div className="pcell__sources-row">
-            {sources.map((src, i) => (
-              <SourcePill key={`${src.url ?? src.title}-${i}`} source={src} index={i} />
-            ))}
+            {hasCategories
+              ? sourceCats.map(([cat, docs]) => <CategoryPill key={cat} cat={cat} docs={docs} />)
+              : <AllSourcesPill sources={sources} />}
           </div>
         </div>
       )}
-
-      {/* ------------------------------------------------------------------ */}
-      {/* Orchestration mini-trace — multi panels only, when trace is present */}
-      {/* ------------------------------------------------------------------ */}
-      {hasTrace && isAnswered && trace && (
-        <MiniTrace trace={trace} />
-      )}
-
-      {/* ------------------------------------------------------------------ */}
-      {/* Status chips — grounding + source count + timing                    */}
-      {/* ------------------------------------------------------------------ */}
-      {isAnswered && (
-        <StatusChips judge={judge} result={result} />
-      )}
-
-      {/* ------------------------------------------------------------------ */}
-      {/* Action row                                                           */}
-      {/* ------------------------------------------------------------------ */}
-      <ActionRow
-        config={config}
-        lifecycle={lifecycle}
-        hasTrace={hasTrace}
-        onOpenSources={onOpenSources}
-        onOpenTrace={onOpenTrace}
-        onOpenWhy={onOpenWhy}
-      />
-
-      {/* ------------------------------------------------------------------ */}
-      {/* Footer — proves + pipeline (collapsed, always present)              */}
-      {/* ------------------------------------------------------------------ */}
-      <footer className="pcell__foot">
-        <p className="pcell__proves">{config.proves}</p>
-      </footer>
     </article>
   );
 }

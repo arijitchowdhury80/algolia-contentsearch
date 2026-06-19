@@ -14,7 +14,6 @@ export function AppHeader({ hasRun, onExport, onReset }: Props) {
         <img className="apphead__logo" src={logo} alt="Algolia" />
         <span className="apphead__divider" aria-hidden="true" />
         <div className="apphead__titles">
-          <span className="apphead__eyebrow">Visibility Agents</span>
           <h1 className="apphead__title">Answer-Quality Lab</h1>
         </div>
       </div>

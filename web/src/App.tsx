@@ -24,7 +24,6 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { AppHeader } from './components/AppHeader';
 import { Composer } from './components/Composer';
 import { Matrix } from './components/Matrix';
-import type { PanelStatus } from './components/Matrix';
 import { PanelCell } from './components/PanelCell';
 import type { PanelLifecycle } from './components/PanelCell';
 import { JudgeDrawer } from './components/JudgeDrawer';
@@ -45,6 +44,7 @@ import type { JudgeVerdict } from './lib/judgeClient';
 // ---------------------------------------------------------------------------
 
 const PANEL_IDS: PanelId[] = ['P1', 'P2', 'P3', 'P4'];
+
 const DRAWER_WIDTH_DEFAULT = 380;
 const DRAWER_WIDTH_MIN = 280;
 const DRAWER_WIDTH_MAX = 640;
@@ -243,20 +243,6 @@ function useDrawerResize(
 // enum that PanelCell uses (for body states).
 // ---------------------------------------------------------------------------
 
-function toPanelStatus(
-  answerStatus: 'idle' | 'streaming' | 'done' | 'error',
-  judgeState: JudgeState,
-  hasJudge: boolean,
-): PanelStatus {
-  if (answerStatus === 'idle') return 'idle';
-  if (answerStatus === 'streaming') return 'streaming';
-  if (answerStatus === 'error') return 'error';
-  // done
-  if (hasJudge) return 'judged';
-  if (judgeState === 'judging') return 'judging';
-  return 'answered';
-}
-
 function toLifecycle(
   answerStatus: 'idle' | 'streaming' | 'done' | 'error',
   answer: string,
@@ -367,6 +353,15 @@ export default function App() {
   // ── View toggle ──────────────────────────────────────────────────────────
   const [activeView, setActiveView] = useState<ActiveView>('live');
 
+  // ── First-run "how to read this" guide (dismissible, remembered) ──────────
+  const [guideSeen, setGuideSeen] = useState<boolean>(() => {
+    try { return localStorage.getItem('aql_guide_seen') === '1'; } catch { return true; }
+  });
+  const dismissGuide = useCallback(() => {
+    setGuideSeen(true);
+    try { localStorage.setItem('aql_guide_seen', '1'); } catch { /* ignore */ }
+  }, []);
+
   // ── Leaderboard data (not yet implemented — always empty) ─────────────────
   const leaderboardData: LeaderboardData | null = null;
 
@@ -399,14 +394,7 @@ export default function App() {
 
   // ── Composer hero mode ───────────────────────────────────────────────────
   const isHero = !hasRun;
-
-  // ── Matrix panel status map ──────────────────────────────────────────────
-  const matrixPanelStatus = Object.fromEntries(
-    PANEL_IDS.map((id) => [
-      id,
-      toPanelStatus(panels[id].status, judgeState, !!panelJudge[id]),
-    ]),
-  ) as Record<PanelId, PanelStatus>;
+  const currentQuery = submission?.query ?? '';
 
   // ── Selected panel data for the JudgeDrawer ──────────────────────────────
   const drawerVerdict = selectedPanelId ? panelJudge[selectedPanelId] : undefined;
@@ -452,6 +440,12 @@ export default function App() {
         </button>
       </div>
 
+      {/* ── Question bar — ONE place to ask AND see the current question.
+          Hero (pre-run) = centered; after the first run = a slim top bar with
+          the Sample-questions picker right beside it. The submitted question
+          stays in the field so it's never lost. ─────────────────────────── */}
+      <Composer onSubmit={submit} hero={isHero} value={currentQuery} />
+
       {/* ── Main content area ────────────────────────────────────────────── */}
       <main className={`lab__main${drawerOpen ? ' lab__main--drawer-open' : ''}`}>
         {activeView === 'live' ? (
@@ -461,12 +455,18 @@ export default function App() {
               className="lab__matrix-wrap"
               style={drawerOpen ? { marginRight: `${drawerWidth}px` } : undefined}
             >
-              <Matrix
-                panelJudge={panelJudge}
-                deltas={deltas}
-                panelStatus={matrixPanelStatus}
-                onOpenJudge={openJudge}
-              >
+              {!guideSeen && (
+                <div className="lab__guide" role="note">
+                  <span className="lab__guide-text">
+                    <strong>How to read this:</strong> your question runs through four versions of our system —
+                    {' '}<b>single vs multi-agent</b> (columns) × <b>keyword vs neural search</b> (rows).
+                    An AI judge scores each answer out of 10 for quality and whether it's backed by real sources.
+                    Click any score for the breakdown.
+                  </span>
+                  <button type="button" className="lab__guide-x" onClick={dismissGuide}>Got it</button>
+                </div>
+              )}
+              <Matrix panelJudge={panelJudge}>
                 {PANEL_IDS.map((id) => {
                   const p = panels[id];
                   const cfg = panelConfigById(id);
@@ -480,7 +480,7 @@ export default function App() {
                     <PanelCell
                       key={id}
                       config={cfg}
-                      neuralLive={neuralStatus[cfg.indexName] === true}
+                      neuralLive={neuralStatus[cfg.indexName]}
                       lifecycle={lifecycle}
                       answer={p.answer}
                       result={
@@ -508,9 +508,6 @@ export default function App() {
                       }
                       error={p.error}
                       onOpenJudge={() => openJudge(id)}
-                      onOpenSources={() => openJudge(id)}
-                      onOpenTrace={() => openJudge(id)}
-                      onOpenWhy={() => openJudge(id)}
                     />
                   );
                 }) as [React.ReactNode, React.ReactNode, React.ReactNode, React.ReactNode]}
@@ -539,19 +536,35 @@ export default function App() {
         )}
       </main>
 
-      {/* ── Composer — hero before first run, docked bottom bar after ─────── */}
-      <Composer onSubmit={submit} hero={isHero} />
-
       {/* ── Scoped layout styles ─────────────────────────────────────────── */}
       <style>{`
 /* ── Lab shell ── */
 .lab {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
   background: var(--bg-canvas);
   position: relative;
+  isolation: isolate;
 }
+/* Algolia gradient-mesh canvas — soft Nebula-blue + accent blobs that make the
+   frosted-glass tiles read as glass and give the page depth/class. */
+.lab::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(58% 50% at 10% -4%, rgba(0, 61, 255, 0.11), transparent 70%),
+    radial-gradient(50% 46% at 94% 6%, rgba(138, 79, 255, 0.10), transparent 70%),
+    radial-gradient(60% 55% at 84% 104%, rgba(0, 182, 255, 0.09), transparent 70%),
+    radial-gradient(46% 42% at 2% 98%, rgba(255, 122, 89, 0.07), transparent 72%),
+    var(--bg-canvas);
+}
+/* On hero (pre-run) let the page breathe with the mesh; no fixed height needed. */
+.lab--hero { height: auto; min-height: 100vh; overflow: visible; }
 
 /* ── View toggle bar ── */
 .lab__toggle-bar {
@@ -590,13 +603,12 @@ export default function App() {
 
 /* ── Main content ── */
 .lab__main {
-  flex: 1;
+  flex: 1 1 auto;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   position: relative;
   overflow: hidden;
-  /* leave room for the docked Composer */
-  padding-bottom: 80px;
 }
 .lab__main--drawer-open {
   /* drawer is positioned absolute/fixed; main doesn't shift */
@@ -613,9 +625,13 @@ export default function App() {
 
 /* ── Matrix wrapper — shrinks when the drawer opens ── */
 .lab__matrix-wrap {
-  flex: 1;
-  overflow-y: auto;
-  padding: 24px;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow: hidden; /* the 2×2 fits the viewport; each tile scrolls internally, not the page */
+  padding: 10px 20px 12px;
   transition: margin-right var(--dur-fast) var(--ease-out);
 }
 

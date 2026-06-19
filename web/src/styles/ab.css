@@ -55,8 +55,9 @@
   flex: 0 0 auto;
   padding: var(--s-3) var(--s-6);
   background: var(--bg-page);
-  border-top: 1px solid var(--border-subtle);
 }
+/* Docked = a slim bar at the TOP of the live view (above the matrix). */
+.composer.is-docked { border-bottom: 1px solid var(--border-subtle); }
 .composer__inner { max-width: 1100px; margin: 0 auto; width: 100%; }
 
 /* Hero mode (no run yet): rail hidden, composer fills the space and centers. */
