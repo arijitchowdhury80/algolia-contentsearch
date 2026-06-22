@@ -6,6 +6,16 @@ const ALGOLIA_LINK_RE = /\]\(https?:\/\/(?:www\.)?algolia\.com[^\s)]*\)/i;
 const MAX_WORDS = 400;
 const MIN_WORDS_SUBSTANTIVE = 50;
 
+// Ported verbatim from RC2 persona_loader.ts — positive-match anchors so an AE
+// voice surfaces a concrete customer/product, not a vague pitch.
+const CUSTOMER_PRODUCT_MARKERS = [
+  "gymshark", "lacoste", "decathlon", "netflix", "underarmour", "under armour",
+  "pccomponentes", "aboutyou", "about you", "stripe", "zendesk", "walmart",
+  "merlin", "adore me", "birchbox", "back market", "boohoo",
+  "neuralsearch", "neural search", "ai search", "recommend", "personalization",
+  "algolia search", "custom ranking", "merchandising", "querysuggestions", "query suggestions",
+];
+
 export function validateVoice(
   persona: "maverick" | "elena" | "bruno",
   answer: string,
@@ -20,7 +30,13 @@ export function validateVoice(
     if (words.length > MAX_WORDS) violations.push(`Encyclopedic word count (${words.length} > ${MAX_WORDS}).`);
   }
   if (opts.substantive) {
-    if (!ALGOLIA_LINK_RE.test(answer)) violations.push("No markdown algolia.com citation on a substantive answer.");
+    if (words.length < MIN_WORDS_SUBSTANTIVE)
+      violations.push(`Too thin (${words.length} < ${MIN_WORDS_SUBSTANTIVE} words) for a substantive answer.`);
+    if (!ALGOLIA_LINK_RE.test(answer))
+      violations.push("No markdown algolia.com citation on a substantive answer.");
+    const lower = answer.toLowerCase();
+    if (!CUSTOMER_PRODUCT_MARKERS.some((m) => lower.includes(m)))
+      violations.push("No customer name or Algolia product surfaced — needs a concrete anchor.");
   }
   return { compliant: violations.length === 0, violations };
 }

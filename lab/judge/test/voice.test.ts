@@ -16,7 +16,13 @@ describe("validateVoice (maverick, ported from RC2)", () => {
     expect(r.violations.join(" ")).toMatch(/citation|algolia\.com/i);
   });
   it("passes a compliant Maverick answer", () => {
-    const r = validateVoice("maverick", "Gymshark crushed it — 27% lift. [proof](https://www.algolia.com/x) with NeuralSearch.", { substantive: true });
+    const answer =
+      "Gymshark crushed it — a 27% conversion lift after moving to Algolia NeuralSearch, " +
+      "and their search finally understands shopper intent instead of just matching keywords. " +
+      "That is exactly the kind of win your team could capture too: faster product discovery, " +
+      "far fewer dead-end searches, and shoppers landing on the right item on the very first try. " +
+      "Here is the proof if you want the numbers: [proof](https://www.algolia.com/customers/gymshark).";
+    const r = validateVoice("maverick", answer, { substantive: true });
     expect(r.compliant).toBe(true);
   });
 });
