@@ -14,18 +14,12 @@
  * retrieval, never the prompt (FAIRNESS INVARIANT).
  */
 import type { LlmComplete } from "@lab/judge";
-import type { AgentRunner } from "./agentRunner.js";
-import {
-  buildRetrievalQuery,
-  orchestrate as defaultOrchestrate,
-  FOLLOWUP_SYSTEM,
-  type OrchestrateOptions,
-  type OrchestrationResult,
-  type OrchestrationTrace,
-  type SpecialistAgentMap,
-  type SpecialistName,
-} from "./multiAgent.js";
-import type { ConversationTurn, PanelMeta, Retrieval } from "./panels.js";
+import type { AgentRunner, StreamSource } from "./agentRunner.js";
+import type { OrchestrationTrace } from "./multiAgent.js";
+import { orchestrateEngagement, type OrchestrateDeps } from "./orchestrate.js";
+import { emptyDossier } from "./discovery.js";
+import type { PersonaId } from "./charters.js";
+import type { PanelMeta } from "./panels.js";
 
 // ---------------------------------------------------------------------------
 // The unified contract
@@ -61,17 +55,12 @@ export interface PanelAnswerResult {
 // ---------------------------------------------------------------------------
 
 export interface AnswerDeps {
-  /** Runs ONE Agent Studio agent (single panels + specialist fan-out). */
+  /** Runs ONE Agent Studio agent (all panels proxy through this). */
   readonly runAgent: AgentRunner;
-  /** The coded Maverick coordinator (multi panels). Defaults to multiAgent.orchestrate. */
-  readonly orchestrate?: (
-    question: string,
-    opts: OrchestrateOptions,
-  ) => Promise<OrchestrationResult>;
-  /** The pinned LLM (single-panel follow-up generation + coordinator calls). */
+  /** The pinned LLM (brain, baton, follow-up — shared across all panels for fairness). */
   readonly llm: LlmComplete;
-  /** Specialist agent ids per retrieval mode (for the coordinator fan-out). */
-  readonly specialistAgents: Record<Retrieval, SpecialistAgentMap>;
+  /** Agent Studio agent ids by persona (maverick, elena, bruno). */
+  readonly agentIds: Record<PersonaId, string>;
 }
 
 export interface ProduceOptions {
@@ -88,43 +77,16 @@ export interface ProduceOptions {
 // helpers
 // ---------------------------------------------------------------------------
 
-/** Convert internal PanelSource ({id,text,label}) → browser AnswerSource. */
+/** Convert StreamSource ({title,url,source?}) → browser AnswerSource. */
 function toAnswerSources(
-  sources: { id: string; text: string; label?: string }[],
+  sources: StreamSource[],
   provenance: string,
 ): AnswerSource[] {
   return sources.map((s) => ({
-    title: s.label ?? s.text.slice(0, 80),
-    url: s.label && /^https?:\/\//.test(s.label) ? s.label : "",
+    title: s.title,
+    url: s.url,
     source: provenance,
   }));
-}
-
-/** Build the prior-turn history for a follow-up (turn-2) run. */
-function historyForTurn(opts: ProduceOptions, question: string): ConversationTurn[] {
-  if (opts.turn !== 2 || !opts.turn1Answer) return [];
-  // The turn-1 *question* is the follow-up the panel generated; the turn-2
-  // `question` arg is that follow-up. Carry the turn-1 exchange as context.
-  const turn1Question = opts.followUp ?? question;
-  return [
-    { role: "user", content: turn1Question },
-    { role: "assistant", content: opts.turn1Answer },
-  ];
-}
-
-/** Generate the single follow-up question via the SHARED block (fairness). */
-async function generateFollowUp(
-  question: string,
-  answer: string,
-  ambiguous: boolean,
-  llm: LlmComplete,
-): Promise<string> {
-  return (
-    await llm(
-      `Original question: ${question}\nYour answer (for context): ${answer}\nOriginal request was ambiguous: ${ambiguous}`,
-      { system: FOLLOWUP_SYSTEM, temperature: 0, tag: "single:followup" },
-    )
-  ).trim();
 }
 
 // ---------------------------------------------------------------------------
@@ -145,50 +107,54 @@ export async function producePanelAnswer(
   const { deps } = opts;
   const t0 = Date.now();
 
+  const orchDeps: OrchestrateDeps = {
+    runAgent: deps.runAgent,
+    llm: deps.llm,
+    agentIds: deps.agentIds,
+  };
+
   if (panel.arch === "multi") {
-    const orchestrate = deps.orchestrate ?? defaultOrchestrate;
-    const result = await orchestrate(question, {
-      mode: panel.retrieval,
-      specialistAgents: deps.specialistAgents[panel.retrieval],
-      llm: deps.llm,
-      runAgent: deps.runAgent,
-      ...(opts.turn === 2 ? { history: historyForTurn(opts, question) } : {}),
-    });
+    const result = await orchestrateEngagement(question, emptyDossier(), "multi", orchDeps);
     const totalMs = Date.now() - t0;
+    // Emit a minimal trace so the UI can surface persona + handoff even before RC2 trace
+    // typing is promoted to its own shape. specialists[] is empty (no fan-out in RC2-shape).
+    const trace: OrchestrationTrace & { persona?: PersonaId; handoff?: typeof result.handoff } = {
+      entities: [],
+      intent: "",
+      ambiguous: false,
+      specialists: [],
+      synthesisMs: totalMs,
+      persona: result.persona,
+      ...(result.handoff ? { handoff: result.handoff } : {}),
+    };
     return {
       answer: result.answer,
-      sources: toAnswerSources(result.sources, "coordinator"),
+      sources: toAnswerSources(result.sources, result.persona),
       timing: { firstTokenMs: totalMs, totalMs },
-      followUp: result.followUp,
-      trace: result.trace,
+      followUp: result.proposedQuestion ?? "",
+      trace,
     };
   }
 
-  // Single panel: proxy ONE agent with the mode's query, then generate follow-up.
-  const query = buildRetrievalQuery(question, panel.retrieval);
-  const history = historyForTurn(opts, question);
-  const run = await deps.runAgent(panel.agentId ?? "", query, history);
+  // Single panel: brain + Maverick only (no handoff). Same brain/discovery path as multi
+  // — the only difference is mode="single" suppresses the baton handoff. FAIRNESS INVARIANT.
+  const result = await orchestrateEngagement(question, emptyDossier(), "single", orchDeps);
   const totalMs = Date.now() - t0;
 
-  if (run.error && !run.answer) {
+  if (!result.answer) {
     return {
       answer: "",
       sources: [],
       timing: { firstTokenMs: totalMs, totalMs },
       followUp: "",
-      error: run.error,
     };
   }
 
-  const followUp = await generateFollowUp(question, run.answer, false, deps.llm);
   return {
-    answer: run.answer,
-    sources: toAnswerSources(run.sources, "agent"),
+    answer: result.answer,
+    sources: toAnswerSources(result.sources, "agent"),
     timing: { firstTokenMs: totalMs, totalMs },
-    followUp,
-    ...(run.error ? { error: run.error } : {}),
+    followUp: result.proposedQuestion ?? "",
   };
 }
 
-/** Re-export for callers that need to name the specialist set type. */
-export type { SpecialistName };

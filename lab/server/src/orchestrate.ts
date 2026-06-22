@@ -1,10 +1,10 @@
 import type { LlmComplete } from "@lab/judge";
-import type { AgentRunner, OnToken } from "./agentRunner";
-import type { StreamSource } from "./streamParser";
-import { runBrain } from "./brain";
-import { type Dossier, accumulate } from "./discovery";
-import { decideBaton, type SpecialistId } from "./baton";
-import type { PersonaId } from "./charters";
+import type { AgentRunner, OnToken } from "./agentRunner.js";
+import type { StreamSource } from "./streamParser.js";
+import { runBrain } from "./brain.js";
+import { type Dossier, accumulate } from "./discovery.js";
+import { decideBaton, type SpecialistId } from "./baton.js";
+import type { PersonaId } from "./charters.js";
 
 export interface EngagementTurnResult {
   answer: string;

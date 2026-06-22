@@ -1,24 +1,16 @@
 /**
- * multiAgent — the CODED Maverick coordinator for the multi-agent panels (P2
- * keyword, P4 neural). Maverick is NOT an Agent Studio agent; it is deterministic,
- * testable code that:
- *   1. EXTRACT  — LLM call: question → { entities, intent, ambiguous }
- *   2. ROUTE    — pure: routeSpecialists({entities,intent}) → specialist id set
- *   3. FAN-OUT  — run the chosen specialist Agent Studio agents IN PARALLEL,
- *                 each given buildRetrievalQuery(question, mode) (bare concept term
- *                 on keyword; natural-language on neural)
- *   4. SYNTHESIZE — LLM call: merge the specialist returns into ONE grounded answer
- *   5. FOLLOW-UP  — LLM call: the shared follow-up block (fairness invariant)
+ * multiAgent — pure extraction/routing helpers and shared prompt constants.
+ * The fan-out orchestration (steps 3-5) has been retired in favour of
+ * RC2-shape single-specialist orchestration in orchestrate.ts.
  *
- * ALL LLM calls use the SAME pinned {provider, model} as every panel agent (the
- * coordinator must NOT use a stronger model — FAIRNESS INVARIANT). The prompt
- * templates live in scripts/setup/maverick_prompts.md; the operative text is
- * inlined here (consumed verbatim) so the coordinator is self-contained.
+ * Still exported:
+ *   - buildRetrievalQuery (keyword de-padding vs neural pass-through)
+ *   - routeSpecialists, extractRouteInput, EXTRACT_SYSTEM (pure routing logic)
+ *   - FOLLOWUP_SYSTEM (shared follow-up prompt constant)
+ *   - OrchestrationTrace, OrchestrationTraceSpecialist (trace shape for UI)
  */
 import type { LlmComplete } from "@lab/judge";
-import type { AgentRunner } from "./agentRunner.js";
-import type { PanelSource, Retrieval } from "./panels.js";
-import { mapWithConcurrency } from "./concurrency.js";
+import type { Retrieval } from "./panels.js";
 
 // ---------------------------------------------------------------------------
 // 1. EXTRACT — entities/intent from the question (pure parse around one LLM call)
@@ -218,20 +210,8 @@ export function buildRetrievalQuery(question: string, mode: Retrieval): string {
 }
 
 // ---------------------------------------------------------------------------
-// 3-5. orchestrate — fan-out + synthesize + follow-up
+// Trace shape — kept for the UI's orchestration view
 // ---------------------------------------------------------------------------
-
-/** The Agent Studio agent id per specialist (for the active retrieval mode). */
-export type SpecialistAgentMap = Record<SpecialistName, string>;
-
-/** One specialist's return as merged by the coordinator. */
-interface SpecialistReturn {
-  name: SpecialistName;
-  fired: boolean;
-  answer: string;
-  sources: PanelSource[];
-  hits: number;
-}
 
 export interface OrchestrationTraceSpecialist {
   name: SpecialistName;
@@ -247,80 +227,6 @@ export interface OrchestrationTrace {
   synthesisMs: number;
 }
 
-export interface OrchestrationResult {
-  answer: string;
-  sources: PanelSource[];
-  followUp: string;
-  trace: OrchestrationTrace;
-}
-
-export interface OrchestrateOptions {
-  readonly mode: Retrieval;
-  readonly specialistAgents: SpecialistAgentMap;
-  readonly llm: LlmComplete;
-  readonly runAgent: AgentRunner;
-  /** Optional prior turns for a follow-up turn. */
-  readonly history?: { role: "user" | "assistant"; content: string }[];
-  /** Max specialists run concurrently. Default 4 (all of them). */
-  readonly concurrency?: number;
-}
-
-/** SYNTHESIZE system prompt (verbatim from maverick_prompts.md Prompt 2). */
-export const SYNTHESIZE_SYSTEM = `You are Maverick, the coordinator of a multi-agent Algolia answer system. Several specialist
-agents have each searched their own slice of Algolia's content and returned grounded results.
-Your job is to merge their results into ONE excellent answer for the user. You speak as Algolia,
-never about "the docs" or "the website".
-
-## GROUNDING (ABSOLUTE)
-You may state ONLY what the specialists actually retrieved and reported below. The specialist
-results are your ONLY source of truth.
-1. Every factual claim must be supported by a specialist's retrieved hit. No prior knowledge,
-   no training data, ever — about Algolia or anything else. NEVER assert anything beyond what
-   the specialists retrieved.
-2. Your OPENING sentence is a factual claim too — it must trace to a retrieved hit, not a
-   from-memory definition. If the specialists give specifics but no clean headline definition,
-   lead with the specific sourced facts you have.
-3. Never invent or guess: features, limits, customer names, metrics, percentages, quotes, or
-   URLs. Output a URL only if it appears verbatim in a specialist's source.
-4. Grounded synthesis, not invention: organize, connect, de-duplicate, and reconcile across the
-   specialists into the most complete answer their combined evidence supports — but add NO
-   insight, tradeoffs, "best practices," or architecture commentary they did not provide.
-5. Partial coverage → answer the supported part fully, then plainly name what no specialist
-   found ("I don't have anything in Algolia's content on X"). Never paper over a gap.
-6. If NO specialist returned relevant grounded content (all empty / low confidence), do NOT
-   answer from memory. Emit exactly this refusal+route line and nothing else as the answer body:
-   > I don't have anything in Algolia's content that answers that. You might find what you need in our [docs](https://www.algolia.com/doc) or [support articles](https://support.algolia.com/hc/en-us/search).
-   Refusing and routing to official Algolia help is the CORRECT outcome here, not a failure.
-7. When unsure whether a detail is grounded, leave it out.
-
-## MERGE RULES
-- Combine overlapping specialist findings into one coherent answer; do not just concatenate.
-- De-duplicate sources: if two specialists cite the same url, keep one entry.
-- When specialists conflict, prefer the one whose retrieved hit is most directly on-point and
-  say so plainly; never silently pick or average.
-- Attribute nothing to a specialist that it did not return.
-
-## ANSWER SHAPE — layered teaching
-1. Direct answer first (1–2 sentences) — built from the specialists' hits, not from memory.
-2. The explanation, layered: what it is → how it works → the specifics/caveats that matter.
-   Use \`##\`/\`###\` headings and tight bullet/numbered lists; each layer builds on the last.
-3. Precision without fluff: every sentence earns its place; include the specific parameters,
-   settings, names, and numbers the hits provide.
-4. Cite cleanly in context: concise inline markdown links whose anchor text is the page/topic
-   name, e.g. \`[Query Suggestions](real-source-url)\`, placed where the claim is made. NEVER paste
-   a bare/raw URL into the prose, and never dump links at the end. Use only the specialists'
-   real source URLs as link targets.
-
-Quality floor: at least as complete, well-structured, and well-cited as Algolia's Ask AI — and
-easier to follow.
-
-## VOICE
-Core is crisp and authoritative; no jokes inside a technical claim. Warmth lives in the framing
-(opening, transitions). Adapt to persona: developer → technical/structured; business/buyer →
-outcome-focused/concise. Never at grounding's expense.
-
-Do NOT write the follow-up question in this step — that is produced separately.`;
-
 /** FOLLOW-UP system prompt (verbatim from maverick_prompts.md Prompt 3 / shared block). */
 export const FOLLOWUP_SYSTEM = `You just answered an Algolia question. Now produce the follow-up per this exact rule:
 
@@ -328,104 +234,3 @@ After answering, propose exactly ONE logical, on-topic follow-up question. If th
 
 Return ONLY the single follow-up sentence, nothing else.`;
 
-/** De-dupe sources by label/url (code guard, independent of the LLM). Pure. */
-function dedupeSources(all: PanelSource[]): PanelSource[] {
-  const seen = new Set<string>();
-  const out: PanelSource[] = [];
-  for (const s of all) {
-    const key = (s.label ?? s.text).toLowerCase().trim();
-    if (!key || seen.has(key)) continue;
-    seen.add(key);
-    out.push({ ...s, id: `S${out.length + 1}` });
-  }
-  return out;
-}
-
-/**
- * Run the full Maverick coordination for one question. ALL LLM calls use the
- * injected (pinned) llm; specialist agents run via the injected runAgent. No
- * network is hard-wired — answer.ts binds the real seams.
- */
-export async function orchestrate(
-  question: string,
-  opts: OrchestrateOptions,
-): Promise<OrchestrationResult> {
-  const { mode, specialistAgents, llm, runAgent } = opts;
-
-  // 1. EXTRACT.
-  const route = await extractRouteInput(question, llm);
-
-  // 2. ROUTE (pure).
-  const fired = routeSpecialists(route);
-
-  // 3. FAN-OUT — run the chosen specialists in PARALLEL with the mode's query.
-  const query = buildRetrievalQuery(question, mode);
-  const concurrency = opts.concurrency ?? SPECIALIST_NAMES.length;
-  const returns = await mapWithConcurrency(
-    fired,
-    concurrency,
-    async (name): Promise<SpecialistReturn> => {
-      const agentId = specialistAgents[name];
-      const res = await runAgent(agentId, query, opts.history);
-      return {
-        name,
-        fired: true,
-        answer: res.answer,
-        sources: res.sources,
-        hits: res.sources.length,
-      };
-    },
-  );
-
-  // Trace covers ALL specialists (fired or not) for the UI orchestration view.
-  const firedByName = new Map(returns.map((r) => [r.name, r]));
-  const traceSpecialists: OrchestrationTraceSpecialist[] = SPECIALIST_NAMES.map((name) => {
-    const r = firedByName.get(name);
-    return { name, fired: Boolean(r), hits: r?.hits ?? 0 };
-  });
-
-  // 4. SYNTHESIZE — merge specialist returns into ONE grounded answer.
-  const t0 = Date.now();
-  const specialistResultsJson = JSON.stringify(
-    returns.map((r) => ({
-      name: r.name,
-      answer: r.answer,
-      sources: r.sources.map((s) => ({ title: s.label, url: s.label, text: s.text })),
-      confidence: r.hits > 0 ? "high" : "low",
-    })),
-    null,
-    2,
-  );
-  const answer = (
-    await llm(
-      `Question: ${question}\n\nSpecialist results (your ONLY source of truth):\n${specialistResultsJson}`,
-      { system: SYNTHESIZE_SYSTEM, temperature: 0, tag: "maverick:synthesize" },
-    )
-  ).trim();
-  const synthesisMs = Date.now() - t0;
-
-  // Sources = code-deduped union of what the specialists actually returned (a
-  // guard so the answer's citations can only be ones a specialist retrieved).
-  const sources = dedupeSources(returns.flatMap((r) => r.sources));
-
-  // 5. FOLLOW-UP — the shared block (fairness invariant).
-  const followUp = (
-    await llm(
-      `Original question: ${question}\nYour answer (for context): ${answer}\nOriginal request was ambiguous: ${route.ambiguous}`,
-      { system: FOLLOWUP_SYSTEM, temperature: 0, tag: "maverick:followup" },
-    )
-  ).trim();
-
-  return {
-    answer,
-    sources,
-    followUp,
-    trace: {
-      entities: route.entities,
-      intent: route.intent,
-      ambiguous: Boolean(route.ambiguous),
-      specialists: traceSpecialists,
-      synthesisMs,
-    },
-  };
-}

@@ -1,21 +1,13 @@
 /**
- * Tests for the coded Maverick coordinator (multiAgent.ts).
+ * Tests for multiAgent.ts pure helpers.
  *
- * The pure logic — buildRetrievalQuery (keyword de-padding vs neural pass-through)
- * and routeSpecialists (entities/intent → specialist set) — is tested directly.
- * orchestrate() is tested with an injected fake llm + fake agent runner (no
- * network), asserting the entity-extract → route → parallel fan-out → synthesize
- * → follow-up flow and the emitted trace.
+ * buildRetrievalQuery (keyword de-padding vs neural pass-through) and
+ * routeSpecialists (entities/intent → specialist set) are pure and tested
+ * directly. The fan-out orchestrate() has been retired in favour of
+ * RC2-shape orchestrateEngagement (see orchestrate.test.ts).
  */
 import { describe, it, expect } from "vitest";
-import {
-  routeSpecialists,
-  buildRetrievalQuery,
-  orchestrate,
-  type SpecialistAgentMap,
-} from "./multiAgent.js";
-import type { AgentRunner } from "./agentRunner.js";
-import type { LlmComplete } from "@lab/judge";
+import { routeSpecialists, buildRetrievalQuery } from "./multiAgent.js";
 
 // --- buildRetrievalQuery + routeSpecialists (the plan's exact unit tests) -----
 
@@ -81,113 +73,3 @@ describe("buildRetrievalQuery (keyword de-padding)", () => {
   });
 });
 
-// --- orchestrate (fakes) ----------------------------------------------------
-
-/** A scripted llm: returns canned text per phase, detected by the system prompt. */
-function fakeLlm(): LlmComplete {
-  return async (prompt, opts): Promise<string> => {
-    const sys = opts?.system ?? "";
-    const all = `${sys}\n${prompt}`;
-    if (/routing brain/i.test(all)) {
-      // EXTRACT phase → strict JSON
-      return JSON.stringify({ entities: ["typo tolerance"], intent: "how-to-config", ambiguous: false });
-    }
-    if (/coordinator of a multi-agent/i.test(all)) {
-      // SYNTHESIZE phase
-      return "Algolia handles typo tolerance via the typoTolerance setting. [Typo Tolerance](https://x/typo)";
-    }
-    if (/follow-up per this exact rule/i.test(all)) {
-      // FOLLOW-UP phase
-      return "Would you like to see how to tune the minWordSizefor1Typo threshold?";
-    }
-    return "{}";
-  };
-}
-
-/** A fake agent runner: every specialist returns one grounded hit. */
-function fakeRunner(): AgentRunner {
-  return async (agentId: string): Promise<{ answer: string; sources: { id: string; text: string; label?: string }[] }> => ({
-    answer: `answer from ${agentId}`,
-    sources: [{ id: "S1", text: "typo tolerance body", label: "https://x/typo" }],
-  });
-}
-
-const specialistAgents: SpecialistAgentMap = {
-  technical: "agent-tech",
-  marketer: "agent-mkt",
-  academy: "agent-aca",
-  support: "agent-sup",
-};
-
-describe("orchestrate", () => {
-  it("extracts → routes → fans out → synthesizes → follows up, with a trace", async () => {
-    const out = await orchestrate("How do I add typo tolerance in Algolia?", {
-      mode: "neural",
-      specialistAgents,
-      llm: fakeLlm(),
-      runAgent: fakeRunner(),
-    });
-    expect(out.answer).toContain("typo tolerance");
-    expect(out.sources.length).toBeGreaterThan(0);
-    expect(out.followUp).toMatch(/\?$/); // a single follow-up question
-    expect(out.trace.entities).toContain("typo tolerance");
-    expect(out.trace.specialists.some((s) => s.name === "technical" && s.fired)).toBe(true);
-    expect(typeof out.trace.synthesisMs).toBe("number");
-  });
-
-  it("only fires the routed specialists in parallel (not all four)", async () => {
-    const fired: string[] = [];
-    const runner: AgentRunner = async (agentId) => {
-      fired.push(agentId);
-      return { answer: "x", sources: [{ id: "S1", text: "t" }] };
-    };
-    await orchestrate("How do I configure typo tolerance?", {
-      mode: "keyword",
-      specialistAgents,
-      llm: fakeLlm(),
-      runAgent: runner,
-    });
-    // how-to-config routes to technical only (per routeSpecialists mapping).
-    expect(fired).toEqual(["agent-tech"]);
-  });
-
-  it("passes the de-padded bare-concept query to specialists on the keyword path", async () => {
-    let seenQuery = "";
-    const runner: AgentRunner = async (_agentId, question) => {
-      seenQuery = question;
-      return { answer: "x", sources: [{ id: "S1", text: "t" }] };
-    };
-    await orchestrate("How does Algolia handle typo tolerance?", {
-      mode: "keyword",
-      specialistAgents,
-      llm: fakeLlm(),
-      runAgent: runner,
-    });
-    expect(seenQuery.toLowerCase()).not.toContain("algolia");
-    expect(seenQuery.toLowerCase()).toContain("typo tolerance");
-  });
-
-  it("de-dupes sources cited by multiple specialists", async () => {
-    const runner: AgentRunner = async () => ({
-      answer: "x",
-      sources: [{ id: "S1", text: "same", label: "https://dup" }],
-    });
-    // Force a multi-specialist route via an explicit multi-entity question.
-    const llm: LlmComplete = async (prompt, opts) => {
-      const all = `${opts?.system ?? ""}\n${prompt}`;
-      if (/routing brain/i.test(all))
-        return JSON.stringify({ entities: ["pricing", "error"], intent: "troubleshoot", ambiguous: false });
-      if (/coordinator of a multi-agent/i.test(all)) return "merged [d](https://dup)";
-      if (/follow-up per this exact rule/i.test(all)) return "Anything else?";
-      return "{}";
-    };
-    const out = await orchestrate("pricing and errors?", {
-      mode: "neural",
-      specialistAgents,
-      llm,
-      runAgent: runner,
-    });
-    const dupCount = out.sources.filter((s) => s.label === "https://dup").length;
-    expect(dupCount).toBe(1);
-  });
-});

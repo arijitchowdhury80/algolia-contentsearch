@@ -15,29 +15,8 @@ import { makeAgentStudioRunner } from "./agentRunner.js";
 import { makeGeminiComplete } from "./gemini.js";
 import { makeOpenAIComplete } from "./openai.js";
 import { resolveActiveProvider } from "./provider.js";
-import type { SpecialistAgentMap, SpecialistName } from "./multiAgent.js";
-import { buildPanels, type PanelId, type PanelMeta, type Retrieval } from "./panels.js";
+import { buildPanels, type PanelId, type PanelMeta } from "./panels.js";
 import { producePanelAnswer, type AnswerDeps, type PanelAnswerResult } from "./answer.js";
-
-const ROLE_ENV: Record<SpecialistName, string> = {
-  technical: "TECH",
-  marketer: "MARKETER",
-  academy: "ACADEMY",
-  support: "SUPPORT",
-};
-
-/** Build the specialist agent id map for one retrieval mode from env. */
-function specialistMapFor(
-  env: Record<string, string | undefined>,
-  mode: Retrieval,
-): SpecialistAgentMap {
-  const m = mode.toUpperCase();
-  const map = {} as SpecialistAgentMap;
-  for (const name of Object.keys(ROLE_ENV) as SpecialistName[]) {
-    map[name] = env[`ALGOLIA_AGENT_${ROLE_ENV[name]}_${m}_ID`] ?? "";
-  }
-  return map;
-}
 
 /** Resolve the single pinned LLM (fairness) used by coordinator + single follow-up. */
 export async function makePinnedLlm(
@@ -64,9 +43,10 @@ export async function makeAnswerDeps(
   return {
     runAgent,
     llm,
-    specialistAgents: {
-      keyword: specialistMapFor(env, "keyword"),
-      neural: specialistMapFor(env, "neural"),
+    agentIds: {
+      maverick: env.ALGOLIA_AGENT_MAVERICK_NEURAL_ID ?? "",
+      elena: env.ALGOLIA_AGENT_ELENA_NEURAL_ID ?? "",
+      bruno: env.ALGOLIA_AGENT_BRUNO_NEURAL_ID ?? "",
     },
   };
 }
