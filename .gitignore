@@ -28,6 +28,8 @@ build/
 # are ignored to keep history from churning. (Policy changed 2026-06-17.)
 *.log
 lab/server/output/
+# Replay scorecards are generated scratch output; gold records ARE source.
+lab/replay/results/
 lab/capture/output/
 scripts/setup/current_instructions.txt
 

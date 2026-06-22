@@ -1,0 +1,83 @@
+{
+  "scenarioId": "retail-q2",
+  "vertical": "retail",
+  "tier": "Q2",
+  "expectsHandoff": true,
+  "handoffTarget": "elena",
+  "drivingSequence": [
+    "We're an online fashion retailer on React with 5M SKUs — customers search 'casual summer dress under 80' and get irrelevant results because our search can't parse natural language with price intent. We want results ranked by margin, availability, and trending popularity. How does Algolia's NeuralSearch and custom ranking solve this, and which retailers have done it?",
+    "80 million monthly page views, currently on Elasticsearch. We've tried tuning relevance but it's a losing battle.",
+    "I'm the VP of E-Commerce. We need ranking that factors in inventory levels, profit margin, and seasonal trending — not just text relevance."
+  ],
+  "turns": [
+    {
+      "turnIndex": 0,
+      "userInput": "We're an online fashion retailer on React with 5M SKUs — customers search 'casual summer dress under 80' and get irrelevant results because our search can't parse natural language with price intent. We want results ranked by margin, availability, and trending popularity. How does Algolia's NeuralSearch and custom ranking solve this, and which retailers have done it?",
+      "answer": "\"Your current search is like trying to find a specific grain of sand on the beach. Algolia's NeuralSearch is the metal detector that actually finds the gold.\" Explore with Maverick\nSemantic Search Superpowers\nYou're spot-on. Matching \"casual summer dress under 80\" is a tough nut for keyword search because it involves natural language understanding and price intent. Algolia's semantic search — powered by Natural Language Processing (NLP) — can understand the meaning behind the query, not just the keywords.Here's how it works:\n\nContextual Understanding:Semantic search goes beyond keywords, grasping the context of the query. It looks at the words used, search history, and even trends to understand what the shopperreallywants.\nVector Search:This is the \"secret sauce.\" Vector search converts text into numerical representations, allowing the engine to match items most similar incontentandmeaningto the query.\n\n\nCustom Ranking for the Win\nRanking by margin, availability, and trending popularity is where custom ranking shines. You can define the exact criteria that matter most to your business.\nThink of it as your secret sauce for boosting the bottom line. You can prioritize:\n\nMargin:Higher-margin items get a ranking boost.\nAvailability:Ensure in-stock items appear first.\nTrending Popularity:Surface the items that are hot right now.\n\n\nRetailers Crushing It\nWhile I don't have a specific case study highlighting a fashion retailer using both NeuralSearch and custom ranking for those exact metrics in front of me right now, I can tell you that semantic search is a game-changer for e-commerce. It allows online shoppers to get extremely relevant results on their search engine results pages (SERP), potentially leading to more high-volume sales. different role driving the search strategy?Maverick wants to know:Are you a developer, product manager, or in a different role driving the search strategy?📢Marketing2💰Pricing1🔧Support2🖋️Blog1📄Docs1Discovery Dossier|React•1M+ records•relevance•+47",
+      "sources": [
+        {
+          "title": "📢Marketing2",
+          "url": "",
+          "sourceType": "marketing"
+        },
+        {
+          "title": "🔧Support2",
+          "url": "",
+          "sourceType": "support"
+        },
+        {
+          "title": "🖋️Blog1",
+          "url": "",
+          "sourceType": "blog"
+        },
+        {
+          "title": "📄Docs1",
+          "url": "",
+          "sourceType": "docs"
+        }
+      ],
+      "activePersona": "maverick",
+      "discoveryQuestion": "Are you a developer, product manager, or in a different role driving the search strategy?",
+      "voiceViolations": []
+    },
+    {
+      "turnIndex": 1,
+      "userInput": "80 million monthly page views, currently on Elasticsearch. We've tried tuning relevance but it's a losing battle.",
+      "answer": " Explore with MaverickAlright, 80 million monthly page views and fighting Elasticsearch relevance is a serious pain point. I get it! Think of Elasticsearch as a Swiss Army Knife – good for a lot, but not amazing at any one thing. Algolia, on the other hand, is a purpose-built search machine.\nThe Conversion Catalyst\nYou mentioned relevance tuning being a \"losing battle.\" That's because you're fighting the limitations of keyword-based search. Remember, search users are the most intent-driven visitors to your site. They're 2-3x more likely to convert than non-searchers.\nThe right search solution can be a HUGE conversion driver. In fact, site search is responsible for almost half of ecommerce revenue↗.\n\nFrom Elasticsearch to Exponential Growth\nAlgolia's AI-powered site search helps surface the right results faster, improving discovery, engagement, and ultimately, revenue. Think of it as going from dial-up to fiber optic.\nAnd it is not just for ecommerce. Many other use cases benefit from making content accessible._pivot>Maverick wants to know:Besides Elasticsearch, are you evaluating specific search solutions alongside Algolia?📢Marketing1🖋️Blog2🔧Support2📄Docs1Discovery Dossier|React•1M+ records•relevance•+47",
+      "sources": [
+        {
+          "title": "📢Marketing1",
+          "url": "",
+          "sourceType": "marketing"
+        },
+        {
+          "title": "🖋️Blog2",
+          "url": "",
+          "sourceType": "blog"
+        }
+      ],
+      "activePersona": "maverick",
+      "discoveryQuestion": "Besides Elasticsearch, are you evaluating specific search solutions alongside Algolia?",
+      "voiceViolations": []
+    },
+    {
+      "turnIndex": 2,
+      "userInput": "I'm the VP of E-Commerce. We need ranking that factors in inventory levels, profit margin, and seasonal trending — not just text relevance.",
+      "answer": " Explore with MaverickVP of E-Commerce, got it! So you're the one feeling the heat to drive revenue and optimize the customer experience. I respect that. Let's talk about how to turn your search box into a conversion machine.\n\nRanking Recipes for Revenue\nYou're spot-on about needing more than just text relevance. That's table stakes. The real magic happens when you blend business intelligence with search algorithms.\nHere's how Algolia lets you cook up the perfect ranking recipe:\n\nInventory Awareness: Algolia can factor in real-time stock levels, ensuring that customers see what'savailablefirst. No more dead ends or \"out of stock\" disappointments.\nProfit-Driven Prioritization: Boost higher-margin items to maximize revenue per transaction. It's about smart merchandising, not just random results.\nSeasonal Sensibility: Algolia's AI can detect and adapt to seasonal trends, surfacing the right products at the right time. Think \"summer dresses\" in July and \"cozy sweaters\" in November.\n\n\n\nGymshark's Black Friday Blitz\nGymshark generates 20% of its total annual revenue in the 14 days surrounding the holidays, and 40% of that is in the first six hours of Black Friday. They rely on Algolia for high relevance, scalability, and drastically reduced admin load.Maverick wants to know:Beyond relevance, what other search-related challenges are you facing?📢Marketing2🏆Cases1Discovery Dossier|React•1M+ records•Executive•+47",
+      "sources": [
+        {
+          "title": "🏆Cases1",
+          "url": "",
+          "sourceType": "case_study"
+        }
+      ],
+      "activePersona": "maverick",
+      "discoveryQuestion": "Beyond relevance, what other search-related challenges are you facing?",
+      "voiceViolations": [
+        "The assistant's responses include \"Explore with Maverick\" and \"Maverick wants to know:\" which are prompt artifacts."
+      ]
+    }
+  ],
+  "capturedAt": "2026-04-16T03:34:58.405Z",
+  "blessedBy": "arijit"
+}

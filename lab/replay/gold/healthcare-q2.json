@@ -1,0 +1,105 @@
+{
+  "scenarioId": "healthcare-q2",
+  "vertical": "healthcare",
+  "tier": "Q2",
+  "expectsHandoff": true,
+  "handoffTarget": "bruno",
+  "drivingSequence": [
+    "We're a healthcare SaaS with 200 hospital tenants and 50M patient records needing HIPAA-compliant search with tenant isolation. What's the multi-tenant index architecture and what are the known scaling pitfalls?",
+    "50 million patient records, 200 tenants, growing 20% per quarter.",
+    "Chief Architect. HIPAA, SOC 2, and audit trails for every search query. PII must be redacted before hitting any external system."
+  ],
+  "turns": [
+    {
+      "turnIndex": 0,
+      "userInput": "We're a healthcare SaaS with 200 hospital tenants and 50M patient records needing HIPAA-compliant search with tenant isolation. What's the multi-tenant index architecture and what are the known scaling pitfalls?",
+      "answer": "\"Think of your index like a high-rise. You want each tenant (hospital) to feel like they're in a private penthouse, not a shared dorm. Algolia helps you build that sky-high privacy and scale without the elevator breaking down.\" Explore with Maverick\nMulti-Tenant Index Architecture\nWhen dealing with sensitive data like patient records in a multi-tenant environment, tenant isolation and HIPAA compliance are non-negotiable. Algolia offers a few architectural patterns to achieve this:\n\nDedicated Indices per Tenant:This is the \"penthouse\" approach. Each hospital gets its own dedicated index. This provides the strongest isolation.\nShared Index with Filtering:Store all records in a shared index, but use filters to isolate data per tenant. This can be more efficient for smaller datasets but requires careful management of filters.\nMulti-Tenancy with Vault:For the highest level of security, considerAlgolia Vault. It provides disk encryption and configurable firewalls to restrict access to specific IP addresses.\n\nTo optimize personalization, you should configure your existing index’s structure to align with the requirements of the Advanced Personalization feature. A well-prepared index structure enhances this feature’s ability to deliver personalized search experiences for your website or app. Prepare your index structure to align with the requirements of the Advanced Personalization feature.\n\nScaling Pitfalls\n\nCapacity Overload:Monitor your cluster's capacity.Capacity alertsnotify you when your cluster is under high load. Algolia can alert you about memory usage, search capacity spikes, response times, and queue lengths.\nSlow Queries:As data volumes grow, unoptimized queries can slow down. You can fix slow queries by optimizing query parameters or the index’s configuration.\nIndex Size:If the combined size of all indices reaches the server’s limits, the service might get disrupted.\n\n\nThe Value\nFor healthcare SaaS, the business value is clear: accelerated compliance, bulletproof security, and the ability to scale without compromising patient data.\nRemember, you can restrict access of your development API key to indices with names ending with _development. For more information, see API keys restrictions. an existing application, and if so, what technology stack are you currently using?Maverick wants to know:Are you planning to integrate Algolia into an existing application, and if so, what technology stack are you currently using?📢Marketing4📘Guides1Discovery Dossier|50M+ records•compliance•healthcareSaaS•+36",
+      "sources": [
+        {
+          "title": "📢Marketing4",
+          "url": "",
+          "sourceType": "marketing"
+        },
+        {
+          "title": "📘Guides1",
+          "url": "",
+          "sourceType": "guides"
+        }
+      ],
+      "activePersona": "maverick",
+      "discoveryQuestion": "Are you planning to integrate Algolia into an existing application, and if so, what technology stack are you currently using?",
+      "voiceViolations": []
+    },
+    {
+      "turnIndex": 1,
+      "userInput": "50 million patient records, 200 tenants, growing 20% per quarter.",
+      "answer": " Explore with MaverickThat's a great growth trajectory! Handling 50 million records with 200 tenants, and a 20% quarterly growth rate sounds like you are in hyper-growth mode. What is your current search technology?\n\nThe Value\nWith growth like that, you are on your way to market domination! Algolia's AI search is not just about finding needles in a haystack — it's about understanding user intent, predicting needs, and delivering hyper-relevant results that drive engagement and conversions.\nCheck out how Lancôme boosted conversion rates by 15% using Algolia's AI-powered search.\nI don't have a published case study for the healthcare vertical in front of me right now, but rest assured, Algolia's search is HIPAA-compliant.\nWith Algolia, you can ensure your users find exactly what they need, leading to increased satisfaction and, ultimately, better patient outcomes.\nTo ensure we're on the same page, I need to ask...Maverick wants to know:Are you a developer, an architect, or in a leadership role overseeing this project?📢Marketing2🖋️Blog1📄Docs1🔧Support2⚡API Ref1Discovery Dossier|50M+ records•compliance•healthcareSaaS•+47",
+      "sources": [
+        {
+          "title": "📢Marketing2",
+          "url": "",
+          "sourceType": "marketing"
+        },
+        {
+          "title": "🖋️Blog1",
+          "url": "",
+          "sourceType": "blog"
+        },
+        {
+          "title": "📄Docs1",
+          "url": "",
+          "sourceType": "docs"
+        },
+        {
+          "title": "🔧Support2",
+          "url": "",
+          "sourceType": "support"
+        },
+        {
+          "title": "⚡API Ref1",
+          "url": "",
+          "sourceType": "api_ref"
+        }
+      ],
+      "activePersona": "maverick",
+      "discoveryQuestion": "Are you a developer, an architect, or in a leadership role overseeing this project?",
+      "voiceViolations": []
+    },
+    {
+      "turnIndex": 2,
+      "userInput": "Chief Architect. HIPAA, SOC 2, and audit trails for every search query. PII must be redacted before hitting any external system.",
+      "answer": " Explore with MaverickUnderstood. Compliance is a top priority. You want to ensure HIPAA and SOC 2 compliance, full audit trails, and PII redaction. Let's break down how Algolia can help you sleep soundly at night.\n\n\nAlgolia and Compliance\n\nHIPAA Compliance:We offerBusiness Associate Agreements (BAAs)to support your HIPAA compliance needs. This ensures that we meet the necessary safeguards for protecting patient health information (PHI).\nSOC 2 Compliance:Algolia maintains SOC 2 Type II certification, demonstrating our commitment to data security and privacy. This means we have undergone a rigorous audit to ensure our controls meet the highest standards.\nAudit Trails:Algolia provides comprehensive audit trails, allowing you to track every search query and user interaction. This is essential for compliance and security monitoring.\nPII Redaction:Algolia offers features to redact PII before it hits our systems. This can be achieved through various methods, including tokenization, masking, or encryption.\n\n\nThe Value\nBy implementing these measures, you can ensure that your search infrastructure meets the strictest compliance requirements. This not only protects patient data but also reduces the risk of costly breaches and regulatory penalties.\nWith Algolia, you're not just getting a search solution, you're getting a partner in compliance.\nWhat is your current method for PII redaction, and what tools are you using?MaverickBrunoGo📄Docs6⚡API Ref5📢Marketing3📘Guides1🔧Support1🏆Cases1Discovery Dossier|50M+ records•Architect•compliance•+47",
+      "sources": [
+        {
+          "title": "📄Docs6",
+          "url": "",
+          "sourceType": "docs"
+        },
+        {
+          "title": "⚡API Ref5",
+          "url": "",
+          "sourceType": "api_ref"
+        },
+        {
+          "title": "📢Marketing3",
+          "url": "",
+          "sourceType": "marketing"
+        },
+        {
+          "title": "🔧Support1",
+          "url": "",
+          "sourceType": "support"
+        },
+        {
+          "title": "🏆Cases1",
+          "url": "",
+          "sourceType": "case_study"
+        }
+      ],
+      "activePersona": "maverick",
+      "voiceViolations": []
+    }
+  ],
+  "capturedAt": "2026-04-16T03:38:16.366Z",
+  "blessedBy": "arijit"
+}

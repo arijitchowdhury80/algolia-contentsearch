@@ -1,0 +1,76 @@
+{
+  "scenarioId": "cpg-q1",
+  "vertical": "cpg",
+  "tier": "Q1",
+  "expectsHandoff": false,
+  "drivingSequence": [
+    "We run 6 brand websites with inconsistent search and no shared learnings. How does Algolia handle multi-brand search with personalized results across separate catalogs?",
+    "6 brands, 2 million SKUs total, mix of Shopify and Adobe Commerce. US, UK, and Germany.",
+    "Director of Digital Platforms. Each brand team runs their own search today — zero consistency."
+  ],
+  "turns": [
+    {
+      "turnIndex": 0,
+      "userInput": "We run 6 brand websites with inconsistent search and no shared learnings. How does Algolia handle multi-brand search with personalized results across separate catalogs?",
+      "answer": "\"Think of your brand websites like siblings – same DNA, but each needs their own space to shine (and not wear each other's clothes).\" Explore with MaverickAlgolia can definitely wrangle those six brand websites! The key is semantic search, which goes beyond simple keyword matching to understand the intent behind each search query The definitive guide to semantic search engines - Algolia Blog. This is how we ensure shoppers see relevant results, even with different catalogs.\n\nHow It Works:\n\nContextual Understanding:Algolia usesNatural Language Processing (NLP)to interpret the meaning of search terms, considering the shopper’s history and current trendsThe definitive guide to semantic search engines - Algolia Blog. This helps to deliver accurate results, even with ambiguous phrasing.\nVector Search:We convert text into numerical representations, then use theK-Nearest Neighbor (KNN)algorithm to match items with similar content or meaningThe definitive guide to semantic search engines - Algolia Blog. This enables high-quality ranking based on context and relevance.\nFilter Toggle:You can use Filter Toggle to refine search results by toggling the view on or offFilter Toggle - Algolia.\n\n\nThe Value Proposition:\n\nConsistent Experience:Create a unified search experience across all your brands, improving customer satisfaction and brand loyalty.\nPersonalized Results:Deliver tailored results based on individual shopper behavior and preferences, boosting conversion rates.\nAI-Powered Sales Projections:AI can accommodate unbelievable amounts of data and make sense of all of this data and decipher correlations in the form of comprehensivetime series forecastsHarness the power of AI-based sales projection | Algolia.?\nMaverick wants to know:To clarify the scale of your operations, roughly how many products or SKUs are in each of these catalogs?📢Marketing3📘Guides1Discovery Dossier|•Personalization•2",
+      "sources": [
+        {
+          "title": "📢Marketing3",
+          "url": "",
+          "sourceType": "marketing"
+        },
+        {
+          "title": "📘Guides1",
+          "url": "",
+          "sourceType": "guides"
+        }
+      ],
+      "activePersona": "maverick",
+      "discoveryQuestion": "To clarify the scale of your operations, roughly how many products or SKUs are in each of these catalogs?",
+      "voiceViolations": []
+    },
+    {
+      "turnIndex": 1,
+      "userInput": "6 brands, 2 million SKUs total, mix of Shopify and Adobe Commerce. US, UK, and Germany.",
+      "answer": "\"Think of your 2 million SKUs as individual ingredients. Algolia's job is to know which ingredients make the best recipe for each customer, every time.\" Explore with MaverickOkay, 6 brands, 2 million SKUs, Shopify/Adobe Commerce, and US/UK/Germany. Got it. That's a serious operation – and a serious opportunity to level up your search game. Handling that kind of scale, across multiple platforms and regions, is where Algolia really shines.\n\n\n\nThe Playbook:\nWe're talking about AI-powered search that understands what your customers mean, not just what they type. It's about moving from keyword matching to true understanding How to use AI to build your business.\n\nSemantic Search:This is a breakthrough tech that gets the real meaning and context of words, not just matching keywordsThe definitive guide to semantic search engines - Algolia Blog. It usesNatural Language Processing (NLP), machine learning, and other AI to understand shopper intent and deliver accurate results.\nVector Search:The secret sauce! It converts text into vectors (numerical representations of data). Then, it uses theK-Nearest Neighbor (KNN)algorithm to match items with similar content or meaningThe definitive guide to semantic search engines - Algolia Blog. This enables high-quality ranking based on context and relevance.\nPersonalization:Algolia learns from each shopper’s behavior to deliver personalized results. The better the language understanding model, the better the conversionsHow to use AI to build your business.\n\n\n\n\nThe ROI:\nImagine this: a shopper searches for \"cozy sweater\" on your UK site. Algolia understands they're likely looking for something warm, maybe oversized, and probably in wool or cashmere. It surfaces the perfect sweater, even if the product description doesn't explicitly use those exact keywords. Boom. Conversion.\n\n\n\nThe Truth:\nI don't have a published case study for a multi-brand retailer with exactly your tech stack in front of me right now. What I can tell you is that our AI-powered search is proven to boost conversions and customer satisfaction across the board.\n\n\nTo make sure we're building the right solution for your needs, I need to ask:Maverick wants to know:Who will be primarily responsible for managing the Algolia implementation across these brands?📢Marketing2🖋️Blog2📄Docs2⚡API Ref1Discovery Dossier|Shopify•1M+ records•multi-language•+36",
+      "sources": [
+        {
+          "title": "📢Marketing2",
+          "url": "",
+          "sourceType": "marketing"
+        },
+        {
+          "title": "🖋️Blog2",
+          "url": "",
+          "sourceType": "blog"
+        },
+        {
+          "title": "📄Docs2",
+          "url": "",
+          "sourceType": "docs"
+        },
+        {
+          "title": "⚡API Ref1",
+          "url": "",
+          "sourceType": "api_ref"
+        }
+      ],
+      "activePersona": "maverick",
+      "discoveryQuestion": "Who will be primarily responsible for managing the Algolia implementation across these brands?",
+      "voiceViolations": []
+    },
+    {
+      "turnIndex": 2,
+      "userInput": "Director of Digital Platforms. Each brand team runs their own search today — zero consistency.",
+      "answer": "Maverick wants to know:Are these brands all under one parent company, or are they completely separate entities?🖋️Blog2📄Docs2⚡API Ref1Discovery Dossier|Shopify•1M+ records•Executive•+36",
+      "sources": [],
+      "activePersona": "maverick",
+      "discoveryQuestion": "Are these brands all under one parent company, or are they completely separate entities?",
+      "voiceViolations": [
+        "The assistant's responses contain prompt artifacts like \"Maverick wants to know:\" and category/document references (e.g., \"📢Marketing3📘Guides1Discovery Dossier|•Personalization•2\")."
+      ]
+    }
+  ],
+  "capturedAt": "2026-04-16T03:35:29.907Z",
+  "blessedBy": "arijit"
+}
