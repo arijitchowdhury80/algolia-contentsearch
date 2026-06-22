@@ -135,6 +135,7 @@ export async function producePanelAnswer(
       timing: { firstTokenMs: totalMs, totalMs },
       followUp: result.proposedQuestion ?? "",
       trace,
+      error: result.error,
     };
   }
 
@@ -149,6 +150,7 @@ export async function producePanelAnswer(
       sources: [],
       timing: { firstTokenMs: totalMs, totalMs },
       followUp: "",
+      error: result.error,
     };
   }
 
@@ -157,6 +159,7 @@ export async function producePanelAnswer(
     sources: toAnswerSources(result.sources, "agent"),
     timing: { firstTokenMs: totalMs, totalMs },
     followUp: result.proposedQuestion ?? "",
+    error: result.error,
   };
 }
 

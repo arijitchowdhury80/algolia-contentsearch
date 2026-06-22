@@ -13,6 +13,7 @@ export interface EngagementTurnResult {
   handoff?: { specialist: SpecialistId };
   proposedQuestion?: string;
   dossier: Dossier;
+  error?: string;
 }
 
 export interface OrchestrateDeps {
@@ -45,6 +46,7 @@ export async function orchestrateEngagement(
       persona: "maverick",
       proposedQuestion: brain.proposedQuestion,
       dossier: nextDossier,
+      error: mav.error,
     };
   }
 
@@ -57,6 +59,7 @@ export async function orchestrateEngagement(
       persona: "maverick",
       proposedQuestion: brain.proposedQuestion,
       dossier: nextDossier,
+      error: mav.error,
     };
   }
   const spec = await deps.runAgent(deps.agentIds[baton.specialist], brain.expandedQuery, [], onToken);
@@ -67,6 +70,7 @@ export async function orchestrateEngagement(
     handoff: { specialist: baton.specialist },
     proposedQuestion: brain.proposedQuestion,
     dossier: nextDossier,
+    error: spec.error,
   };
 }
 

@@ -103,13 +103,22 @@ describe("producePanelAnswer — dispatch", () => {
     expect(out.followUp).toBe("next?");
   });
 
-  it("surfaces an agent error in the contract without throwing", async () => {
+  it("propagates agent error into PanelAnswerResult.error without throwing", async () => {
     const d = deps({
-      runAgent: async () => ({ answer: "", sources: [], error: "agent 500" }),
+      runAgent: async () => ({ answer: "", sources: [], error: "agent X HTTP 500" }),
     });
     const out = await producePanelAnswer(P1, "q", { deps: d });
-    // empty answer => returns empty contract rather than throwing
+    // empty answer — but the error must be carried through, not silently dropped
     expect(out.answer).toBe("");
-    expect(out.error).toBeUndefined(); // no error field in empty-answer path
+    expect(out.error).toBe("agent X HTTP 500");
+  });
+
+  it("normal answer yields no error field", async () => {
+    const d = deps({
+      runAgent: async () => ({ answer: "all good", sources: [{ title: "Doc", url: "https://x/doc" }] }),
+    });
+    const out = await producePanelAnswer(P1, "q", { deps: d });
+    expect(out.answer).toBe("all good");
+    expect(out.error).toBeUndefined();
   });
 });
