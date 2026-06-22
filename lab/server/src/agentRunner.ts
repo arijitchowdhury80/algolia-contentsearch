@@ -16,24 +16,32 @@
  *     3:"error"          → error
  *     a:{...} / 9:{...}  → tool result frames carrying retrieved hits ({url,title,...})
  */
-import type { ConversationTurn, PanelSource } from "./panels.js";
+import type { ConversationTurn } from "./panels.js";
+import { makeStreamParser, type StreamSource } from "./streamParser.js";
+
+export type { StreamSource };
 
 /** Result of running one agent: the assistant text + the hits it retrieved. */
 export interface AgentRunResult {
   answer: string;
-  sources: PanelSource[];
+  sources: StreamSource[];
   error?: string;
 }
+
+/** Callback invoked per text token as the agent streams its response. */
+export type OnToken = (token: string) => void;
 
 /**
  * Run one Agent Studio agent against a question (+ optional prior turns). The
  * seam answer.ts / multiAgent.ts depend on; the default is `runAgentStudioAgent`
- * (real network), tests pass a stub.
+ * (real network), tests pass a stub. Callers that pass `onToken` receive each
+ * text fragment as it arrives; those that omit it still get the final result.
  */
 export type AgentRunner = (
   agentId: string,
   question: string,
   history?: ConversationTurn[],
+  onToken?: OnToken,
 ) => Promise<AgentRunResult>;
 
 /** Config for the real Agent Studio runner (CENTRAL app + a server-side key). */
@@ -47,7 +55,7 @@ export interface AgentStudioConfig {
 }
 
 /** Extract retrieved hits from a parsed tool-result frame (a:/9:). Pure. */
-function hitsFromToolFrame(payload: unknown): PanelSource[] {
+function hitsFromToolFrame(payload: unknown): StreamSource[] {
   if (!payload || typeof payload !== "object") return [];
   const result = (payload as { result?: unknown }).result ?? payload;
   const arr = Array.isArray(result)
@@ -55,24 +63,15 @@ function hitsFromToolFrame(payload: unknown): PanelSource[] {
     : Array.isArray((result as { hits?: unknown[] })?.hits)
       ? (result as { hits: unknown[] }).hits
       : [];
-  const out: PanelSource[] = [];
+  const out: StreamSource[] = [];
   for (const h of arr) {
     if (!h || typeof h !== "object") continue;
     const hit = h as Record<string, unknown>;
-    const url = typeof hit.url === "string" ? hit.url : undefined;
-    const title = typeof hit.title === "string" ? hit.title : undefined;
+    const url = typeof hit.url === "string" ? hit.url : "";
+    const title = typeof hit.title === "string" ? hit.title : "";
     if (!url && !title) continue;
-    // Body for the grounding check: prefer rich text, fall back to title.
-    const text =
-      [hit.content, hit.body, hit.description, hit.text, title]
-        .find((v) => typeof v === "string" && (v as string).trim()) as
-        | string
-        | undefined;
-    out.push({
-      id: `S${out.length + 1}`,
-      text: (text ?? title ?? url ?? "").trim(),
-      ...(title ?? url ? { label: (title ?? url) as string } : {}),
-    });
+    const source = typeof hit.source === "string" ? hit.source : undefined;
+    out.push({ title, url, ...(source ? { source } : {}) });
   }
   return out;
 }
@@ -85,7 +84,7 @@ function hitsFromToolFrame(payload: unknown): PanelSource[] {
 export function parseAgentStream(raw: string): AgentRunResult {
   let answer = "";
   let error: string | undefined;
-  const sources: PanelSource[] = [];
+  const sources: StreamSource[] = [];
   const seen = new Set<string>();
 
   for (const line of raw.split("\n")) {
@@ -111,10 +110,10 @@ export function parseAgentStream(raw: string): AgentRunResult {
     } else if (prefix === "a" || prefix === "9") {
       try {
         for (const s of hitsFromToolFrame(JSON.parse(payload))) {
-          const key = (s.label ?? s.text).toLowerCase();
+          const key = (s.url || s.title).toLowerCase();
           if (seen.has(key)) continue;
           seen.add(key);
-          sources.push({ ...s, id: `S${sources.length + 1}` });
+          sources.push(s);
         }
       } catch {
         /* ignore malformed tool frame */
@@ -149,6 +148,7 @@ export function makeAgentStudioRunner(cfg: AgentStudioConfig): AgentRunner {
     agentId: string,
     question: string,
     history: ConversationTurn[] = [],
+    onToken?: OnToken,
   ): Promise<AgentRunResult> {
     if (!agentId) {
       return { answer: "", sources: [], error: "no agentId configured" };
@@ -170,11 +170,20 @@ export function makeAgentStudioRunner(cfg: AgentStudioConfig): AgentRunner {
           signal: controller.signal,
         },
       );
-      const raw = await res.text();
       if (!res.ok) {
-        return { answer: "", sources: [], error: `agent ${res.status}: ${raw.slice(0, 300)}` };
+        return { answer: "", sources: [], error: `agent ${agentId} HTTP ${res.status}` };
       }
-      return parseAgentStream(raw);
+      const reader = (res.body as ReadableStream<Uint8Array>).getReader();
+      const decoder = new TextDecoder();
+      const parser = makeStreamParser();
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const { tokens } = parser.push(decoder.decode(value, { stream: true }));
+        if (onToken) for (const tk of tokens) onToken(tk);
+      }
+      const final = parser.end();
+      return { answer: final.answer, sources: final.sources, error: final.error };
     } catch (e) {
       return { answer: "", sources: [], error: (e as Error).message };
     } finally {
