@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { replayEngagement } from "./replay";
-import type { GoldEngagement } from "./goldLoader";
+import { replayEngagement } from "./replay.js";
+import type { GoldEngagement } from "./goldLoader.js";
 
 const gold: GoldEngagement = {
   scenarioId: "retail-q1", vertical: "retail", tier: "Q1", expectsHandoff: false,
