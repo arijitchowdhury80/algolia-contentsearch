@@ -14,7 +14,7 @@
  * retrieval, never the prompt (FAIRNESS INVARIANT).
  */
 import type { LlmComplete } from "@lab/judge";
-import type { AgentRunner, StreamSource } from "./agentRunner.js";
+import type { AgentRunner, StreamSource, OnToken } from "./agentRunner.js";
 import type { OrchestrationTrace } from "./multiAgent.js";
 import { orchestrateEngagement, type OrchestrateDeps } from "./orchestrate.js";
 import { emptyDossier } from "./discovery.js";
@@ -71,6 +71,8 @@ export interface ProduceOptions {
   readonly turn1Answer?: string;
   /** Turn-2 only: the generated follow-up that became the turn-2 question. */
   readonly followUp?: string;
+  /** Callback fired per text token as the agent streams its response. */
+  readonly onToken?: OnToken;
 }
 
 // ---------------------------------------------------------------------------
@@ -114,7 +116,7 @@ export async function producePanelAnswer(
   };
 
   if (panel.arch === "multi") {
-    const result = await orchestrateEngagement(question, emptyDossier(), "multi", orchDeps);
+    const result = await orchestrateEngagement(question, emptyDossier(), "multi", orchDeps, opts.onToken);
     const totalMs = Date.now() - t0;
     // Emit a minimal trace so the UI can surface persona + handoff even before RC2 trace
     // typing is promoted to its own shape. specialists[] is empty (no fan-out in RC2-shape).
@@ -138,7 +140,7 @@ export async function producePanelAnswer(
 
   // Single panel: brain + Maverick only (no handoff). Same brain/discovery path as multi
   // — the only difference is mode="single" suppresses the baton handoff. FAIRNESS INVARIANT.
-  const result = await orchestrateEngagement(question, emptyDossier(), "single", orchDeps);
+  const result = await orchestrateEngagement(question, emptyDossier(), "single", orchDeps, opts.onToken);
   const totalMs = Date.now() - t0;
 
   if (!result.answer) {

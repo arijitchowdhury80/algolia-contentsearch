@@ -110,8 +110,12 @@ const server = createServer(async (req, res) => {
         const send = (event: string, data: unknown) =>
           res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
         send("phase", { phase: "answering", panels: panelCount, turn: answerReq.turn ?? 1 });
-        const out = await runAnswerPanels(answerReq, deps, (payload) =>
-          send("panel", payload),
+        const out = await runAnswerPanels(
+          answerReq,
+          deps,
+          (payload) => send("panel", payload),
+          undefined,
+          (panelId, token) => send("delta", { panelId, token }),
         );
         send("result", { panels: out });
         res.end();
