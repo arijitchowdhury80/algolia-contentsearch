@@ -1,0 +1,9 @@
+{
+  "scenarioId": "retail-q1", "vertical": "retail", "tier": "Q1",
+  "expectsHandoff": false, "drivingSequence": ["Tell me retail wins", "We use Shopify"],
+  "turns": [
+    { "turnIndex": 0, "userInput": "Tell me retail wins", "answer": "Gymshark 27% lift.", "sources": [{"title":"GS","url":"u"}], "activePersona": "maverick", "discoveryQuestion": "What stack?" },
+    { "turnIndex": 1, "userInput": "We use Shopify", "answer": "Shopify + Algolia works great.", "sources": [], "activePersona": "maverick" }
+  ],
+  "capturedAt": "2026-06-21T00:00:00Z", "blessedBy": "arijit"
+}
