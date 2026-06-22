@@ -115,22 +115,18 @@ export interface LiveJudgeVerdict {
 }
 
 /**
- * Cross-panel deltas — the three numbers that ARE the 2×2 argument:
- *   multiLift  = multi − single, within a retrieval row (P2−P1 keyword, P4−P3 neural)
- *   neuralLift = neural − keyword, within an architecture column (P3−P1, P4−P2)
- *   compound   = P4 − P1 (best vs baseline)
- * Each is undefined when a needed panel was not judged in this request.
+ * Cross-panel deltas — the one number that IS the neural-only argument:
+ *   multiLift  = multi − single (P4−P3 neural)
+ * Undefined when one of the two panels was not judged in this request.
  */
 export interface CrossPanelDeltas {
-  multiLift?: { keyword?: number; neural?: number };
-  neuralLift?: { single?: number; multi?: number };
-  compound?: number;
+  multiLift?: number;
 }
 
 export interface LiveJudgeResult {
   rounds: number;
   panels: LiveJudgeVerdict[];
-  /** Present when ≥2 of the 2×2 panels (P1–P4) were judged together. */
+  /** Present when both neural panels (P3, P4) were judged together. */
   deltas?: CrossPanelDeltas;
 }
 
@@ -186,7 +182,7 @@ export function makeFollowUpScorer(llm: LlmComplete): FollowUpScorer {
 
 /**
  * Compute the cross-panel deltas from a set of verdicts (keyed by panelId).
- * Only fills a delta when both needed panels are present + error-free. Pure.
+ * Neural-only: computes multiLift (P4 − P3) when both neural panels are present + error-free. Pure.
  */
 export function computeDeltas(verdicts: LiveJudgeVerdict[]): CrossPanelDeltas {
   const by = new Map(verdicts.filter((v) => !v.error).map((v) => [v.panelId, v.composite]));
@@ -196,24 +192,10 @@ export function computeDeltas(verdicts: LiveJudgeVerdict[]): CrossPanelDeltas {
     return x === undefined || y === undefined ? undefined : x - y;
   };
   const deltas: CrossPanelDeltas = {};
-  const mlK = sub("P2", "P1"); // multi − single, keyword row
-  const mlN = sub("P4", "P3"); // multi − single, neural row
-  if (mlK !== undefined || mlN !== undefined) {
-    deltas.multiLift = {
-      ...(mlK !== undefined ? { keyword: mlK } : {}),
-      ...(mlN !== undefined ? { neural: mlN } : {}),
-    };
+  const mlN = sub("P4", "P3"); // multi − single, neural
+  if (mlN !== undefined) {
+    deltas.multiLift = mlN;
   }
-  const nlS = sub("P3", "P1"); // neural − keyword, single column
-  const nlM = sub("P4", "P2"); // neural − keyword, multi column
-  if (nlS !== undefined || nlM !== undefined) {
-    deltas.neuralLift = {
-      ...(nlS !== undefined ? { single: nlS } : {}),
-      ...(nlM !== undefined ? { multi: nlM } : {}),
-    };
-  }
-  const compound = sub("P4", "P1"); // best vs baseline
-  if (compound !== undefined) deltas.compound = compound;
   return deltas;
 }
 

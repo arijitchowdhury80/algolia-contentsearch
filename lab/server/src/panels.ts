@@ -1,25 +1,20 @@
 /**
- * panels — the 2×2 panel model (P1–P4) for the answer-quality lab.
+ * panels — the neural-only 1×2 panel model (P3–P4) for the answer-quality lab.
  *
- * The lab compares OUR system across two axes on the CENTRAL app (0EXRPAXB56):
+ * The lab compares OUR system across one axis on the CENTRAL app (0EXRPAXB56):
  *   architecture: single-agent | multi-agent
- *   retrieval:    keyword       | neural
+ *   retrieval:    neural (only)
  *
- *   | row\col   | Single                  | Multi                  |
- *   | keyword   | P1 SINGLE_KEYWORD       | P2 MULTI_KEYWORD       |
- *   | neural    | P3 SINGLE_NEURAL        | P4 MULTI_NEURAL        |
+ *   | Panel | Architecture | Index                |
+ *   | P3    | Single       | AC2_WWW_SINGLE_NEURAL |
+ *   | P4    | Multi        | AC2_WWW_MULTI_NEURAL  |
  *
- * Single panels (P1/P3) proxy ONE Agent Studio agent (agentId, from env). Multi
- * panels (P2/P4) run the coded Maverick coordinator (multiAgent.ts) over the
- * source-scoped specialist agents on the shared MULTI index. Index names are the
- * locked AC2_WWW_<ARCH>_<RETRIEVAL> convention; agent ids are read from env and
- * MAY be empty until the agents are created out-of-band (create_central_agents.mjs)
- * — every consumer must tolerate an empty agentId.
- *
- * NOTE (2026-06-18): the NEURAL indices currently run in keyword mode (neural
- * enablement is a deferred async flip handled OUTSIDE this workflow). `retrieval`
- * is therefore just a tag/parameter that drives query construction — do NOT
- * assume neural is live at runtime.
+ * P3 (single) proxies ONE Agent Studio agent (agentId from env, Maverick neural id).
+ * P4 (multi) runs the coded Maverick coordinator (multiAgent.ts) over the
+ * source-scoped specialist agents on the shared MULTI index. Both use neural retrieval.
+ * Index names follow the locked AC2_WWW_<ARCH>_<RETRIEVAL> convention; agent ids
+ * are read from env and MAY be empty until the agents are created out-of-band
+ * (create_central_agents.mjs) — every consumer must tolerate an empty agentId.
  */
 import { getEnv } from "./config.js";
 
@@ -53,7 +48,7 @@ export interface ConversationTurn {
 // The 2×2 panel model
 // ---------------------------------------------------------------------------
 
-export type PanelId = "P1" | "P2" | "P3" | "P4";
+export type PanelId = "P3" | "P4";
 export type Architecture = "single" | "multi";
 export type Retrieval = "keyword" | "neural";
 
@@ -73,46 +68,28 @@ export interface PanelMeta {
   readonly coordinator?: boolean;
 }
 
-/** The four index names — locked naming convention AC2_WWW_<ARCH>_<RETRIEVAL>. */
+/** The two index names — locked naming convention AC2_WWW_<ARCH>_<RETRIEVAL>. */
 export const INDEX_NAMES = {
-  P1: "AC2_WWW_SINGLE_KEYWORD",
-  P2: "AC2_WWW_MULTI_KEYWORD",
   P3: "AC2_WWW_SINGLE_NEURAL",
   P4: "AC2_WWW_MULTI_NEURAL",
 } as const;
 
 /**
- * Build the four panel descriptors from env. Single-agent ids come from
- * ALGOLIA_AGENT_P1_ID / ALGOLIA_AGENT_P3_ID (may be empty until agents exist).
- * Multi panels carry `coordinator: true` instead of an agent id.
+ * Build the two neural panel descriptors from env. Single panel reads
+ * ALGOLIA_AGENT_MAVERICK_NEURAL_ID for its agent id (may be empty until created).
+ * Multi panel carries `coordinator: true` instead of an agent id.
  */
 export function buildPanels(
   env: Record<string, string | undefined> = getEnv(),
 ): PanelMeta[] {
   return [
     {
-      panelId: "P1",
-      label: "P1 · Single · Keyword",
-      arch: "single",
-      retrieval: "keyword",
-      indexName: INDEX_NAMES.P1,
-      agentId: env.ALGOLIA_AGENT_P1_ID ?? "",
-    },
-    {
-      panelId: "P2",
-      label: "P2 · Multi · Keyword",
-      arch: "multi",
-      retrieval: "keyword",
-      indexName: INDEX_NAMES.P2,
-      coordinator: true,
-    },
-    {
       panelId: "P3",
       label: "P3 · Single · Neural",
       arch: "single",
       retrieval: "neural",
       indexName: INDEX_NAMES.P3,
-      agentId: env.ALGOLIA_AGENT_P3_ID ?? "",
+      agentId: env.ALGOLIA_AGENT_MAVERICK_NEURAL_ID ?? "",
     },
     {
       panelId: "P4",

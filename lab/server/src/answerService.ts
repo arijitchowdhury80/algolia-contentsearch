@@ -1,13 +1,12 @@
 /**
  * answerService — assemble the real AnswerDeps from env (CENTRAL app + pinned
- * provider) and run the four panels for the /api/answer endpoint.
+ * provider) and run the two neural panels (P3/P4) for the /api/answer endpoint.
  *
  * The agent-completion key is the SERVER-SIDE admin key (never the browser key).
  * The LLM is the single pinned provider (prefer OpenAI → Gemini); the specialist
- * agent ids come from the 8 ALGOLIA_AGENT_<ROLE>_<MODE>_ID env vars and the two
- * single agent ids from ALGOLIA_AGENT_P1_ID / ALGOLIA_AGENT_P3_ID. Any id may be
- * empty until the agents are created (create_central_agents.mjs) — the runner
- * returns a clean error rather than throwing.
+ * agent ids (maverick, elena, bruno) come from ALGOLIA_AGENT_<ROLE>_NEURAL_ID
+ * env vars. Any id may be empty until the agents are created (create_central_agents.mjs)
+ * — the runner returns a clean error rather than throwing.
  */
 import type { LlmComplete } from "@lab/judge";
 import { getEnv } from "./config.js";
@@ -53,7 +52,7 @@ export async function makeAnswerDeps(
 
 export interface AnswerRequest {
   question: string;
-  /** Which panels to run; defaults to all four. */
+  /** Which panels to run; defaults to both (P3, P4). */
   panels?: PanelId[];
   turn?: 1 | 2;
   /** Turn-2: per-panel turn-1 answer + generated follow-up that becomes turn-2. */
@@ -67,16 +66,19 @@ export interface AnswerPanelPayload extends PanelAnswerResult {
 
 /**
  * Run the requested panels IN PARALLEL. `onPanel` fires as each panel completes
- * (enables per-panel SSE streaming). Per-panel failures are isolated into that
- * payload's `error`. Returns all payloads in request order.
+ * (enables per-panel SSE streaming). `onToken` fires per text token as agents
+ * stream their responses (enables per-token delta SSE events). Per-panel failures
+ * are isolated into that payload's `error`. Returns all payloads in request order.
  */
 export async function runAnswerPanels(
   req: AnswerRequest,
   deps: AnswerDeps,
   onPanel?: (payload: AnswerPanelPayload) => void,
-  env: Record<string, string | undefined> = getEnv(),
+  env?: Record<string, string | undefined>,
+  onToken?: (panelId: string, token: string) => void,
 ): Promise<AnswerPanelPayload[]> {
-  const all = buildPanels(env);
+  const envVal = env ?? getEnv();
+  const all = buildPanels(envVal);
   const want = new Set(req.panels ?? all.map((p) => p.panelId));
   const selected: PanelMeta[] = all.filter((p) => want.has(p.panelId));
 
@@ -90,6 +92,7 @@ export async function runAnswerPanels(
           ...(req.turn === 2 ? { turn: 2 as const } : {}),
           ...(t1?.answer ? { turn1Answer: t1.answer } : {}),
           ...(t1?.followUp ? { followUp: t1.followUp } : {}),
+          ...(onToken ? { onToken: (token: string) => onToken(panel.panelId, token) } : {}),
         });
         payload = { panelId: panel.panelId, ...result };
       } catch (e) {

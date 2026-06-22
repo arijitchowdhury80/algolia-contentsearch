@@ -1,10 +1,10 @@
 /**
- * runTests — run the locked v3 question set through the four 2×2 panels (P1–P4)
+ * runTests — run the locked v3 question set through the two neural panels (P3–P4)
  * and persist a transcript. No judging here; that's a separate step (judgeStep).
  *
  * Each (question × panel) goes through the unified answer producer (answer.ts):
- *   - single panels (P1/P3) proxy ONE Agent Studio agent (+ generated follow-up)
- *   - multi panels (P2/P4) run the coded Maverick coordinator
+ *   - single neural panel (P3) proxies ONE Agent Studio agent (Maverick, + generated follow-up)
+ *   - multi neural panel (P4) runs the coded Maverick coordinator
  * The same contract is stored for every panel so the judge + leaderboard treat
  * them identically.
  *

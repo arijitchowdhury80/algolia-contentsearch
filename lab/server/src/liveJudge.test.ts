@@ -295,39 +295,35 @@ describe("computeDeltas", () => {
     };
   }
 
-  it("computes multiLift, neuralLift, and compound across the 2×2", () => {
-    const d = computeDeltas([v("P1", 5), v("P2", 6.5), v("P3", 7), v("P4", 8)]);
-    expect(d.multiLift).toEqual({ keyword: 1.5, neural: 1 }); // P2−P1, P4−P3
-    expect(d.neuralLift).toEqual({ single: 2, multi: 1.5 }); // P3−P1, P4−P2
-    expect(d.compound).toBeCloseTo(3); // P4−P1
+  it("computes multiLift across the neural panels", () => {
+    const d = computeDeltas([v("P3", 7), v("P4", 8)]);
+    expect(d.multiLift).toBeCloseTo(1); // P4−P3
   });
 
-  it("omits a delta when a needed panel is missing", () => {
-    const d = computeDeltas([v("P1", 5), v("P2", 6)]);
-    expect(d.multiLift).toEqual({ keyword: 1 });
-    expect(d.multiLift?.neural).toBeUndefined();
-    expect(d.compound).toBeUndefined();
+  it("omits multiLift when a neural panel is missing", () => {
+    const d = computeDeltas([v("P3", 7)]);
+    expect(d.multiLift).toBeUndefined();
   });
 
   it("ignores errored panels", () => {
-    const d = computeDeltas([v("P1", 5), v("P4", 8, "boom")]);
-    expect(d.compound).toBeUndefined();
+    const d = computeDeltas([v("P3", 7), v("P4", 8, "boom")]);
+    expect(d.multiLift).toBeUndefined();
   });
 });
 
 // --- judgeLive emits deltas when ≥2 panels judged ---------------------------
 
 describe("judgeLive — deltas", () => {
-  it("attaches cross-panel deltas to the result", async () => {
+  it("attaches multiLift delta to the result for both neural panels", async () => {
     const req: LiveJudgeRequest = {
       question: "q",
       panels: [
-        { panelId: "P1", answer: "a", sources: [] },
-        { panelId: "P2", answer: "b", sources: [] },
+        { panelId: "P3", answer: "a", sources: [] },
+        { panelId: "P4", answer: "b", sources: [] },
       ],
     };
     const res = await judgeLive(req, async () => multiRound({ finalScore: 6 }));
     expect(res.deltas).toBeDefined();
-    expect(res.deltas?.multiLift?.keyword).toBeCloseTo(0); // both 6 → lift 0
+    expect(res.deltas?.multiLift).toBeCloseTo(0); // both 6 → lift 0
   });
 });

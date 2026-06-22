@@ -3,10 +3,10 @@
  *
  *   tsx src/cli.ts run-tests [--limit N] [--ids 1.2,1.3] [--split dev|held-out]
  *   tsx src/cli.ts judge <runId> [--limit N] [--ids ...]
- *   tsx src/cli.ts summary <runId>           (2×2 leaderboard + multi/neural/compound deltas)
+ *   tsx src/cli.ts summary <runId>           (2×1 leaderboard: single neural vs multi neural)
  *   tsx src/cli.ts pipeline [--limit N] [--ids ...]   (run-tests → judge → summary)
  *
- * The harness runs the four 2×2 panels (P1–P4) through the unified answer path
+ * The harness runs the two neural panels (P3–P4) through the unified answer path
  * (answer.ts: single = Agent Studio proxy, multi = coded Maverick coordinator)
  * + scores them. It never CREATES Algolia agents/indices (that is
  * create_central_agents.mjs); panel + agent ids come from .env.local.
@@ -82,7 +82,7 @@ async function main(): Promise<void> {
       // Resolve + report the ONE active provider (prefer OpenAI, fall back to
       // Gemini). Everything — judge + ALL agents + the Maverick coordinator —
       // must run this same provider+model (FAIRNESS INVARIANT). Read-only
-      // consistency check across the four 2×2 agents (P1/P3 + the 8 specialists).
+      // consistency check across the three neural specialists (Maverick, Elena, Bruno).
       const env = getEnv();
       const spec = await resolveActiveProvider(env);
       console.log(`\n[provider] policy: prefer OpenAI; fall back to Gemini only when OpenAI is over limit.`);
@@ -94,15 +94,10 @@ async function main(): Promise<void> {
       const appId = env.ALGOLIA_APP_ID ?? "";
       const adminKey = env.ALGOLIA_ADMIN_API_KEY ?? "";
       const agents: { label: string; id: string | undefined }[] = [
-        { label: "P1 single-keyword", id: env.ALGOLIA_AGENT_P1_ID },
-        { label: "P3 single-neural", id: env.ALGOLIA_AGENT_P3_ID },
-        { label: "tech-keyword", id: env.ALGOLIA_AGENT_TECH_KEYWORD_ID },
+        { label: "P3 single-neural (Maverick)", id: env.ALGOLIA_AGENT_MAVERICK_NEURAL_ID },
         { label: "tech-neural", id: env.ALGOLIA_AGENT_TECH_NEURAL_ID },
-        { label: "marketer-keyword", id: env.ALGOLIA_AGENT_MARKETER_KEYWORD_ID },
         { label: "marketer-neural", id: env.ALGOLIA_AGENT_MARKETER_NEURAL_ID },
-        { label: "academy-keyword", id: env.ALGOLIA_AGENT_ACADEMY_KEYWORD_ID },
         { label: "academy-neural", id: env.ALGOLIA_AGENT_ACADEMY_NEURAL_ID },
-        { label: "support-keyword", id: env.ALGOLIA_AGENT_SUPPORT_KEYWORD_ID },
         { label: "support-neural", id: env.ALGOLIA_AGENT_SUPPORT_NEURAL_ID },
       ];
       console.log(`\n[provider] agent consistency check (only configured ids):`);
@@ -152,12 +147,11 @@ async function main(): Promise<void> {
         f.baseline ??
         `${process.cwd()}/../../scripts/setup/instructions_case3_grounded_lead_v1.md`;
       const baselineConfig = await readFile(baselineFile, "utf8");
-      // TODO(phase2): re-wire autocorrect to the full P1–P4 model. For now it
-      // optimizes the single-keyword panel (P1) and measures the margin against
-      // its multi-keyword sibling (P2) as the fixed floor.
+      // Neural-only model: optimize the single-neural panel (P3) and measure margin
+      // against its multi-neural sibling (P4) as the fixed floor.
       const cfg: LoopConfig = {
-        oursPanelId: "P1",
-        floorPanelId: "P2",
+        oursPanelId: "P3",
+        floorPanelId: "P4",
         targetMargin: 1.0,
         sustainRounds: 2,
         maxRounds: f.rounds ?? 4,
@@ -165,7 +159,7 @@ async function main(): Promise<void> {
         minImprovement: 0.3, // measured Gemini noise floor (zero-flicker proof)
       };
       const { seams, lastRunId } = makeAlgoliaSeams({
-        oursPanelId: "P1",
+        oursPanelId: "P3",
         cacheFloor: !f.noCacheFloor,
         ...(f.smoke ? { stubProposer: true } : {}),
         ...(f.ids ? { evalIds: f.ids } : {}),
