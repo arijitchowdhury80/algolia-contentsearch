@@ -1,8 +1,9 @@
-import { resolve } from "node:path";
+import { join } from "node:path";
 import { runReplay } from "./runReplay.js";
+import { REPO_ROOT } from "../config.js";
 
-const goldDir = resolve(__dirname, "..", "..", "..", "lab", "replay", "gold");
-const outDir = resolve(__dirname, "..", "..", "..", "lab", "replay", "results");
+const goldDir = join(REPO_ROOT, "lab", "replay", "gold");
+const outDir = join(REPO_ROOT, "lab", "replay", "results");
 
 runReplay({ goldDir, outDir })
   .then((r) => {
