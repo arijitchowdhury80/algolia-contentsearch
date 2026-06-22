@@ -8,6 +8,7 @@
     "run-tests": "tsx src/cli.ts run-tests",
     "judge": "tsx src/cli.ts judge",
     "summary": "tsx src/cli.ts summary",
+    "replay": "tsx src/replay/cli.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit"
