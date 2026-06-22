@@ -11,6 +11,12 @@ describe("parseBrain", () => {
     expect(out.expandedQuery).toContain("gymshark");
     expect(out.askedSignal).toBe("stack");
   });
+
+  it("drops an askedSignal value that is not a valid OnionSignal", () => {
+    const raw = '{"intent":"discovery","entities":{},"expandedQuery":"brand awareness","askedSignal":"brand"}';
+    const out = parseBrain(raw);
+    expect(out.askedSignal).toBeUndefined();
+  });
 });
 
 describe("runBrain", () => {

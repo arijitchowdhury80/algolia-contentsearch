@@ -1,12 +1,12 @@
 import type { LlmComplete } from "@lab/judge";
-import type { Dossier } from "./discovery.js";
+import type { Dossier, OnionSignal } from "./discovery.js";
 
 export interface BrainOutput {
   intent: string;
   entities: { brand?: string; industry?: string; product?: string; concepts?: string[] };
   expandedQuery: string;
   proposedQuestion?: string;
-  askedSignal?: string;
+  askedSignal?: OnionSignal;
 }
 
 export const BRAIN_SYSTEM = `You extract structured signals from one user turn in a sales-discovery conversation about Algolia.
@@ -15,6 +15,8 @@ Return ONLY JSON: {intent, entities:{brand,industry,product,concepts[]}, expande
 - expandedQuery: a neural-search-friendly rephrasing of what to retrieve.
 - proposedQuestion: the single best next discovery question (Onion Protocol) given what is still unknown; omit if already well-qualified.
 - askedSignal: which onion signal that question targets (stack|scale|role|pain|industry|product|feature|solution).`;
+
+const ONION_SIGNALS = ["stack", "scale", "role", "pain", "industry", "product", "feature", "solution"] as const;
 
 export function parseBrain(raw: string): BrainOutput {
   const match = raw.match(/\{[\s\S]*\}/);
@@ -25,7 +27,7 @@ export function parseBrain(raw: string): BrainOutput {
     entities: j.entities ?? {},
     expandedQuery: j.expandedQuery ?? "",
     proposedQuestion: j.proposedQuestion,
-    askedSignal: j.askedSignal,
+    askedSignal: (ONION_SIGNALS as readonly string[]).includes(j.askedSignal) ? (j.askedSignal as OnionSignal) : undefined,
   };
 }
 

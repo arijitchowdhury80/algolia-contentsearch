@@ -32,7 +32,7 @@ export async function orchestrateEngagement(
   const brain = await runBrain(userInput, dossier, deps.llm);
   const nextDossier = accumulate(
     dossier,
-    { signals: pickSignals(brain), asked: brain.askedSignal as never },
+    { signals: pickSignals(brain), asked: brain.askedSignal },
     userInput,
   );
 
