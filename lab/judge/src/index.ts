@@ -51,3 +51,6 @@ export type {
   ClaimGateOutcome,
   ClusterOptions,
 } from "./claimGate.js";
+export { judgeEngagementTurn, type TurnVerdict } from "./judgeReference.js";
+export type { ReferenceTurnArtifact } from "./referenceTypes.js";
+export { classifyGaps, type MissedClaim, type GapKind } from "./gapClassifier.js";
