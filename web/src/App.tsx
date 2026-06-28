@@ -60,8 +60,9 @@ function mapVerdictToDims(dimensions: JudgeVerdict['dimensions']): VerdictDims {
   const get = (id: string) => dimensions.find((d) => d.id === id)?.score ?? 0;
   return {
     grounding: get('grounding'),
-    confidence: get('confidence'),
-    breadthDepth: get('breadth_depth'),
+    coverage: get('coverage'),
+    depth: get('depth'),
+    relevance: get('relevance'),
   };
 }
 
@@ -81,7 +82,7 @@ function mapVerdict(v: JudgeVerdict): PanelJudgeResult {
     flaggedClaims: (v.violations ?? []).map((viol) => ({
       claim: viol.claim,
       reason: viol.reason,
-      confidence: viol.confidence,
+      certainty: viol.certainty,
     })),
     rationale: v.rationale,
     ...(v.error ? { error: v.error } : {}),

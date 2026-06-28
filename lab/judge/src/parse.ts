@@ -7,7 +7,18 @@ import type {
 /** Shape the LLM is contracted to emit (see prompt.JUDGE_OUTPUT_CONTRACT). */
 export interface RawJudgeOutput {
   dimensionScores: { dimensionId: string; score: number; rationale?: string }[];
-  groundingViolations?: { claim: string; reason?: string; confidence?: number; kind?: string }[];
+  /**
+   * Per-claim certainty was renamed `confidence` → `certainty` (2026-06-27) so it
+   * never collides with the answer-level "Confidence" composite. We still accept a
+   * legacy `confidence` key on input for back-compat with cached/older outputs.
+   */
+  groundingViolations?: {
+    claim: string;
+    reason?: string;
+    certainty?: number;
+    confidence?: number;
+    kind?: string;
+  }[];
   summary?: string;
 }
 
@@ -72,7 +83,7 @@ export function extractJsonObject(raw: string): unknown {
 
 /**
  * Parses + normalises a raw judge LLM output into typed, clamped structures.
- * Scores are clamped to the rubric range; violation confidence to [0,1].
+ * Scores are clamped to the rubric range; violation certainty to [0,1].
  * Pure: no I/O.
  */
 export function parseJudgeOutput(
@@ -96,7 +107,8 @@ export function parseJudgeOutput(
     (v) => ({
       claim: String(v.claim),
       reason: String(v.reason ?? ""),
-      confidence: clamp(Number(v.confidence ?? 1), 0, 1),
+      // Output is `certainty`; accept legacy `confidence` on input for back-compat.
+      certainty: clamp(Number(v.certainty ?? v.confidence ?? 1), 0, 1),
       // Only "unverifiable" is special (it won't trip the gate); anything else
       // (incl. absent/garbled) defaults to "contradicted" — the safe, gating value.
       kind: v.kind === "unverifiable" ? "unverifiable" : "contradicted",

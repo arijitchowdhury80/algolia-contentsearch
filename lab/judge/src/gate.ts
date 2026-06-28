@@ -25,7 +25,7 @@ export function verifiedGatingViolations(
       // (not found in thin/partial sources) lower the grounding dimension but must
       // NOT trip the hard gate — else thin live sources slam everything to the cap.
       if (v.kind === "unverifiable") continue;
-      if (v.confidence >= gate.verifiedConfidence) out.push(v);
+      if (v.certainty >= gate.verifiedConfidence) out.push(v);
     }
   }
   return out;

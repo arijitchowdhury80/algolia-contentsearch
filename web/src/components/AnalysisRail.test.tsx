@@ -22,11 +22,12 @@ const liveData: AnalysisData = {
   borderline: false,
   dimensions: [
     { id: 'grounding', label: 'Grounding', score: 7 },
-    { id: 'confidence', label: 'Answer confidence', score: 6 },
-    { id: 'breadth_depth', label: 'Breadth & depth', score: 8 },
+    { id: 'coverage', label: 'Coverage', score: 6 },
+    { id: 'depth', label: 'Depth', score: 8 },
+    { id: 'relevance', label: 'Relevance', score: 7 },
   ],
   violations: [
-    { claim: 'Algolia guarantees 99.999% uptime', reason: 'no source states this', confidence: 0.9 },
+    { claim: 'Algolia guarantees 99.999% uptime', reason: 'no source states this', certainty: 0.9 },
   ],
   floorScore: 4.4,
   floorGateTripped: true,
@@ -73,12 +74,13 @@ describe('AnalysisRail', () => {
     expect(html).not.toContain('arail__grid');
   });
 
-  it('open + done renders the 3-dimension breakdown, judges, margin and synthesis', () => {
+  it('open + done renders the 4-dimension breakdown, judges, margin and synthesis', () => {
     const html = renderToStaticMarkup(<AnalysisRail open {...base} state="done" data={liveData} />);
     expect(html).toContain('arail__grid');
     expect(html).toContain('Grounding');
-    expect(html).toContain('Answer confidence');
-    expect(html).toContain('Breadth &amp; depth');
+    expect(html).toContain('Coverage');
+    expect(html).toContain('Depth');
+    expect(html).toContain('Relevance');
     expect(html).toContain('grounded but thin');
     expect(html).toContain('Margin vs'); // ②-vs-③ section present (floorScore set)
     expect(html).toContain('live synthesis text');

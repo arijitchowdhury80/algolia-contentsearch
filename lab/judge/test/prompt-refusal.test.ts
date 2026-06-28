@@ -35,9 +35,9 @@ describe("refusal-aware judge prompt", () => {
   it("scopes the grounding note so it does NOT excuse empty/incomplete answers", () => {
     // The note must protect honest disclaimers from being mis-flagged as
     // fabrication, but must NOT inflate a non-answer: an empty/evasive/thin
-    // response still has to score low on Breadth & depth (and weak Confidence).
+    // response still has to score low on Depth (and weak Coverage).
     const p = buildJudgePrompt(judge, base, rubric);
     expect(p).toMatch(/does NOT excuse|must still score low/i);
-    expect(p).toMatch(/breadth & depth/i);
+    expect(p).toMatch(/score LOW on Depth/i);
   });
 });

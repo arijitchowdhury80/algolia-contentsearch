@@ -70,15 +70,16 @@ export interface VerdictViolation {
   claim: string;
   /** Why no provided source backs it. */
   reason: string;
-  /** Skeptic's confidence 0–1 that it's a real violation. */
-  confidence: number;
+  /** Skeptic's certainty 0–1 that it's a real violation (per-claim signal). */
+  certainty: number;
 }
 
-/** The 3-dimension composite breakdown (each 1–10), named for the UI/contract. */
+/** The 4-dimension composite breakdown (each 1–10), named for the UI/contract. */
 export interface VerdictDims {
   grounding: number;
-  confidence: number;
-  breadthDepth: number;
+  coverage: number;
+  depth: number;
+  relevance: number;
 }
 
 export interface LiveJudgeVerdict {
@@ -87,9 +88,9 @@ export interface LiveJudgeVerdict {
   judges: { role: Temperament; score: number; note: string }[];
   /** Alias of `judges`, named `perJudge` to match the Phase 4 contract. */
   perJudge: { role: Temperament; score: number; note: string }[];
-  /** The 3-dimension breakdown (grounding / confidence / breadth_depth), 1–10. */
+  /** The 4-dimension breakdown (grounding / coverage / depth / relevance), 1–10. */
   dimensions: VerdictDimension[];
-  /** Named 3-dim breakdown for the cross-panel contract. */
+  /** Named 4-dim breakdown for the cross-panel contract. */
   dims: VerdictDims;
   /** Claims the Skeptic flagged as unsupported — the "why" behind a gate trip. */
   violations: VerdictViolation[];
@@ -97,7 +98,7 @@ export interface LiveJudgeVerdict {
   flaggedClaims: VerdictViolation[];
   /** Final 0–10 after consensus + voted gate (aggregate.finalScore) = the composite. */
   synthesizedScore: number;
-  /** The composite (alias of synthesizedScore) — gate × mean(3 dims). */
+  /** The composite (alias of synthesizedScore) — gate × mean(4 dims). */
   composite: number;
   /** Stable pre-gate consensus (aggregate.meanPreGateScore). */
   preGateScore: number;
@@ -274,22 +275,23 @@ function violationsFromRounds(result: MultiRoundResult): VerdictViolation[] {
         if (v.kind === "unverifiable") continue;
         const key = v.claim.trim().toLowerCase().slice(0, 100);
         const prev = seen.get(key);
-        if (!prev || v.confidence > prev.confidence) {
-          seen.set(key, { claim: v.claim, reason: v.reason, confidence: v.confidence });
+        if (!prev || v.certainty > prev.certainty) {
+          seen.set(key, { claim: v.claim, reason: v.reason, certainty: v.certainty });
         }
       }
     }
   }
-  return [...seen.values()].sort((a, b) => b.confidence - a.confidence);
+  return [...seen.values()].sort((a, b) => b.certainty - a.certainty);
 }
 
-/** Pull the named 3-dim breakdown from the aggregate's dimensionMeans. Pure. */
+/** Pull the named 4-dim breakdown from the aggregate's dimensionMeans. Pure. */
 function dimsFromAggregate(result: MultiRoundResult): VerdictDims {
   const m = result.aggregate.dimensionMeans;
   return {
     grounding: m.grounding ?? 0,
-    confidence: m.confidence ?? 0,
-    breadthDepth: m.breadth_depth ?? 0,
+    coverage: m.coverage ?? 0,
+    depth: m.depth ?? 0,
+    relevance: m.relevance ?? 0,
   };
 }
 
@@ -366,7 +368,7 @@ export async function judgeLive(
           judges: [],
           perJudge: [],
           dimensions: [],
-          dims: { grounding: 0, confidence: 0, breadthDepth: 0 },
+          dims: { grounding: 0, coverage: 0, depth: 0, relevance: 0 },
           violations: [],
           flaggedClaims: [],
           synthesizedScore: 0,

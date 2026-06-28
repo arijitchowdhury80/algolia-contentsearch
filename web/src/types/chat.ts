@@ -112,14 +112,16 @@ export interface PerJudgeResult {
   note: string;
 }
 
-/** Named 3-dimension breakdown (each 1–10, equal-weighted ×1 per the 2026-06-18 spec). */
+/** Named 4-dimension breakdown (each 1–10, equal-weighted ×1 per the 2026-06-27 spec). */
 export interface VerdictDims {
   /** Source-grounding score — the HARD FLOOR: ≤3 when gate trips. */
   grounding: number;
-  /** Model confidence / hedging appropriate to sources. */
-  confidence: number;
-  /** Breadth + depth of the answer relative to retrieved sources. */
-  breadthDepth: number;
+  /** Did it address every part of the question (the discovery signals). */
+  coverage: number;
+  /** For what it covered, did it go deep — mechanism, specifics, trade-offs. */
+  depth: number;
+  /** Did it answer THIS user's situation, not a generic version. */
+  relevance: number;
 }
 
 /** A claim the Skeptic judge flagged as unsupported by the retrieved sources. */
@@ -128,8 +130,8 @@ export interface FlaggedClaim {
   claim: string;
   /** Why no provided source backs it. */
   reason: string;
-  /** Skeptic's confidence 0–1 that it is a real violation. */
-  confidence: number;
+  /** Skeptic's certainty 0–1 that it is a real violation (per-claim signal). */
+  certainty: number;
 }
 
 /**
@@ -157,9 +159,9 @@ export interface PanelJudgeResult {
   panelId: string;
   /** Per-temperament results (Skeptic / Referee / Advocate). Live tier: 1 entry. */
   perJudge: PerJudgeResult[];
-  /** Named 3-dim breakdown (grounding / confidence / breadthDepth). */
+  /** Named 4-dim breakdown (grounding / coverage / depth / relevance). */
   dims: VerdictDims;
-  /** Final 0–10 composite after consensus + voted gate = gate × mean(3 dims). */
+  /** Final 0–10 composite after consensus + voted gate = gate × mean(4 dims). */
   composite: number;
   /** Stable pre-gate consensus (the reproducible quality metric). */
   preGateScore: number;

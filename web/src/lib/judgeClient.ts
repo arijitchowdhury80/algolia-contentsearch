@@ -31,7 +31,7 @@ export interface JudgeRequest {
   panels: JudgePanelInput[];
 }
 
-/** One scored rubric dimension (grounding / confidence / breadth_depth), 1–10. */
+/** One scored rubric dimension (grounding / coverage / depth / relevance), 1–10. */
 export interface JudgeDimension {
   id: string;
   label: string;
@@ -42,13 +42,13 @@ export interface JudgeDimension {
 export interface JudgeViolation {
   claim: string;
   reason: string;
-  confidence: number;
+  certainty: number;
 }
 
 export interface JudgeVerdict {
   panelId: string;
   judges: { role: JudgeRole; score: number; note: string }[];
-  /** 3-dimension breakdown for the analysis rail's per-dimension bars. */
+  /** 4-dimension breakdown for the analysis rail's per-dimension bars. */
   dimensions: JudgeDimension[];
   /** Flagged unsupported claims — the WHY behind a grounding gate trip. */
   violations: JudgeViolation[];

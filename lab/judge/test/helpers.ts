@@ -42,7 +42,7 @@ export function makeJudgment(
     groundingViolations: violations.map((v, i) => ({
       claim: `claim ${i}`,
       reason: "not in sources",
-      confidence: v.confidence,
+      certainty: v.confidence,
       ...(v.kind ? { kind: v.kind } : {}),
     })),
     summary: `${judgeId} verdict`,
@@ -74,7 +74,7 @@ export function makeMockLlm(opts: {
       groundingViolations: violations.map((v, i) => ({
         claim: `claim ${i}`,
         reason: "not supported by sources",
-        confidence: v.confidence,
+        certainty: v.confidence,
       })),
       summary: `mock summary @${score}`,
     });

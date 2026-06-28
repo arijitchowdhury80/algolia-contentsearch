@@ -21,6 +21,7 @@ export {
   JUDGE_OUTPUT_CONTRACT,
   buildJudgePrompt,
   buildSynthesisPrompt,
+  renderExpectedCoverage,
 } from "./prompt.js";
 export { extractJsonObject, parseJudgeOutput } from "./parse.js";
 export { weightedAggregate, toFinalScale } from "./aggregate.js";
@@ -51,6 +52,3 @@ export type {
   ClaimGateOutcome,
   ClusterOptions,
 } from "./claimGate.js";
-export { judgeEngagementTurn, type TurnVerdict } from "./judgeReference.js";
-export type { ReferenceTurnArtifact } from "./referenceTypes.js";
-export { classifyGaps, type MissedClaim, type GapKind } from "./gapClassifier.js";

@@ -90,15 +90,17 @@ const JUDGE_ACCENT_VAR: Record<string, string> = {
 
 const DIM_LABEL: Record<keyof VerdictDims, string> = {
   grounding: 'Grounding',
-  confidence: 'Confidence',
-  breadthDepth: 'Breadth & depth',
+  coverage: 'Coverage',
+  depth: 'Depth',
+  relevance: 'Relevance',
 };
 const DIM_SUB: Record<keyof VerdictDims, string | undefined> = {
   grounding: 'hard floor + scored',
-  confidence: undefined,
-  breadthDepth: undefined,
+  coverage: undefined,
+  depth: undefined,
+  relevance: undefined,
 };
-const DIM_ORDER: Array<keyof VerdictDims> = ['grounding', 'confidence', 'breadthDepth'];
+const DIM_ORDER: Array<keyof VerdictDims> = ['grounding', 'coverage', 'depth', 'relevance'];
 
 // ---------------------------------------------------------------------------
 // Sub-components (all self-contained, no React.memo — small tree)
@@ -189,7 +191,7 @@ function DeltaPill({ delta, label }: { delta: number | undefined; label: string 
 
 /** Flagged-claim card (conditional — only rendered on violation). */
 function ClaimCard({ claim }: { claim: FlaggedClaim }) {
-  const judgeCount = Math.round(claim.confidence * 3);
+  const judgeCount = Math.round(claim.certainty * 3);
   const safeCount = Math.min(3, Math.max(1, judgeCount || 2));
   return (
     <div className="jdrawer__claim">

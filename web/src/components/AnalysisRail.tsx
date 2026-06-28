@@ -35,7 +35,7 @@ export interface AnalysisDimension {
 export interface AnalysisViolation {
   claim: string;
   reason: string;
-  confidence: number;
+  certainty: number;
 }
 
 export interface ConfigDiffRow {
@@ -241,7 +241,7 @@ function Analysis({ data, judgeMs }: { data: AnalysisData; judgeMs?: number | nu
                 <p className="violation__claim">“{v.claim}”</p>
                 <p className="violation__reason">
                   {v.reason}
-                  <span className="violation__conf"> · {Math.round(v.confidence * 100)}% conf</span>
+                  <span className="violation__conf"> · {Math.round(v.certainty * 100)}% certainty</span>
                 </p>
               </li>
             ))}

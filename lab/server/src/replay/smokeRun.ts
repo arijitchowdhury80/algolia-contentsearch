@@ -10,8 +10,7 @@ import { writeFileSync, mkdirSync } from "node:fs";
 import { loadGold } from "./goldLoader.js";
 import { replayEngagement } from "./replay.js";
 import { summarize, type ScorecardTurn } from "./scorecard.js";
-import { judgeEngagementTurn } from "@lab/judge";
-import type { ReferenceTurnArtifact } from "@lab/judge";
+import { judgeReplayTurn } from "./runReplay.js";
 import { makeAnswerDeps, makePinnedLlm } from "../answerService.js";
 import { REPO_ROOT } from "../config.js";
 import type { OrchestrateDeps } from "../orchestrate.js";
@@ -39,33 +38,11 @@ for (const eng of gold) {
     process.stderr.write(`[smoke] got ${replayed.turns.length} turns, judging...\n`);
     for (const rt of replayed.turns) {
       process.stderr.write(`[smoke]   judging turn ${rt.turnIndex}...\n`);
-      const isDeep = rt.turnIndex === eng.turns.length - 1 && eng.expectsHandoff;
-      const art: ReferenceTurnArtifact = {
-        userInput: rt.userInput,
-        candidateAnswer: rt.candidate.answer,
-        candidateSources: rt.candidate.sources.map((s, i) => ({
-          id: String(i),
-          text: `${s.title} ${s.url}`,
-        })),
-        goldAnswer: rt.gold.answer,
-        goldSources: rt.gold.sources.map((s, i) => ({
-          id: String(i),
-          text: `${s.title} ${s.url}`,
-        })),
-        turnRole: isDeep ? "deepdive" : "discovery",
-        expectedSpecialist: eng.handoffTarget,
-      };
-      const v = await judgeEngagementTurn(art, rt.candidate.persona, llm);
-      process.stderr.write(`[smoke]     turn ${rt.turnIndex}: pctOfFloor=${v.pctOfFloor} gated=${v.gated} retrieval=${v.missedClaims.filter(m => m.gap === "retrieval-gap").length} generation=${v.missedClaims.filter(m => m.gap === "generation-gap").length}\n`);
-      turns.push({
-        scenarioId: eng.scenarioId,
-        mode,
-        turnIndex: rt.turnIndex,
-        pctOfFloor: v.pctOfFloor,
-        gated: v.gated,
-        retrievalGaps: v.missedClaims.filter((m) => m.gap === "retrieval-gap").length,
-        generationGaps: v.missedClaims.filter((m) => m.gap === "generation-gap").length,
-      });
+      const scored = await judgeReplayTurn(eng.scenarioId, mode, rt, llm);
+      process.stderr.write(
+        `[smoke]     turn ${rt.turnIndex}: composite=${scored.composite} gated=${scored.gated}\n`,
+      );
+      turns.push(scored);
     }
   }
 }
@@ -78,10 +55,10 @@ writeFileSync(outPath, JSON.stringify({ turns, summary, smokeOnly: true, scenari
 process.stderr.write(`[smoke] DONE — wrote ${outPath}\n`);
 console.log("✅ Smoke replay complete.");
 console.log(`Provider: ${provider}`);
-console.log(`Mean % of floor: ${summary.meanPctOfFloor}%`);
+console.log(`Mean composite: ${summary.meanComposite}`);
 console.log(`Gated: ${summary.gatedCount}`);
 console.log("Per-scenario:");
 for (const [k, v] of Object.entries(summary.perScenario)) {
-  console.log(`  ${k}: ${v}%`);
+  console.log(`  ${k}: ${v}`);
 }
 console.log(`Scorecard: ${outPath}`);

@@ -8,11 +8,11 @@ const outDir = join(REPO_ROOT, "lab", "replay", "results");
 runReplay({ goldDir, outDir })
   .then((r) => {
     console.log("✅ Replay complete.");
-    console.log(`Mean % of floor: ${r.summary.meanPctOfFloor}%`);
+    console.log(`Mean composite: ${r.summary.meanComposite}/10`);
     console.log(`Gated (grounding failed): ${r.summary.gatedCount}`);
     console.log("Per-scenario:");
     Object.entries(r.summary.perScenario).forEach(([k, v]) =>
-      console.log(`  ${k}: ${v}%`),
+      console.log(`  ${k}: ${v}/10`),
     );
     console.log(`Scorecard written to ${outDir}`);
   })

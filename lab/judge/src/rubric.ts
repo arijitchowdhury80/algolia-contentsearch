@@ -7,20 +7,22 @@ import type {
 } from "./types.js";
 
 /**
- * Default rubric for the Algolia answer-quality experiment — 3-dimension model
- * (Arijit, 2026-06-18). The verdict is a composite across exactly three facets:
- * Grounding, Answer confidence, and Breadth & depth. All three carry EQUAL weight
- * (x1) — the composite is their simple mean (Arijit, 2026-06-18: reconcile to
- * equal-weight). Grounding is NOT up-weighted in the quality average; instead it
- * is the HARD FLOOR — a verified grounding violation still caps the whole score
- * via the gate (see DEFAULT_GATE / aggregateRounds), independent of its weight.
- * The earlier 7-dimension rubric folded into these three: citation quality →
- * Grounding; completeness + depth + logical structure → Breadth & depth;
- * decisiveness is the new Confidence dimension. (Two-way "engagement" is
- * deferred — not scored here.)
+ * Default rubric for the Algolia answer-quality experiment — 4-dimension model
+ * (Arijit, 2026-06-27). The composite ("Confidence") is a simple equal-weight (x1)
+ * mean across four facets: Grounding, Coverage, Depth, and Relevance. Grounding is
+ * NOT up-weighted in the average; instead it is the HARD FLOOR — a verified
+ * grounding violation still caps the whole score via the gate (see DEFAULT_GATE /
+ * aggregateRounds), independent of its weight.
+ *
+ * History: the earlier 3-dimension model (grounding / answer-confidence /
+ * breadth_depth) was refactored — the fused "breadth_depth" split into Coverage
+ * (did it address every part of the question) + Depth (did it go deep on what it
+ * covered); the old decisiveness "confidence" dimension was dropped (its
+ * over-refusal signal folds into Coverage); Relevance (does it answer THIS user's
+ * situation) was added. See docs/superpowers/specs/2026-06-27-judge-confidence-refactor-design.md.
  */
 export const ALGOLIA_ANSWER_RUBRIC: Rubric = {
-  name: "Algolia answer quality v2 (3-dimension)",
+  name: "Algolia answer quality v3 (4-dimension)",
   min: 1,
   max: 10,
   dimensions: [
@@ -32,17 +34,24 @@ export const ALGOLIA_ANSWER_RUBRIC: Rubric = {
       weight: 1,
     },
     {
-      id: "confidence",
-      label: "Answer confidence",
+      id: "coverage",
+      label: "Coverage",
       description:
-        "How decisive and self-assured is the answer GIVEN its sources? A strong answer commits to a clear, direct response and states what it knows plainly. Penalise needless hedging, vague qualifiers, or refusing/deferring when the sources actually support an answer. IMPORTANT: confidence is decisiveness given the sources — it is NEVER a licence to overstate; claims beyond the sources are a Grounding failure, not confidence credit. A correct, clean refusal to a genuinely unanswerable question is itself confident — score it high.",
+        "Did the answer address EVERY part of the question — each entity/signal the user surfaced (industry, role, use-case, problem, product, topic)? When the artifact lists EXPECTED COVERAGE entities, treat them as the checklist and reward addressing each. A complete answer surfaces available information rather than needlessly refusing; penalise partial answers that ignore parts of the question, or that refuse/defer when the sources actually support an answer.",
       weight: 1,
     },
     {
-      id: "breadth_depth",
-      label: "Breadth & depth",
+      id: "depth",
+      label: "Depth",
       description:
-        "Does the answer cover the question broadly (the parts a strong answer would include) AND go deep where it matters — mechanism, specific parameters/settings/names, trade-offs, and nuance that the sources provide — in a clear, logically layered structure? Reward complete, substantive, well-organised answers; penalise thin, shallow, partial, or rambling ones. Depth must come from the sources, not padding.",
+        "For what it covers, does the answer go DEEP — mechanism, specific parameters/settings/names, numbers, trade-offs, and nuance the sources provide — in a clear, logically layered structure? Reward substantive, specific, well-organised answers; penalise thin, shallow, or padded ones. Depth must come from the sources, not padding.",
+      weight: 1,
+    },
+    {
+      id: "relevance",
+      label: "Relevance",
+      description:
+        "Does the answer address THIS user's specific situation and question, not a generic version? Reward answers tailored to the user's stated context (their role, industry, problem); penalise generic boilerplate that ignores what the user actually asked.",
       weight: 1,
     },
   ],

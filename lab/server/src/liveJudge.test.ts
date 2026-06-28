@@ -80,7 +80,7 @@ function multiRound(opts?: {
       gateTripped: opts?.gateTripped ?? false,
       borderline: opts?.borderline ?? false,
       finalScore: opts?.finalScore ?? 5.9,
-      dimensionMeans: { grounding: 6.5, confidence: 7, breadth_depth: 8 },
+      dimensionMeans: { grounding: 6.5, coverage: 7, depth: 8, relevance: 7.5 },
       judgeComposites: [
         { judgeId: "skeptic", temperament: "skeptic", composite: 6.5 },
         { judgeId: "referee", temperament: "referee", composite: 8 },
@@ -150,27 +150,28 @@ describe("toVerdict", () => {
     expect(skeptic.note).toBe("skeptic r0");
   });
 
-  it("surfaces the 3-dimension breakdown in rubric order", () => {
+  it("surfaces the 4-dimension breakdown in rubric order", () => {
     const v = toVerdict("P1", multiRound());
     expect(v.dimensions.map((d) => d.id)).toEqual([
       "grounding",
-      "confidence",
-      "breadth_depth",
+      "coverage",
+      "depth",
+      "relevance",
     ]);
     expect(v.dimensions[0]).toMatchObject({ id: "grounding", label: "Grounding", score: 6.5 });
   });
 
-  it("surfaces the Skeptic's flagged claims (the WHY behind a gate trip), highest-confidence first", () => {
+  it("surfaces the Skeptic's flagged claims (the WHY behind a gate trip), highest-certainty first", () => {
     const mr = multiRound();
     // Inject skeptic violations into round 0.
     const skeptic = mr.perRound[0].judgments.find((j) => j.temperament === "skeptic")!;
     (skeptic as { groundingViolations: unknown[] }).groundingViolations = [
-      { claim: "Algolia guarantees 99.999% uptime", reason: "no source says this", confidence: 0.9 },
-      { claim: "typo tolerance is free on all plans", reason: "not in sources", confidence: 0.6 },
+      { claim: "Algolia guarantees 99.999% uptime", reason: "no source says this", certainty: 0.9 },
+      { claim: "typo tolerance is free on all plans", reason: "not in sources", certainty: 0.6 },
     ];
     const v = toVerdict("P1", mr);
     expect(v.violations).toHaveLength(2);
-    expect(v.violations[0].claim).toContain("99.999% uptime"); // higher confidence first
+    expect(v.violations[0].claim).toContain("99.999% uptime"); // higher certainty first
     expect(v.violations[0].reason).toBeTruthy();
   });
 
@@ -282,7 +283,7 @@ describe("computeDeltas", () => {
       judges: [],
       perJudge: [],
       dimensions: [],
-      dims: { grounding: 0, confidence: 0, breadthDepth: 0 },
+      dims: { grounding: 0, coverage: 0, depth: 0, relevance: 0 },
       violations: [],
       flaggedClaims: [],
       synthesizedScore: composite,

@@ -212,7 +212,7 @@ describe("aggregateRounds — claim-level gate (zero-flicker)", () => {
   function roundWithClaim(claim: string, confidence = 0.9) {
     const skeptic = makeJudgment("skeptic", "skeptic", 7, [{ confidence }]);
     return [
-      { ...skeptic, groundingViolations: [{ claim, reason: "not in sources", confidence }] },
+      { ...skeptic, groundingViolations: [{ claim, reason: "not in sources", certainty: confidence }] },
       makeJudgment("referee", "referee", 8),
       makeJudgment("advocate", "advocate", 8),
     ];
@@ -248,10 +248,11 @@ describe("aggregateRounds — claim-level gate (zero-flicker)", () => {
     const perRound = [round(4, 7, 10), round(4, 7, 10)];
     const agg = aggregateRounds(perRound, opts.rubric, opts.synthesis, opts.gate, 0.5);
     expect(agg.dimensionMeans).toBeDefined();
-    // the 3-dimension model: grounding / confidence / breadth_depth
+    // the 4-dimension model: grounding / coverage / depth / relevance
     expect(agg.dimensionMeans.grounding).toBeCloseTo(7, 5);
-    expect(agg.dimensionMeans.confidence).toBeCloseTo(7, 5);
-    expect(agg.dimensionMeans.breadth_depth).toBeCloseTo(7, 5);
+    expect(agg.dimensionMeans.coverage).toBeCloseTo(7, 5);
+    expect(agg.dimensionMeans.depth).toBeCloseTo(7, 5);
+    expect(agg.dimensionMeans.relevance).toBeCloseTo(7, 5);
     // a dropped legacy dimension is absent from the means.
     expect(agg.dimensionMeans.engagement).toBeUndefined();
   });

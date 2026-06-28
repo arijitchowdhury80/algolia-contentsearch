@@ -9,7 +9,7 @@
  *   1. Aggregate 2×2 — mean composite per cell, winner glow, three deltas,
  *      grounding headline. Rows = retrieval, cols = architecture.
  *   2. Dimension attribution — where each lift comes from (grounding /
- *      confidence / breadthDepth). First-class, always visible.
+ *      coverage / depth / relevance). First-class, always visible.
  *   3. Per-question table — rows = questions, cols = P1–P4 composites,
  *      winner badge, thin/contested warnings. Click a row → onOpenQuestion(qid).
  *   4. Expanders — win-rate per cell, score distribution, flagged/capped audit.
@@ -150,8 +150,9 @@ function aggregate(data: LeaderboardData): AggResult {
       scores,
       meanDims: {
         grounding: mean(dimsArr.map((d) => d.grounding)),
-        confidence: mean(dimsArr.map((d) => d.confidence)),
-        breadthDepth: mean(dimsArr.map((d) => d.breadthDepth)),
+        coverage: mean(dimsArr.map((d) => d.coverage)),
+        depth: mean(dimsArr.map((d) => d.depth)),
+        relevance: mean(dimsArr.map((d) => d.relevance)),
       },
       cleanCount: cleanByPanel[pid],
       cappedCount: cappedByPanel[pid],
@@ -411,8 +412,9 @@ function DimensionAttribution({ agg }: { agg: AggResult }) {
   // For each delta pair, compare the mean dims to find the biggest driver.
   const dimLabels: { key: keyof VerdictDims; label: string; sub?: string }[] = [
     { key: 'grounding', label: 'Grounding', sub: 'hard floor + scored' },
-    { key: 'confidence', label: 'Confidence' },
-    { key: 'breadthDepth', label: 'Breadth & Depth' },
+    { key: 'coverage', label: 'Coverage' },
+    { key: 'depth', label: 'Depth' },
+    { key: 'relevance', label: 'Relevance' },
   ];
 
   return (

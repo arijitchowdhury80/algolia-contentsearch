@@ -118,7 +118,7 @@ export function clusterRoundViolations(
 
   perRoundViolations.forEach((violations, roundIdx) => {
     for (const v of violations) {
-      if (v.confidence < opts.minConfidence) continue;
+      if (v.certainty < opts.minConfidence) continue;
       // Attach to the most similar existing cluster above threshold, else seed a new one.
       let best: MutableCluster | undefined;
       let bestSim = opts.simThreshold;
@@ -131,12 +131,12 @@ export function clusterRoundViolations(
       }
       if (best) {
         best.rounds.add(roundIdx);
-        best.maxConfidence = Math.max(best.maxConfidence, v.confidence);
+        best.maxConfidence = Math.max(best.maxConfidence, v.certainty);
       } else {
         clusters.push({
           representativeClaim: v.claim,
           rounds: new Set([roundIdx]),
-          maxConfidence: v.confidence,
+          maxConfidence: v.certainty,
         });
       }
     }
