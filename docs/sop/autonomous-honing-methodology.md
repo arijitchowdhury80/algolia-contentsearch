@@ -127,6 +127,10 @@ that are actually better. Before any autonomous honing:
 - **Calibrate** — have the human rank ~20 answer pairs; confirm the judge's ordering
   matches (Spearman / agreement). Only then is "the judge says better" trustworthy.
   (This project: `npm run calibrate`; closes P2b.)
+- **Run the judge at `rounds≥3`** for calibration AND for every honing iteration. A
+  single round is single-shot-LLM-noise-dominated — the same code can swing Spearman
+  ±0.25 run-to-run and produce phantom FAIL verdicts. The multi-round claim-recurrence
+  gate damps this, but only at rounds≥3. Never read a single-round score as signal.
 - If you must start before calibration, run the judge as **indicative** and insert
   **human spot-check gates** every N iterations — the loop pauses and shows the diffs +
   score deltas for approval. Slower, but it stops a drifting target.

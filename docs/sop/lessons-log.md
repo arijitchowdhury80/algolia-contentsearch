@@ -6,6 +6,15 @@ Project-specific issues hit during build, their **root cause**, the **fix**, and
 
 ---
 
+## 2026-06-28 — Judge calibration at rounds=1 is noise-dominated; use rounds≥3
+
+### A FAIL/PASS verdict flipped run-to-run on identical code
+- **Symptom:** Calibrating the (fixed) judge, Spearman swung **0.613 → 0.406 → 0.683 across three runs of the SAME code** — strong answers floored randomly, `cpg-strong`/`finserv-strong` swapped ranks between runs. The earlier "~0.0 / autonomous gate fails" in memory was partly this artifact, not a stable result.
+- **Root cause:** at `rounds=1` the judge is a single-shot LLM call per item → run-to-run sampling noise dominates the rank correlation. The multi-round **claim-recurrence gate** exists precisely to damp this flicker (a violation must recur across rounds to floor), but it only works when rounds≥3.
+- **Fix:** run calibration — and any autonomous honing loop that uses the judge as its fitness function — at **`rounds≥3`** (`CALIBRATION_ROUNDS=3`, the gate's intended config). At rounds=3 the fixed judge is stable: all 4 strong → top 4, all 4 weak → floored, Spearman 0.683.
+- **Evidence:** three calibration runs 2026-06-28 (fork); stable rounds=3 = 0.683.
+- **Prevention (future me):** NEVER trust a single-round judge verdict — it's a coin-flip on the noise floor. Set rounds≥3 before reading ANY Spearman/score as signal. Added to `docs/sop/autonomous-honing-methodology.md` §8. This is also why a calibration "FAIL" must be reproduced at rounds≥3 before concluding the rubric is broken.
+
 ## 2026-06-28 — Judge let a fabrication through because it carried a plausible URL
 
 ### The grounding gate scored a fabricated answer 4.81 (as high as a strong one)
