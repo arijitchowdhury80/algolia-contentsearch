@@ -29,4 +29,23 @@ describe("orchestrateEngagement", () => {
     expect(r.persona).toBe("elena");
     expect(r.answer).toContain("deep dive");
   });
+
+  // 2026-06-28 (Backlog A): the agent must retrieve on the RAW user turn, NOT
+  // brain.expandedQuery. The rephrase strips skeptical framing on bait queries
+  // and breaks grounding (docs/experiment/2026-06-28-expandedquery-drop-validation.md).
+  it("sends the RAW user turn to the agent, not brain.expandedQuery", async () => {
+    const seen: string[] = [];
+    const capture = async (id: string, question: string) => {
+      seen.push(question);
+      return { answer: "ok", sources: [] };
+    };
+    // brain rephrases "confirm the Lacoste figure?" → an assertive query (expandedQuery:"q").
+    await orchestrateEngagement("can you confirm the Lacoste figure?", emptyDossier(), "single", {
+      runAgent: capture,
+      llm: fakeLlm,
+      agentIds,
+    });
+    expect(seen).toEqual(["can you confirm the Lacoste figure?"]);
+    expect(seen).not.toContain("q"); // the rephrase must NOT reach retrieval
+  });
 });

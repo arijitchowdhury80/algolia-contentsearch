@@ -13,6 +13,7 @@
     "calibrate": "tsx src/judge/calibrationCli.ts",
     "judge:serve": "tsx src/judge/judgeService.ts",
     "judge:cli": "tsx src/judge/judgeCli.ts",
+    "expt:expandedquery": "tsx src/experiments/expandedQueryAb.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit"

@@ -36,8 +36,14 @@ export async function orchestrateEngagement(
     userInput,
   );
 
-  // Maverick always answers first (value / discovery).
-  const mav = await deps.runAgent(deps.agentIds.maverick, brain.expandedQuery, [], onToken);
+  // Maverick always answers first (value / discovery). Retrieval uses the RAW
+  // user turn — NOT brain.expandedQuery. Backlog A (2026-06-28) proved the
+  // LLM rephrase strips skeptical framing on bait queries and breaks grounding
+  // (raw refuses → rephrase confirms an unsupported stat), with no quality lift,
+  // while NeuralSearch already understands raw NL. See
+  // docs/experiment/2026-06-28-expandedquery-drop-validation.md. brain still runs
+  // for intent/entities/proposedQuestion (dossier, baton, judge Coverage dim).
+  const mav = await deps.runAgent(deps.agentIds.maverick, userInput, [], onToken);
 
   if (mode === "single") {
     return {
@@ -62,7 +68,7 @@ export async function orchestrateEngagement(
       error: mav.error,
     };
   }
-  const spec = await deps.runAgent(deps.agentIds[baton.specialist], brain.expandedQuery, [], onToken);
+  const spec = await deps.runAgent(deps.agentIds[baton.specialist], userInput, [], onToken);
   return {
     answer: spec.answer,
     sources: spec.sources,

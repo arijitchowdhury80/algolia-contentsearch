@@ -107,3 +107,13 @@ Project-specific issues hit during build, their **root cause**, the **fix**, and
 - **Fix:** Diagnosed via an actual completion (the existing `isOpenAIHealthy` probe does this correctly — it calls a real completion, so the live resolver safely stays on Gemini). Fixed the bogus default model `gpt-5.2` (doesn't exist) → `gpt-5` (verified available) so the switch is one-step-ready once billing is added.
 - **Evidence:** `/tmp/bench_gpt5.log` — all 4 panels `OpenAI 429 insufficient_quota`; `/v1/models` 200 with gpt-5* present.
 - **Prevention (future me):** To test if an OpenAI key is USABLE, probe with a real (tiny) completion, never `/v1/models`. A 200 on model-listing is necessary but not sufficient. Same for any API where read/list endpoints are free but write/compute endpoints are metered.
+
+---
+
+## 2026-06-28 — query rephrase before retrieval STRIPS skeptical framing → grounding violation
+
+- **Symptom:** Backlog-A scored A/B (raw user turn vs `brain.expandedQuery`). Bait query 7.5 "...Lacoste 150% add-to-cart — can you **confirm the exact figure**?" scored RAW 10.0 (correctly refuses) but REWRITE 1.67 (grounding gate tripped). Across 30 questions the mean composite was flat (+0.24, within noise) but variance was high.
+- **Root cause:** `runBrain` rephrases the turn into a "neural-search-friendly" retrieval query. On a SKEPTICAL/bait query it drops the skeptical clause and emits an ASSERTIVE query that *presupposes the fact* — "Algolia Lacoste case study 150% increase in add-to-cart rate". The agent then goes and confirms an unsupported stat → grounding violation. The rephrase converts "is X true?" into "tell me about X". This IS the documented false-refusal / off-topic-reweight bug, reproduced with a score.
+- **Fix (recommended, gated on Arijit):** drop the full intent-rephrase; send the raw turn on turn 1; keep only a narrow turn-≥2 coreference rewrite. Gate 1 (getRankingInfo on raw NL → non-zero neuralScore/semanticScore) shows NeuralSearch needs no rewrite to fire its semantic layer, so the retrieval justification is gone too. Doc: `docs/experiment/2026-06-28-expandedquery-drop-validation.md`.
+- **Evidence:** `docs/experiment/expandedquery-ab-results.json` (rows 7.5, 7.2; aggregate Δ+0.24). Gate-1 ranking probe on `AC2_WWW_SINGLE_NEURAL`.
+- **Prevention (future me):** A pre-retrieval LLM rephrase is NOT neutral — it can rewrite the *intent*, not just the *vocabulary*. Anywhere a query is paraphrased before a grounded/refusal system, test the BAIT class specifically: a paraphrase that turns "can you confirm X?" into "X" silently defeats refusal. Also: when an A/B mean is within judge noise, read the rows — the mean hid a catastrophic-on-baits / helps-on-vague-openers split.

@@ -1,0 +1,956 @@
+{
+  "meta": {
+    "generatedBy": "expandedQueryAb.ts",
+    "agentProvider": "gemini/gemini-2.5-pro",
+    "judgeProvider": "gemini/gemini-2.5-flash",
+    "rounds": 3,
+    "nQuestions": 32
+  },
+  "aggregate": {
+    "all": {
+      "n": 30,
+      "meanRaw": 8.37,
+      "meanRewrite": 8.6,
+      "meanDelta": 0.24,
+      "wins": 15,
+      "ties": 9,
+      "losses": 6,
+      "dimMeansRaw": {
+        "grounding": 7.52,
+        "coverage": 9.29,
+        "depth": 8.04,
+        "relevance": 9.71
+      },
+      "dimMeansRewrite": {
+        "grounding": 8.67,
+        "coverage": 8.96,
+        "depth": 8,
+        "relevance": 9.35
+      }
+    },
+    "changed": {
+      "n": 30,
+      "meanRaw": 8.37,
+      "meanRewrite": 8.6,
+      "meanDelta": 0.24,
+      "wins": 15,
+      "ties": 9,
+      "losses": 6,
+      "dimMeansRaw": {
+        "grounding": 7.52,
+        "coverage": 9.29,
+        "depth": 8.04,
+        "relevance": 9.71
+      },
+      "dimMeansRewrite": {
+        "grounding": 8.67,
+        "coverage": 8.96,
+        "depth": 8,
+        "relevance": 9.35
+      }
+    },
+    "errored": 2,
+    "verdict": "inconclusive",
+    "rationale": "Mixed signal on 30 rewritten questions: composite delta 0.24, grounding delta 1.15. Neither clearly helps nor clearly null — widen the set or inspect rows."
+  },
+  "rows": [
+    {
+      "id": "1.1",
+      "category": 1,
+      "isRefusalTest": false,
+      "rawPrompt": "What are Algolia's ranking criteria and how does tie-breaking work?",
+      "expandedQuery": "How Algolia's search relevance ranking strategy and tie-breaking logic works",
+      "queryChanged": true,
+      "raw": {
+        "composite": 3,
+        "dims": {
+          "grounding": 3.888888888888889,
+          "coverage": 8.222222222222221,
+          "depth": 6.555555555555555,
+          "relevance": 9.333333333333334
+        },
+        "gateTripped": true
+      },
+      "rewrite": {
+        "composite": 7.901234567901234,
+        "dims": {
+          "grounding": 7.666666666666667,
+          "coverage": 8.333333333333334,
+          "depth": 7.333333333333333,
+          "relevance": 9.11111111111111
+        },
+        "gateTripped": false
+      }
+    },
+    {
+      "id": "1.2",
+      "category": 1,
+      "isRefusalTest": false,
+      "rawPrompt": "How does the distinct setting deduplicate results?",
+      "expandedQuery": "How the Algolia distinct parameter works for deduplicating search results",
+      "queryChanged": true,
+      "raw": {
+        "composite": 9.876543209876543,
+        "dims": {
+          "grounding": 10,
+          "coverage": 10,
+          "depth": 9.555555555555555,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "rewrite": {
+        "composite": 3.3024691358024687,
+        "dims": {
+          "grounding": 10,
+          "coverage": 1,
+          "depth": 1,
+          "relevance": 3.888888888888889
+        },
+        "gateTripped": false
+      }
+    },
+    {
+      "id": "1.3",
+      "category": 1,
+      "isRefusalTest": false,
+      "rawPrompt": "What is removeWordsIfNoResults and when does it apply?",
+      "expandedQuery": "documentation and examples for Algolia's removeWordsIfNoResults search parameter",
+      "queryChanged": true,
+      "raw": {
+        "composite": 7.5,
+        "dims": {
+          "grounding": 3.5555555555555554,
+          "coverage": 9.444444444444445,
+          "depth": 8.222222222222221,
+          "relevance": 9.777777777777779
+        },
+        "gateTripped": false
+      },
+      "rewrite": {
+        "composite": 7.746913580246912,
+        "dims": {
+          "grounding": 4.333333333333333,
+          "coverage": 9.333333333333334,
+          "depth": 8.444444444444445,
+          "relevance": 9.777777777777779
+        },
+        "gateTripped": false
+      }
+    },
+    {
+      "id": "1.4",
+      "category": 1,
+      "isRefusalTest": false,
+      "rawPrompt": "How does personalization re-ranking affect result order?",
+      "expandedQuery": "How Algolia's personalization algorithm changes the order of search results",
+      "queryChanged": true,
+      "raw": {
+        "composite": 8.055555555555555,
+        "dims": {
+          "grounding": 5.777777777777778,
+          "coverage": 9.444444444444445,
+          "depth": 8,
+          "relevance": 9.777777777777779
+        },
+        "gateTripped": false
+      },
+      "rewrite": {
+        "composite": 9.722222222222221,
+        "dims": {
+          "grounding": 10,
+          "coverage": 10,
+          "depth": 9,
+          "relevance": 10
+        },
+        "gateTripped": false
+      }
+    },
+    {
+      "id": "2.1",
+      "category": 2,
+      "isRefusalTest": false,
+      "rawPrompt": "How do I configure searchable attributes the right way?",
+      "expandedQuery": "best practices for configuring searchable attributes for optimal search relevance",
+      "queryChanged": true,
+      "raw": {
+        "composite": 7.28395061728395,
+        "dims": {
+          "grounding": 4.444444444444445,
+          "coverage": 8.555555555555555,
+          "depth": 7.888888888888889,
+          "relevance": 9.333333333333334
+        },
+        "gateTripped": false
+      },
+      "rewrite": {
+        "composite": 9.290123456790125,
+        "dims": {
+          "grounding": 9.555555555555555,
+          "coverage": 9.222222222222221,
+          "depth": 9,
+          "relevance": 9.666666666666666
+        },
+        "gateTripped": false
+      }
+    },
+    {
+      "id": "2.2",
+      "category": 2,
+      "isRefusalTest": false,
+      "rawPrompt": "How do I implement frontend search with React InstantSearch?",
+      "expandedQuery": "step-by-step guide for implementing Algolia frontend search using the React InstantSearch library",
+      "queryChanged": true,
+      "raw": {
+        "composite": 9.19753086419753,
+        "dims": {
+          "grounding": 9.666666666666666,
+          "coverage": 9.222222222222221,
+          "depth": 8.222222222222221,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "rewrite": {
+        "composite": 9.629629629629628,
+        "dims": {
+          "grounding": 9.666666666666666,
+          "coverage": 10,
+          "depth": 9,
+          "relevance": 10
+        },
+        "gateTripped": false
+      }
+    },
+    {
+      "id": "2.3",
+      "category": 2,
+      "isRefusalTest": false,
+      "rawPrompt": "How do I send click and conversion events to Algolia Insights?",
+      "expandedQuery": "technical documentation on how to implement sending click and conversion events to the Algolia Insights API",
+      "queryChanged": true,
+      "raw": {
+        "composite": 9.475308641975309,
+        "dims": {
+          "grounding": 10,
+          "coverage": 9.555555555555555,
+          "depth": 8.555555555555555,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "rewrite": {
+        "composite": 8.611111111111112,
+        "dims": {
+          "grounding": 8.88888888888889,
+          "coverage": 9.222222222222221,
+          "depth": 7.333333333333333,
+          "relevance": 9.555555555555555
+        },
+        "gateTripped": false
+      }
+    },
+    {
+      "id": "2.4",
+      "category": 2,
+      "isRefusalTest": false,
+      "rawPrompt": "How do I set up an A/B test between two index configurations?",
+      "expandedQuery": "Step-by-step guide for setting up an A/B test between two different Algolia index configurations",
+      "queryChanged": true,
+      "raw": {
+        "composite": 9.629629629629628,
+        "dims": {
+          "grounding": 9.666666666666666,
+          "coverage": 10,
+          "depth": 9,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "rewrite": {
+        "composite": 9.475308641975309,
+        "dims": {
+          "grounding": 10,
+          "coverage": 9.555555555555555,
+          "depth": 8.555555555555555,
+          "relevance": 10
+        },
+        "gateTripped": false
+      }
+    },
+    {
+      "id": "3.1",
+      "category": 3,
+      "isRefusalTest": false,
+      "rawPrompt": "[N] What makes a search feel \"instant\" and how does Algolia achieve it?",
+      "expandedQuery": "How Algolia's architecture, indexing algorithms, and distributed network deliver sub-50ms search results",
+      "queryChanged": true,
+      "raw": {
+        "composite": 8.796296296296298,
+        "dims": {
+          "grounding": 8.222222222222221,
+          "coverage": 9.777777777777779,
+          "depth": 7.888888888888889,
+          "relevance": 9.777777777777779
+        },
+        "gateTripped": false
+      },
+      "rewrite": {
+        "composite": 8.24074074074074,
+        "dims": {
+          "grounding": 5.111111111111111,
+          "coverage": 9.777777777777779,
+          "depth": 8.777777777777779,
+          "relevance": 10
+        },
+        "gateTripped": false
+      }
+    },
+    {
+      "id": "3.2",
+      "category": 3,
+      "isRefusalTest": false,
+      "rawPrompt": "[N] How does Algolia help when users don't know exactly what they're looking for?",
+      "expandedQuery": "Algolia features for search and discovery when user intent is unclear or queries are imprecise, such as typo tolerance, synonyms, and semantic search.",
+      "queryChanged": true,
+      "raw": {
+        "composite": 7.870370370370371,
+        "dims": {
+          "grounding": 8.11111111111111,
+          "coverage": 9.11111111111111,
+          "depth": 6,
+          "relevance": 9.11111111111111
+        },
+        "gateTripped": false
+      },
+      "rewrite": {
+        "composite": 9.660493827160494,
+        "dims": {
+          "grounding": 10,
+          "coverage": 9.88888888888889,
+          "depth": 8.88888888888889,
+          "relevance": 10
+        },
+        "gateTripped": false
+      }
+    },
+    {
+      "id": "3.3",
+      "category": 3,
+      "isRefusalTest": false,
+      "rawPrompt": "[N] What search approaches does Algolia offer beyond simple keyword matching?",
+      "expandedQuery": "Algolia's advanced search methodologies, including semantic, vector, and hybrid search, as alternatives to basic keyword search.",
+      "queryChanged": true,
+      "raw": {
+        "composite": 8.703703703703702,
+        "dims": {
+          "grounding": 7,
+          "coverage": 9.88888888888889,
+          "depth": 8.666666666666666,
+          "relevance": 9.777777777777779
+        },
+        "gateTripped": false
+      },
+      "rewrite": {
+        "composite": 9.074074074074074,
+        "dims": {
+          "grounding": 9.777777777777779,
+          "coverage": 8.555555555555555,
+          "depth": 8.666666666666666,
+          "relevance": 9.666666666666666
+        },
+        "gateTripped": false
+      }
+    },
+    {
+      "id": "3.4",
+      "category": 3,
+      "isRefusalTest": false,
+      "rawPrompt": "[N] How does Algolia decide which result is most relevant when multiple records match equally?",
+      "expandedQuery": "Algolia's tie-breaking algorithm for search result relevance and ranking",
+      "queryChanged": true,
+      "raw": {
+        "composite": 7.993827160493827,
+        "dims": {
+          "grounding": 7.111111111111111,
+          "coverage": 8.88888888888889,
+          "depth": 7.111111111111111,
+          "relevance": 9.666666666666666
+        },
+        "gateTripped": false
+      },
+      "rewrite": {
+        "composite": 9.722222222222221,
+        "dims": {
+          "grounding": 10,
+          "coverage": 10,
+          "depth": 9,
+          "relevance": 10
+        },
+        "gateTripped": false
+      }
+    },
+    {
+      "id": "4.1",
+      "category": 4,
+      "isRefusalTest": false,
+      "rawPrompt": "[M] How do I migrate from Elasticsearch to Algolia — what does the process look like end to end?",
+      "expandedQuery": "end-to-end technical process and steps for migrating a search implementation from Elasticsearch to Algolia",
+      "queryChanged": true,
+      "raw": {
+        "composite": 8.487654320987653,
+        "dims": {
+          "grounding": 7.333333333333333,
+          "coverage": 9.666666666666666,
+          "depth": 7.555555555555555,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "rewrite": {
+        "composite": 6.975308641975309,
+        "dims": {
+          "grounding": 4.111111111111111,
+          "coverage": 9.11111111111111,
+          "depth": 6.111111111111111,
+          "relevance": 9.777777777777779
+        },
+        "gateTripped": false
+      }
+    },
+    {
+      "id": "4.2",
+      "category": 4,
+      "isRefusalTest": false,
+      "rawPrompt": "[M] What does a successful Algolia implementation look like for a retail brand?",
+      "expandedQuery": "best practices and case studies for implementing Algolia search in the retail industry",
+      "queryChanged": true,
+      "raw": {
+        "composite": 8.734567901234568,
+        "dims": {
+          "grounding": 9.222222222222221,
+          "coverage": 9,
+          "depth": 7.222222222222222,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "rewrite": {
+        "composite": 9.228395061728397,
+        "dims": {
+          "grounding": 10,
+          "coverage": 8.88888888888889,
+          "depth": 8.444444444444445,
+          "relevance": 9.88888888888889
+        },
+        "gateTripped": false
+      }
+    },
+    {
+      "id": "4.3",
+      "category": 4,
+      "isRefusalTest": false,
+      "rawPrompt": "[M] My search is live but users say results feel wrong — how do I diagnose and fix relevance?",
+      "expandedQuery": "how to diagnose and fix poor search relevance for a live implementation",
+      "queryChanged": true,
+      "raw": {
+        "composite": 8.796296296296296,
+        "dims": {
+          "grounding": 7.444444444444445,
+          "coverage": 9.555555555555555,
+          "depth": 8.666666666666666,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "rewrite": {
+        "composite": 8.981481481481481,
+        "dims": {
+          "grounding": 8.88888888888889,
+          "coverage": 9.444444444444445,
+          "depth": 8,
+          "relevance": 10
+        },
+        "gateTripped": false
+      }
+    },
+    {
+      "id": "5.1",
+      "category": 5,
+      "isRefusalTest": false,
+      "rawPrompt": "[N][M] How can Algolia help a business increase revenue from search?",
+      "expandedQuery": "business value of Algolia search in increasing revenue and conversion rates",
+      "queryChanged": true,
+      "raw": {
+        "composite": 7.932098765432098,
+        "dims": {
+          "grounding": 5.888888888888889,
+          "coverage": 9.333333333333334,
+          "depth": 7.777777777777778,
+          "relevance": 9.555555555555555
+        },
+        "gateTripped": false
+      },
+      "rewrite": {
+        "composite": 8.981481481481483,
+        "dims": {
+          "grounding": 10,
+          "coverage": 9,
+          "depth": 8.11111111111111,
+          "relevance": 9.222222222222221
+        },
+        "gateTripped": false
+      }
+    },
+    {
+      "id": "5.2",
+      "category": 5,
+      "isRefusalTest": false,
+      "rawPrompt": "[N][M] What does Algolia offer for developers building AI-powered search experiences?",
+      "expandedQuery": "Algolia features and tools for developers creating AI-driven search and discovery solutions",
+      "queryChanged": true,
+      "raw": {
+        "composite": 9.074074074074074,
+        "dims": {
+          "grounding": 10,
+          "coverage": 9.11111111111111,
+          "depth": 7.555555555555555,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "rewrite": {
+        "composite": 8.950617283950619,
+        "dims": {
+          "grounding": 8.555555555555555,
+          "coverage": 9.777777777777779,
+          "depth": 8.11111111111111,
+          "relevance": 9.777777777777779
+        },
+        "gateTripped": false
+      }
+    },
+    {
+      "id": "5.3",
+      "category": 5,
+      "isRefusalTest": false,
+      "rawPrompt": "[N][M] How does Algolia approach search for content-heavy websites versus product catalogs?",
+      "expandedQuery": "Algolia's architectural and implementation differences for content-heavy site search versus e-commerce product catalog search",
+      "queryChanged": true,
+      "raw": {
+        "composite": 8.919753086419753,
+        "dims": {
+          "grounding": 7.222222222222222,
+          "coverage": 10,
+          "depth": 8.88888888888889,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "rewrite": {
+        "composite": 7.901234567901234,
+        "dims": {
+          "grounding": 9,
+          "coverage": 8,
+          "depth": 6.444444444444445,
+          "relevance": 9
+        },
+        "gateTripped": false
+      }
+    },
+    {
+      "id": "6.1",
+      "category": 6,
+      "isRefusalTest": false,
+      "rawPrompt": "What's the difference between Query Suggestions and Algolia Recommend?",
+      "expandedQuery": "comparison of Algolia Query Suggestions vs Algolia Recommend features and use cases",
+      "queryChanged": true,
+      "raw": {
+        "composite": 6.944444444444444,
+        "dims": {
+          "grounding": 5,
+          "coverage": 8.333333333333334,
+          "depth": 6.666666666666667,
+          "relevance": 9
+        },
+        "gateTripped": false
+      },
+      "rewrite": {
+        "composite": 8.88888888888889,
+        "dims": {
+          "grounding": 7.555555555555555,
+          "coverage": 9.88888888888889,
+          "depth": 8.555555555555555,
+          "relevance": 10
+        },
+        "gateTripped": false
+      }
+    },
+    {
+      "id": "6.2",
+      "category": 6,
+      "isRefusalTest": false,
+      "rawPrompt": "When should I use filters vs facetFilters vs optionalFilters?",
+      "expandedQuery": "What are the differences and specific use cases for Algolia's filters, facetFilters, and optionalFilters parameters?",
+      "queryChanged": true,
+      "raw": {
+        "composite": 3,
+        "dims": {
+          "grounding": 9.222222222222221,
+          "coverage": 10,
+          "depth": 9,
+          "relevance": 10
+        },
+        "gateTripped": true
+      },
+      "rewrite": {
+        "composite": 0,
+        "dims": {
+          "grounding": 0,
+          "coverage": 0,
+          "depth": 0,
+          "relevance": 0
+        },
+        "gateTripped": false,
+        "error": "Judge skeptic produced unparseable output after 3 attempts: Unbalanced JSON object in judge output."
+      }
+    },
+    {
+      "id": "6.3",
+      "category": 6,
+      "isRefusalTest": false,
+      "rawPrompt": "What's the difference between custom ranking and Dynamic Re-Ranking?",
+      "expandedQuery": "explaining the difference between Algolia's custom ranking and Dynamic Re-Ranking for search relevance",
+      "queryChanged": true,
+      "raw": {
+        "composite": 9.104938271604937,
+        "dims": {
+          "grounding": 7.777777777777778,
+          "coverage": 10,
+          "depth": 9,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "rewrite": {
+        "composite": 9.660493827160494,
+        "dims": {
+          "grounding": 9.777777777777779,
+          "coverage": 10,
+          "depth": 9,
+          "relevance": 10
+        },
+        "gateTripped": false
+      }
+    },
+    {
+      "id": "7.1",
+      "category": 7,
+      "isRefusalTest": true,
+      "rawPrompt": "What is the capital of France?",
+      "expandedQuery": "general knowledge question about the capital city of France",
+      "queryChanged": true,
+      "raw": {
+        "composite": 10,
+        "dims": {
+          "grounding": 10,
+          "coverage": 10,
+          "depth": 10,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "rewrite": {
+        "composite": 10,
+        "dims": {
+          "grounding": 10,
+          "coverage": 10,
+          "depth": 10,
+          "relevance": 10
+        },
+        "gateTripped": false
+      }
+    },
+    {
+      "id": "7.2",
+      "category": 7,
+      "isRefusalTest": true,
+      "rawPrompt": "How do I use Elasticsearch percolator queries?",
+      "expandedQuery": "How to implement saved search alerts or reverse search, similar to Elasticsearch's percolator queries, using Algolia.",
+      "queryChanged": true,
+      "raw": {
+        "composite": 10,
+        "dims": {
+          "grounding": 10,
+          "coverage": 10,
+          "depth": 10,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "rewrite": {
+        "composite": 10,
+        "dims": {
+          "grounding": 10,
+          "coverage": 10,
+          "depth": 10,
+          "relevance": 10
+        },
+        "gateTripped": false
+      }
+    },
+    {
+      "id": "7.3",
+      "category": 7,
+      "isRefusalTest": true,
+      "rawPrompt": "How do I configure Kubernetes pod autoscaling?",
+      "expandedQuery": "technical guide for configuring Kubernetes horizontal pod autoscaler (HPA) based on resource metrics",
+      "queryChanged": true,
+      "raw": {
+        "composite": 10,
+        "dims": {
+          "grounding": 10,
+          "coverage": 10,
+          "depth": 10,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "rewrite": {
+        "composite": 10,
+        "dims": {
+          "grounding": 10,
+          "coverage": 10,
+          "depth": 10,
+          "relevance": 10
+        },
+        "gateTripped": false
+      }
+    },
+    {
+      "id": "7.4",
+      "category": 7,
+      "isRefusalTest": true,
+      "rawPrompt": "What is Algolia's price per 1,000 search requests?",
+      "expandedQuery": "Algolia pricing model based on search request volume",
+      "queryChanged": true,
+      "raw": {
+        "composite": 10,
+        "dims": {
+          "grounding": 10,
+          "coverage": 10,
+          "depth": 10,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "rewrite": {
+        "composite": 0,
+        "dims": {
+          "grounding": 0,
+          "coverage": 0,
+          "depth": 0,
+          "relevance": 0
+        },
+        "gateTripped": false,
+        "error": "Judge skeptic produced unparseable output after 3 attempts: Unbalanced JSON object in judge output."
+      }
+    },
+    {
+      "id": "7.5",
+      "category": 7,
+      "isRefusalTest": true,
+      "rawPrompt": "I read that Algolia helped Lacoste achieve a 150% increase in add-to-cart rate — can you confirm the exact figure?",
+      "expandedQuery": "Algolia Lacoste case study 150% increase in add-to-cart rate",
+      "queryChanged": true,
+      "raw": {
+        "composite": 10,
+        "dims": {
+          "grounding": 10,
+          "coverage": 10,
+          "depth": 10,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "rewrite": {
+        "composite": 1.6666666666666667,
+        "dims": {
+          "grounding": 2.2222222222222223,
+          "coverage": 2.5555555555555554,
+          "depth": 2.4444444444444446,
+          "relevance": 2.7777777777777777
+        },
+        "gateTripped": true
+      }
+    },
+    {
+      "id": "8.1",
+      "category": 8,
+      "isRefusalTest": false,
+      "rawPrompt": "How does Algolia handle typo tolerance?",
+      "expandedQuery": "Algolia's features and configuration for handling spelling mistakes and typos in search queries",
+      "queryChanged": true,
+      "raw": {
+        "composite": 9.753086419753087,
+        "dims": {
+          "grounding": 10,
+          "coverage": 9.777777777777779,
+          "depth": 9.333333333333334,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "rewrite": {
+        "composite": 9.691358024691356,
+        "dims": {
+          "grounding": 10,
+          "coverage": 10,
+          "depth": 9.11111111111111,
+          "relevance": 9.777777777777779
+        },
+        "gateTripped": false
+      }
+    },
+    {
+      "id": "8.2",
+      "category": 8,
+      "isRefusalTest": false,
+      "rawPrompt": "What is Algolia Recommend?",
+      "expandedQuery": "Overview and explanation of the Algolia Recommend product, its features, and common use cases.",
+      "queryChanged": true,
+      "raw": {
+        "composite": 7.685185185185186,
+        "dims": {
+          "grounding": 4.666666666666667,
+          "coverage": 9,
+          "depth": 8,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "rewrite": {
+        "composite": 9.41358024691358,
+        "dims": {
+          "grounding": 9.666666666666666,
+          "coverage": 9.444444444444445,
+          "depth": 8.777777777777779,
+          "relevance": 10
+        },
+        "gateTripped": false
+      }
+    },
+    {
+      "id": "8.3",
+      "category": 8,
+      "isRefusalTest": false,
+      "rawPrompt": "How do synonyms work in Algolia?",
+      "expandedQuery": "technical explanation of how Algolia handles and manages synonyms for search queries",
+      "queryChanged": true,
+      "raw": {
+        "composite": 6.944444444444444,
+        "dims": {
+          "grounding": 3.3333333333333335,
+          "coverage": 8.555555555555555,
+          "depth": 7.222222222222222,
+          "relevance": 9.88888888888889
+        },
+        "gateTripped": false
+      },
+      "rewrite": {
+        "composite": 9.629629629629628,
+        "dims": {
+          "grounding": 10,
+          "coverage": 10,
+          "depth": 9,
+          "relevance": 9.666666666666666
+        },
+        "gateTripped": false
+      }
+    },
+    {
+      "id": "8.4",
+      "category": 8,
+      "isRefusalTest": false,
+      "rawPrompt": "How do I set up search?",
+      "expandedQuery": "steps to set up and configure a new search implementation",
+      "queryChanged": true,
+      "raw": {
+        "composite": 7.3765432098765435,
+        "dims": {
+          "grounding": 5.666666666666667,
+          "coverage": 8.666666666666666,
+          "depth": 7.222222222222222,
+          "relevance": 9
+        },
+        "gateTripped": false
+      },
+      "rewrite": {
+        "composite": 8.672839506172837,
+        "dims": {
+          "grounding": 8,
+          "coverage": 9.555555555555555,
+          "depth": 8.11111111111111,
+          "relevance": 9.555555555555555
+        },
+        "gateTripped": false
+      }
+    },
+    {
+      "id": "8.5",
+      "category": 8,
+      "isRefusalTest": false,
+      "rawPrompt": "My search results aren't good — how do I improve relevance?",
+      "expandedQuery": "Techniques and strategies for improving search relevance and result quality.",
+      "queryChanged": true,
+      "raw": {
+        "composite": 8.24074074074074,
+        "dims": {
+          "grounding": 7.111111111111111,
+          "coverage": 9.11111111111111,
+          "depth": 8,
+          "relevance": 9.444444444444445
+        },
+        "gateTripped": false
+      },
+      "rewrite": {
+        "composite": 8.425925925925926,
+        "dims": {
+          "grounding": 8.333333333333334,
+          "coverage": 9,
+          "depth": 7,
+          "relevance": 10
+        },
+        "gateTripped": false
+      }
+    },
+    {
+      "id": "8.6",
+      "category": 8,
+      "isRefusalTest": false,
+      "rawPrompt": "Can Algolia handle my catalog?",
+      "expandedQuery": "Algolia's capacity and scalability for handling large product or content catalogs",
+      "queryChanged": true,
+      "raw": {
+        "composite": 5.617283950617284,
+        "dims": {
+          "grounding": 7.444444444444445,
+          "coverage": 6.444444444444445,
+          "depth": 2.4444444444444446,
+          "relevance": 7.888888888888889
+        },
+        "gateTripped": false
+      },
+      "rewrite": {
+        "composite": 8.703703703703702,
+        "dims": {
+          "grounding": 8.88888888888889,
+          "coverage": 9.333333333333334,
+          "depth": 7.666666666666667,
+          "relevance": 9.444444444444445
+        },
+        "gateTripped": false
+      }
+    }
+  ]
+}
