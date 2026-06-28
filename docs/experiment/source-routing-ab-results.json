@@ -1,0 +1,2250 @@
+{
+  "meta": {
+    "generatedBy": "sourceRoutingAb.ts",
+    "agentProvider": "gemini/gemini-2.5-pro",
+    "judgeProvider": "gemini/gemini-2.5-flash",
+    "rounds": 3,
+    "nQuestions": 38,
+    "routerAccuracy": 0.73
+  },
+  "aggregate": {
+    "all": {
+      "n": 33,
+      "meanA": 8.38,
+      "meanB": 8.63,
+      "meanC": 8.8,
+      "deltaBA": 0.25,
+      "deltaCA": 0.42,
+      "bWins": 15,
+      "bTies": 10,
+      "bLosses": 8,
+      "cWins": 15,
+      "cTies": 11,
+      "cLosses": 7,
+      "dimMeansA": {
+        "grounding": 8.46,
+        "coverage": 8.68,
+        "depth": 7.86,
+        "relevance": 9.16
+      },
+      "dimMeansB": {
+        "grounding": 8.88,
+        "coverage": 9.12,
+        "depth": 8.09,
+        "relevance": 9.55
+      },
+      "dimMeansC": {
+        "grounding": 8.84,
+        "coverage": 9.43,
+        "depth": 8.52,
+        "relevance": 9.87
+      }
+    },
+    "clean": {
+      "n": 16,
+      "meanA": 8.7,
+      "meanB": 9.12,
+      "meanC": 9.21,
+      "deltaBA": 0.43,
+      "deltaCA": 0.51,
+      "bWins": 7,
+      "bTies": 5,
+      "bLosses": 4,
+      "cWins": 6,
+      "cTies": 7,
+      "cLosses": 3,
+      "dimMeansA": {
+        "grounding": 8.9,
+        "coverage": 8.79,
+        "depth": 8.33,
+        "relevance": 9.28
+      },
+      "dimMeansB": {
+        "grounding": 8.9,
+        "coverage": 9.87,
+        "depth": 9.23,
+        "relevance": 10
+      },
+      "dimMeansC": {
+        "grounding": 9.09,
+        "coverage": 9.82,
+        "depth": 9.26,
+        "relevance": 10
+      }
+    },
+    "span": {
+      "n": 17,
+      "meanA": 8.08,
+      "meanB": 8.17,
+      "meanC": 8.42,
+      "deltaBA": 0.09,
+      "deltaCA": 0.34,
+      "bWins": 8,
+      "bTies": 5,
+      "bLosses": 4,
+      "cWins": 9,
+      "cTies": 4,
+      "cLosses": 4,
+      "dimMeansA": {
+        "grounding": 8.05,
+        "coverage": 8.58,
+        "depth": 7.41,
+        "relevance": 9.06
+      },
+      "dimMeansB": {
+        "grounding": 8.86,
+        "coverage": 8.42,
+        "depth": 7.02,
+        "relevance": 9.12
+      },
+      "dimMeansC": {
+        "grounding": 8.6,
+        "coverage": 9.07,
+        "depth": 7.82,
+        "relevance": 9.75
+      }
+    },
+    "errored": 5,
+    "routerAccuracy": 0.73,
+    "verdict": "kill",
+    "rationale": "Oracle source-honing moves the composite by 0.25 vs the all-source baseline (within ±0.3 noise) on 33 questions. Source routing does not improve answers — multi-agent is pure overhead. Kill it."
+  },
+  "rows": [
+    {
+      "id": "1.1",
+      "category": 1,
+      "sourceLabel": "technical",
+      "routedLabel": "technical",
+      "routedCorrect": true,
+      "span": false,
+      "prompt": "What are Algolia's ranking criteria and how does tie-breaking work?",
+      "A": {
+        "composite": 9.722222222222221,
+        "dims": {
+          "grounding": 10,
+          "coverage": 10,
+          "depth": 9,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "B": {
+        "composite": 3,
+        "dims": {
+          "grounding": 4.444444444444445,
+          "coverage": 8.222222222222221,
+          "depth": 8.666666666666666,
+          "relevance": 10
+        },
+        "gateTripped": true
+      },
+      "C": {
+        "composite": 3,
+        "dims": {
+          "grounding": 4.444444444444445,
+          "coverage": 8.11111111111111,
+          "depth": 8.666666666666666,
+          "relevance": 10
+        },
+        "gateTripped": true
+      },
+      "overhead": {
+        "A": {
+          "ms": 351,
+          "hops": 1,
+          "tok": 2913
+        },
+        "B": {
+          "ms": 438,
+          "hops": 1,
+          "tok": 3154
+        },
+        "C": {
+          "ms": 1171,
+          "hops": 2,
+          "tok": 5580
+        }
+      }
+    },
+    {
+      "id": "1.2",
+      "category": 1,
+      "sourceLabel": "technical",
+      "routedLabel": "technical",
+      "routedCorrect": true,
+      "span": false,
+      "prompt": "How does the distinct setting deduplicate results?",
+      "A": {
+        "composite": 9.969135802469134,
+        "dims": {
+          "grounding": 10,
+          "coverage": 10,
+          "depth": 9.88888888888889,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "B": {
+        "composite": 9.876543209876543,
+        "dims": {
+          "grounding": 10,
+          "coverage": 10,
+          "depth": 9.555555555555555,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "C": {
+        "composite": 9.845679012345679,
+        "dims": {
+          "grounding": 10,
+          "coverage": 10,
+          "depth": 9.444444444444445,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "overhead": {
+        "A": {
+          "ms": 16863,
+          "hops": 1,
+          "tok": 2484
+        },
+        "B": {
+          "ms": 682,
+          "hops": 1,
+          "tok": 2016
+        },
+        "C": {
+          "ms": 750,
+          "hops": 2,
+          "tok": 3857
+        }
+      }
+    },
+    {
+      "id": "1.3",
+      "category": 1,
+      "sourceLabel": "technical",
+      "routedLabel": "technical",
+      "routedCorrect": true,
+      "span": false,
+      "prompt": "What is removeWordsIfNoResults and when does it apply?",
+      "A": {
+        "composite": 9.04320987654321,
+        "dims": {
+          "grounding": 9.11111111111111,
+          "coverage": 8.88888888888889,
+          "depth": 8.555555555555555,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "B": {
+        "composite": 9.907407407407407,
+        "dims": {
+          "grounding": 10,
+          "coverage": 10,
+          "depth": 9.666666666666666,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "C": {
+        "composite": 9.907407407407407,
+        "dims": {
+          "grounding": 10,
+          "coverage": 10,
+          "depth": 9.666666666666666,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "overhead": {
+        "A": {
+          "ms": 21668,
+          "hops": 1,
+          "tok": 2330
+        },
+        "B": {
+          "ms": 397,
+          "hops": 1,
+          "tok": 2014
+        },
+        "C": {
+          "ms": 937,
+          "hops": 2,
+          "tok": 3987
+        }
+      }
+    },
+    {
+      "id": "1.4",
+      "category": 1,
+      "sourceLabel": "technical",
+      "routedLabel": "technical",
+      "routedCorrect": true,
+      "span": false,
+      "prompt": "How does personalization re-ranking affect result order?",
+      "A": {
+        "composite": 3.425925925925926,
+        "dims": {
+          "grounding": 8,
+          "coverage": 2.7777777777777777,
+          "depth": 2.5555555555555554,
+          "relevance": 3
+        },
+        "gateTripped": false,
+        "error": "fetch failed"
+      },
+      "B": {
+        "composite": 3.425925925925926,
+        "dims": {
+          "grounding": 8,
+          "coverage": 2.7777777777777777,
+          "depth": 2.5555555555555554,
+          "relevance": 3
+        },
+        "gateTripped": false,
+        "error": "fetch failed"
+      },
+      "C": {
+        "composite": 8.487654320987655,
+        "dims": {
+          "grounding": 6.444444444444445,
+          "coverage": 9.555555555555555,
+          "depth": 8.555555555555555,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "overhead": {
+        "A": {
+          "ms": 10403,
+          "hops": 1,
+          "tok": 0
+        },
+        "B": {
+          "ms": 10496,
+          "hops": 1,
+          "tok": 0
+        },
+        "C": {
+          "ms": 11012,
+          "hops": 2,
+          "tok": 1458
+        }
+      }
+    },
+    {
+      "id": "2.1",
+      "category": 2,
+      "sourceLabel": "technical",
+      "routedLabel": "technical",
+      "routedCorrect": true,
+      "span": false,
+      "prompt": "How do I configure searchable attributes the right way?",
+      "A": {
+        "composite": 8.734567901234568,
+        "dims": {
+          "grounding": 7.777777777777778,
+          "coverage": 9.555555555555555,
+          "depth": 8.333333333333334,
+          "relevance": 9.777777777777779
+        },
+        "gateTripped": false
+      },
+      "B": {
+        "composite": 9.290123456790125,
+        "dims": {
+          "grounding": 8,
+          "coverage": 10,
+          "depth": 9.444444444444445,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "C": {
+        "composite": 9.598765432098764,
+        "dims": {
+          "grounding": 9,
+          "coverage": 10,
+          "depth": 9.555555555555555,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "overhead": {
+        "A": {
+          "ms": 18177,
+          "hops": 1,
+          "tok": 2259
+        },
+        "B": {
+          "ms": 622,
+          "hops": 1,
+          "tok": 3443
+        },
+        "C": {
+          "ms": 833,
+          "hops": 2,
+          "tok": 5410
+        }
+      }
+    },
+    {
+      "id": "2.2",
+      "category": 2,
+      "sourceLabel": "technical",
+      "routedLabel": "technical",
+      "routedCorrect": true,
+      "span": false,
+      "prompt": "How do I implement frontend search with React InstantSearch?",
+      "A": {
+        "composite": 0,
+        "dims": {
+          "grounding": 0,
+          "coverage": 0,
+          "depth": 0,
+          "relevance": 0
+        },
+        "gateTripped": false,
+        "error": "Judge referee produced unparseable output after 3 attempts: Unbalanced JSON object in judge output."
+      },
+      "B": {
+        "composite": 9.475308641975309,
+        "dims": {
+          "grounding": 10,
+          "coverage": 9.222222222222221,
+          "depth": 8.88888888888889,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "C": {
+        "composite": 9.475308641975309,
+        "dims": {
+          "grounding": 10,
+          "coverage": 9.222222222222221,
+          "depth": 8.88888888888889,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "overhead": {
+        "A": {
+          "ms": 19641,
+          "hops": 1,
+          "tok": 2386
+        },
+        "B": {
+          "ms": 372,
+          "hops": 1,
+          "tok": 2277
+        },
+        "C": {
+          "ms": 821,
+          "hops": 2,
+          "tok": 4104
+        }
+      }
+    },
+    {
+      "id": "2.3",
+      "category": 2,
+      "sourceLabel": "technical",
+      "routedLabel": "technical",
+      "routedCorrect": true,
+      "span": false,
+      "prompt": "How do I send click and conversion events to Algolia Insights?",
+      "A": {
+        "composite": 9.814814814814815,
+        "dims": {
+          "grounding": 10,
+          "coverage": 10,
+          "depth": 9.333333333333334,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "B": {
+        "composite": 9.598765432098764,
+        "dims": {
+          "grounding": 9.777777777777779,
+          "coverage": 9.777777777777779,
+          "depth": 9,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "C": {
+        "composite": 9.598765432098764,
+        "dims": {
+          "grounding": 9.777777777777779,
+          "coverage": 9.777777777777779,
+          "depth": 9,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "overhead": {
+        "A": {
+          "ms": 19026,
+          "hops": 1,
+          "tok": 2952
+        },
+        "B": {
+          "ms": 370,
+          "hops": 1,
+          "tok": 4271
+        },
+        "C": {
+          "ms": 1106,
+          "hops": 2,
+          "tok": 6385
+        }
+      }
+    },
+    {
+      "id": "2.4",
+      "category": 2,
+      "sourceLabel": "technical",
+      "routedLabel": "technical",
+      "routedCorrect": true,
+      "span": false,
+      "prompt": "How do I set up an A/B test between two index configurations?",
+      "A": {
+        "composite": 8.796296296296296,
+        "dims": {
+          "grounding": 6.888888888888889,
+          "coverage": 9.88888888888889,
+          "depth": 8.88888888888889,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "B": {
+        "composite": 9.722222222222221,
+        "dims": {
+          "grounding": 10,
+          "coverage": 10,
+          "depth": 9,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "C": {
+        "composite": 9.722222222222221,
+        "dims": {
+          "grounding": 10,
+          "coverage": 10,
+          "depth": 9,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "overhead": {
+        "A": {
+          "ms": 22923,
+          "hops": 1,
+          "tok": 2411
+        },
+        "B": {
+          "ms": 371,
+          "hops": 1,
+          "tok": 2893
+        },
+        "C": {
+          "ms": 1511,
+          "hops": 2,
+          "tok": 4850
+        }
+      }
+    },
+    {
+      "id": "3.1",
+      "category": 3,
+      "sourceLabel": "technical",
+      "routedLabel": "marketer",
+      "routedCorrect": false,
+      "span": true,
+      "prompt": "[N] What makes a search feel \"instant\" and how does Algolia achieve it?",
+      "A": {
+        "composite": 9.320987654320987,
+        "dims": {
+          "grounding": 10,
+          "coverage": 9.666666666666666,
+          "depth": 7.888888888888889,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "B": {
+        "composite": 9.5679012345679,
+        "dims": {
+          "grounding": 10,
+          "coverage": 10,
+          "depth": 8.666666666666666,
+          "relevance": 9.777777777777779
+        },
+        "gateTripped": false
+      },
+      "C": {
+        "composite": 9.382716049382715,
+        "dims": {
+          "grounding": 9.222222222222221,
+          "coverage": 10,
+          "depth": 8.555555555555555,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "overhead": {
+        "A": {
+          "ms": 15108,
+          "hops": 1,
+          "tok": 2628
+        },
+        "B": {
+          "ms": 360,
+          "hops": 1,
+          "tok": 3559
+        },
+        "C": {
+          "ms": 888,
+          "hops": 2,
+          "tok": 5461
+        }
+      }
+    },
+    {
+      "id": "3.2",
+      "category": 3,
+      "sourceLabel": "marketer",
+      "routedLabel": "marketer",
+      "routedCorrect": true,
+      "span": true,
+      "prompt": "[N] How does Algolia help when users don't know exactly what they're looking for?",
+      "A": {
+        "composite": 9.228395061728394,
+        "dims": {
+          "grounding": 10,
+          "coverage": 9.777777777777779,
+          "depth": 7.444444444444445,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "B": {
+        "composite": 9.444444444444443,
+        "dims": {
+          "grounding": 9.222222222222221,
+          "coverage": 9.88888888888889,
+          "depth": 8.88888888888889,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "C": {
+        "composite": 9.35185185185185,
+        "dims": {
+          "grounding": 8.88888888888889,
+          "coverage": 9.88888888888889,
+          "depth": 8.88888888888889,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "overhead": {
+        "A": {
+          "ms": 25889,
+          "hops": 1,
+          "tok": 2556
+        },
+        "B": {
+          "ms": 370,
+          "hops": 1,
+          "tok": 2762
+        },
+        "C": {
+          "ms": 827,
+          "hops": 2,
+          "tok": 4668
+        }
+      }
+    },
+    {
+      "id": "3.3",
+      "category": 3,
+      "sourceLabel": "marketer",
+      "routedLabel": "technical",
+      "routedCorrect": false,
+      "span": true,
+      "prompt": "[N] What search approaches does Algolia offer beyond simple keyword matching?",
+      "A": {
+        "composite": 8.611111111111109,
+        "dims": {
+          "grounding": 7.111111111111111,
+          "coverage": 9.444444444444445,
+          "depth": 8.444444444444445,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "B": {
+        "composite": 9.722222222222221,
+        "dims": {
+          "grounding": 10,
+          "coverage": 10,
+          "depth": 9,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "C": {
+        "composite": 8.734567901234568,
+        "dims": {
+          "grounding": 10,
+          "coverage": 6.888888888888889,
+          "depth": 8.555555555555555,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "overhead": {
+        "A": {
+          "ms": 21748,
+          "hops": 1,
+          "tok": 2937
+        },
+        "B": {
+          "ms": 455,
+          "hops": 1,
+          "tok": 5194
+        },
+        "C": {
+          "ms": 870,
+          "hops": 2,
+          "tok": 5366
+        }
+      }
+    },
+    {
+      "id": "3.4",
+      "category": 3,
+      "sourceLabel": "technical",
+      "routedLabel": "technical",
+      "routedCorrect": true,
+      "span": true,
+      "prompt": "[N] How does Algolia decide which result is most relevant when multiple records match equally?",
+      "A": {
+        "composite": 9.25925925925926,
+        "dims": {
+          "grounding": 8.222222222222221,
+          "coverage": 9.88888888888889,
+          "depth": 9.222222222222221,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "B": {
+        "composite": 9.722222222222221,
+        "dims": {
+          "grounding": 10,
+          "coverage": 10,
+          "depth": 9,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "C": {
+        "composite": 9.722222222222221,
+        "dims": {
+          "grounding": 10,
+          "coverage": 10,
+          "depth": 9,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "overhead": {
+        "A": {
+          "ms": 18363,
+          "hops": 1,
+          "tok": 2109
+        },
+        "B": {
+          "ms": 382,
+          "hops": 1,
+          "tok": 2035
+        },
+        "C": {
+          "ms": 820,
+          "hops": 2,
+          "tok": 3120
+        }
+      }
+    },
+    {
+      "id": "4.1",
+      "category": 4,
+      "sourceLabel": "technical",
+      "routedLabel": "technical",
+      "routedCorrect": true,
+      "span": true,
+      "prompt": "[M] How do I migrate from Elasticsearch to Algolia — what does the process look like end to end?",
+      "A": {
+        "composite": 8.672839506172837,
+        "dims": {
+          "grounding": 6.888888888888889,
+          "coverage": 9.666666666666666,
+          "depth": 8.666666666666666,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "B": {
+        "composite": 7.993827160493827,
+        "dims": {
+          "grounding": 10,
+          "coverage": 8,
+          "depth": 5.444444444444445,
+          "relevance": 9.333333333333334
+        },
+        "gateTripped": false
+      },
+      "C": {
+        "composite": 7.71604938271605,
+        "dims": {
+          "grounding": 10,
+          "coverage": 7.888888888888889,
+          "depth": 4.555555555555555,
+          "relevance": 9.333333333333334
+        },
+        "gateTripped": false
+      },
+      "overhead": {
+        "A": {
+          "ms": 21562,
+          "hops": 1,
+          "tok": 2937
+        },
+        "B": {
+          "ms": 383,
+          "hops": 1,
+          "tok": 1784
+        },
+        "C": {
+          "ms": 852,
+          "hops": 2,
+          "tok": 4861
+        }
+      }
+    },
+    {
+      "id": "4.2",
+      "category": 4,
+      "sourceLabel": "marketer",
+      "routedLabel": "marketer",
+      "routedCorrect": true,
+      "span": true,
+      "prompt": "[M] What does a successful Algolia implementation look like for a retail brand?",
+      "A": {
+        "composite": 7.34567901234568,
+        "dims": {
+          "grounding": 3.5555555555555554,
+          "coverage": 9.444444444444445,
+          "depth": 7.444444444444445,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "B": {
+        "composite": 9.135802469135804,
+        "dims": {
+          "grounding": 10,
+          "coverage": 9.666666666666666,
+          "depth": 7.222222222222222,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "C": {
+        "composite": 9.228395061728394,
+        "dims": {
+          "grounding": 10,
+          "coverage": 9.777777777777779,
+          "depth": 7.444444444444445,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "overhead": {
+        "A": {
+          "ms": 24206,
+          "hops": 1,
+          "tok": 4326
+        },
+        "B": {
+          "ms": 432,
+          "hops": 1,
+          "tok": 3117
+        },
+        "C": {
+          "ms": 673,
+          "hops": 2,
+          "tok": 5491
+        }
+      }
+    },
+    {
+      "id": "4.3",
+      "category": 4,
+      "sourceLabel": "support",
+      "routedLabel": "technical",
+      "routedCorrect": false,
+      "span": true,
+      "prompt": "[M] My search is live but users say results feel wrong — how do I diagnose and fix relevance?",
+      "A": {
+        "composite": 9.35185185185185,
+        "dims": {
+          "grounding": 8.88888888888889,
+          "coverage": 10,
+          "depth": 8.777777777777779,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "B": {
+        "composite": 9.660493827160492,
+        "dims": {
+          "grounding": 10,
+          "coverage": 9.666666666666666,
+          "depth": 9.11111111111111,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "C": {
+        "composite": 9.783950617283951,
+        "dims": {
+          "grounding": 10,
+          "coverage": 10,
+          "depth": 9.222222222222221,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "overhead": {
+        "A": {
+          "ms": 16040,
+          "hops": 1,
+          "tok": 3224
+        },
+        "B": {
+          "ms": 562,
+          "hops": 1,
+          "tok": 3061
+        },
+        "C": {
+          "ms": 729,
+          "hops": 2,
+          "tok": 7081
+        }
+      }
+    },
+    {
+      "id": "5.1",
+      "category": 5,
+      "sourceLabel": "marketer",
+      "routedLabel": "marketer",
+      "routedCorrect": true,
+      "span": true,
+      "prompt": "[N][M] How can Algolia help a business increase revenue from search?",
+      "A": {
+        "composite": 2.5617283950617282,
+        "dims": {
+          "grounding": 10,
+          "coverage": 1,
+          "depth": 1,
+          "relevance": 1.2222222222222223
+        },
+        "gateTripped": false
+      },
+      "B": {
+        "composite": 8.981481481481481,
+        "dims": {
+          "grounding": 7.333333333333333,
+          "coverage": 10,
+          "depth": 9,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "C": {
+        "composite": 9.166666666666664,
+        "dims": {
+          "grounding": 8,
+          "coverage": 10,
+          "depth": 9,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "overhead": {
+        "A": {
+          "ms": 20733,
+          "hops": 1,
+          "tok": 387
+        },
+        "B": {
+          "ms": 380,
+          "hops": 1,
+          "tok": 3017
+        },
+        "C": {
+          "ms": 888,
+          "hops": 2,
+          "tok": 5507
+        }
+      }
+    },
+    {
+      "id": "5.2",
+      "category": 5,
+      "sourceLabel": "technical",
+      "routedLabel": "technical",
+      "routedCorrect": true,
+      "span": true,
+      "prompt": "[N][M] What does Algolia offer for developers building AI-powered search experiences?",
+      "A": {
+        "composite": 7.808641975308642,
+        "dims": {
+          "grounding": 7,
+          "coverage": 9,
+          "depth": 6.333333333333333,
+          "relevance": 9.777777777777779
+        },
+        "gateTripped": false
+      },
+      "B": {
+        "composite": 8.981481481481481,
+        "dims": {
+          "grounding": 8.444444444444445,
+          "coverage": 9.777777777777779,
+          "depth": 8.11111111111111,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "C": {
+        "composite": 9.351851851851851,
+        "dims": {
+          "grounding": 9.222222222222221,
+          "coverage": 9.88888888888889,
+          "depth": 8.555555555555555,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "overhead": {
+        "A": {
+          "ms": 15790,
+          "hops": 1,
+          "tok": 1698
+        },
+        "B": {
+          "ms": 386,
+          "hops": 1,
+          "tok": 3371
+        },
+        "C": {
+          "ms": 839,
+          "hops": 2,
+          "tok": 6306
+        }
+      }
+    },
+    {
+      "id": "5.3",
+      "category": 5,
+      "sourceLabel": "marketer",
+      "routedLabel": "technical",
+      "routedCorrect": false,
+      "span": true,
+      "prompt": "[N][M] How does Algolia approach search for content-heavy websites versus product catalogs?",
+      "A": {
+        "composite": 9.506172839506172,
+        "dims": {
+          "grounding": 9.444444444444445,
+          "coverage": 9.88888888888889,
+          "depth": 8.88888888888889,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "B": {
+        "composite": 9.5679012345679,
+        "dims": {
+          "grounding": 10,
+          "coverage": 10,
+          "depth": 8.444444444444445,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "C": {
+        "composite": 8.580246913580245,
+        "dims": {
+          "grounding": 6.555555555555555,
+          "coverage": 9.666666666666666,
+          "depth": 8.666666666666666,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "overhead": {
+        "A": {
+          "ms": 21107,
+          "hops": 1,
+          "tok": 4014
+        },
+        "B": {
+          "ms": 548,
+          "hops": 1,
+          "tok": 2527
+        },
+        "C": {
+          "ms": 1089,
+          "hops": 2,
+          "tok": 6991
+        }
+      }
+    },
+    {
+      "id": "6.1",
+      "category": 6,
+      "sourceLabel": "technical",
+      "routedLabel": "technical",
+      "routedCorrect": true,
+      "span": false,
+      "prompt": "What's the difference between Query Suggestions and Algolia Recommend?",
+      "A": {
+        "composite": 9.783950617283951,
+        "dims": {
+          "grounding": 10,
+          "coverage": 10,
+          "depth": 9.222222222222221,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "B": {
+        "composite": 8.919753086419753,
+        "dims": {
+          "grounding": 6.888888888888889,
+          "coverage": 10,
+          "depth": 9.222222222222221,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "C": {
+        "composite": 9.135802469135802,
+        "dims": {
+          "grounding": 7.777777777777778,
+          "coverage": 10,
+          "depth": 9.11111111111111,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "overhead": {
+        "A": {
+          "ms": 26582,
+          "hops": 1,
+          "tok": 2822
+        },
+        "B": {
+          "ms": 382,
+          "hops": 1,
+          "tok": 2560
+        },
+        "C": {
+          "ms": 1054,
+          "hops": 2,
+          "tok": 4690
+        }
+      }
+    },
+    {
+      "id": "6.2",
+      "category": 6,
+      "sourceLabel": "technical",
+      "routedLabel": "technical",
+      "routedCorrect": true,
+      "span": false,
+      "prompt": "When should I use filters vs facetFilters vs optionalFilters?",
+      "A": {
+        "composite": 9.722222222222221,
+        "dims": {
+          "grounding": 9.777777777777779,
+          "coverage": 10,
+          "depth": 9.222222222222221,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "B": {
+        "composite": 9.907407407407407,
+        "dims": {
+          "grounding": 10,
+          "coverage": 10,
+          "depth": 9.666666666666666,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "C": {
+        "composite": 9.907407407407407,
+        "dims": {
+          "grounding": 10,
+          "coverage": 10,
+          "depth": 9.666666666666666,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "overhead": {
+        "A": {
+          "ms": 19761,
+          "hops": 1,
+          "tok": 3441
+        },
+        "B": {
+          "ms": 349,
+          "hops": 1,
+          "tok": 4247
+        },
+        "C": {
+          "ms": 863,
+          "hops": 2,
+          "tok": 7155
+        }
+      }
+    },
+    {
+      "id": "6.3",
+      "category": 6,
+      "sourceLabel": "technical",
+      "routedLabel": "technical",
+      "routedCorrect": true,
+      "span": false,
+      "prompt": "What's the difference between custom ranking and Dynamic Re-Ranking?",
+      "A": {
+        "composite": 6.1419753086419755,
+        "dims": {
+          "grounding": 10,
+          "coverage": 3.4444444444444446,
+          "depth": 5,
+          "relevance": 7.666666666666667
+        },
+        "gateTripped": false
+      },
+      "B": {
+        "composite": 8.364197530864196,
+        "dims": {
+          "grounding": 7,
+          "coverage": 10,
+          "depth": 7.111111111111111,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "C": {
+        "composite": 9.382716049382715,
+        "dims": {
+          "grounding": 8.88888888888889,
+          "coverage": 10,
+          "depth": 8.88888888888889,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "overhead": {
+        "A": {
+          "ms": 18849,
+          "hops": 1,
+          "tok": 1179
+        },
+        "B": {
+          "ms": 341,
+          "hops": 1,
+          "tok": 1710
+        },
+        "C": {
+          "ms": 757,
+          "hops": 2,
+          "tok": 3658
+        }
+      }
+    },
+    {
+      "id": "7.1",
+      "category": 7,
+      "sourceLabel": "technical",
+      "routedLabel": "support",
+      "routedCorrect": false,
+      "span": false,
+      "prompt": "What is the capital of France?",
+      "A": {
+        "composite": 10,
+        "dims": {
+          "grounding": 10,
+          "coverage": 10,
+          "depth": 10,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "B": {
+        "composite": 9.444444444444443,
+        "dims": {
+          "grounding": 10,
+          "coverage": 10,
+          "depth": 10,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "C": {
+        "composite": 10,
+        "dims": {
+          "grounding": 10,
+          "coverage": 10,
+          "depth": 10,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "overhead": {
+        "A": {
+          "ms": 4911,
+          "hops": 1,
+          "tok": 201
+        },
+        "B": {
+          "ms": 323,
+          "hops": 1,
+          "tok": 103
+        },
+        "C": {
+          "ms": 596,
+          "hops": 2,
+          "tok": 250
+        }
+      }
+    },
+    {
+      "id": "7.2",
+      "category": 7,
+      "sourceLabel": "technical",
+      "routedLabel": "technical",
+      "routedCorrect": true,
+      "span": false,
+      "prompt": "How do I use Elasticsearch percolator queries?",
+      "A": {
+        "composite": 10,
+        "dims": {
+          "grounding": 10,
+          "coverage": 10,
+          "depth": 10,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "B": {
+        "composite": 10,
+        "dims": {
+          "grounding": 10,
+          "coverage": 10,
+          "depth": 10,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "C": {
+        "composite": 10,
+        "dims": {
+          "grounding": 10,
+          "coverage": 10,
+          "depth": 10,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "overhead": {
+        "A": {
+          "ms": 7163,
+          "hops": 1,
+          "tok": 361
+        },
+        "B": {
+          "ms": 278,
+          "hops": 1,
+          "tok": 103
+        },
+        "C": {
+          "ms": 540,
+          "hops": 2,
+          "tok": 304
+        }
+      }
+    },
+    {
+      "id": "7.3",
+      "category": 7,
+      "sourceLabel": "technical",
+      "routedLabel": "technical",
+      "routedCorrect": true,
+      "span": false,
+      "prompt": "How do I configure Kubernetes pod autoscaling?",
+      "A": {
+        "composite": 10,
+        "dims": {
+          "grounding": 10,
+          "coverage": 10,
+          "depth": 10,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "B": {
+        "composite": 10,
+        "dims": {
+          "grounding": 10,
+          "coverage": 10,
+          "depth": 10,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "C": {
+        "composite": 10,
+        "dims": {
+          "grounding": 10,
+          "coverage": 10,
+          "depth": 10,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "overhead": {
+        "A": {
+          "ms": 8266,
+          "hops": 1,
+          "tok": 349
+        },
+        "B": {
+          "ms": 726,
+          "hops": 1,
+          "tok": 212
+        },
+        "C": {
+          "ms": 741,
+          "hops": 2,
+          "tok": 524
+        }
+      }
+    },
+    {
+      "id": "7.4",
+      "category": 7,
+      "sourceLabel": "marketer",
+      "routedLabel": "marketer",
+      "routedCorrect": true,
+      "span": false,
+      "prompt": "What is Algolia's price per 1,000 search requests?",
+      "A": {
+        "composite": 10,
+        "dims": {
+          "grounding": 10,
+          "coverage": 10,
+          "depth": 10,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "B": {
+        "composite": 0,
+        "dims": {
+          "grounding": 0,
+          "coverage": 0,
+          "depth": 0,
+          "relevance": 0
+        },
+        "gateTripped": false,
+        "error": "Judge referee produced unparseable output after 3 attempts: Unbalanced JSON object in judge output."
+      },
+      "C": {
+        "composite": 0,
+        "dims": {
+          "grounding": 0,
+          "coverage": 0,
+          "depth": 0,
+          "relevance": 0
+        },
+        "gateTripped": false,
+        "error": "Judge referee produced unparseable output after 3 attempts: Unbalanced JSON object in judge output."
+      },
+      "overhead": {
+        "A": {
+          "ms": 15983,
+          "hops": 1,
+          "tok": 604
+        },
+        "B": {
+          "ms": 370,
+          "hops": 1,
+          "tok": 1613
+        },
+        "C": {
+          "ms": 722,
+          "hops": 2,
+          "tok": 2166
+        }
+      }
+    },
+    {
+      "id": "7.5",
+      "category": 7,
+      "sourceLabel": "marketer",
+      "routedLabel": "marketer",
+      "routedCorrect": true,
+      "span": false,
+      "prompt": "I read that Algolia helped Lacoste achieve a 150% increase in add-to-cart rate — can you confirm the exact figure?",
+      "A": {
+        "composite": 0,
+        "dims": {
+          "grounding": 1,
+          "coverage": 1,
+          "depth": 1,
+          "relevance": 1
+        },
+        "gateTripped": true
+      },
+      "B": {
+        "composite": 10,
+        "dims": {
+          "grounding": 10,
+          "coverage": 10,
+          "depth": 10,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "C": {
+        "composite": 10,
+        "dims": {
+          "grounding": 10,
+          "coverage": 10,
+          "depth": 10,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "overhead": {
+        "A": {
+          "ms": 14709,
+          "hops": 1,
+          "tok": 799
+        },
+        "B": {
+          "ms": 363,
+          "hops": 1,
+          "tok": 145
+        },
+        "C": {
+          "ms": 604,
+          "hops": 2,
+          "tok": 346
+        }
+      }
+    },
+    {
+      "id": "8.1",
+      "category": 8,
+      "sourceLabel": "technical",
+      "routedLabel": "technical",
+      "routedCorrect": true,
+      "span": false,
+      "prompt": "How does Algolia handle typo tolerance?",
+      "A": {
+        "composite": 9.41358024691358,
+        "dims": {
+          "grounding": 9.333333333333334,
+          "coverage": 9.555555555555555,
+          "depth": 9,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "B": {
+        "composite": 0,
+        "dims": {
+          "grounding": 0,
+          "coverage": 0,
+          "depth": 0,
+          "relevance": 0
+        },
+        "gateTripped": false,
+        "error": "Judge skeptic produced unparseable output after 3 attempts: Expected ',' or '}' after property value in JSON at position 3744 (line 62 column 52)"
+      },
+      "C": {
+        "composite": 0,
+        "dims": {
+          "grounding": 0,
+          "coverage": 0,
+          "depth": 0,
+          "relevance": 0
+        },
+        "gateTripped": false,
+        "error": "Judge skeptic produced unparseable output after 3 attempts: Expected ',' or '}' after property value in JSON at position 3744 (line 62 column 52)"
+      },
+      "overhead": {
+        "A": {
+          "ms": 40410,
+          "hops": 1,
+          "tok": 2135
+        },
+        "B": {
+          "ms": 374,
+          "hops": 1,
+          "tok": 2624
+        },
+        "C": {
+          "ms": 994,
+          "hops": 2,
+          "tok": 4403
+        }
+      }
+    },
+    {
+      "id": "8.2",
+      "category": 8,
+      "sourceLabel": "technical",
+      "routedLabel": "marketer",
+      "routedCorrect": false,
+      "span": false,
+      "prompt": "What is Algolia Recommend?",
+      "A": {
+        "composite": 8.950617283950615,
+        "dims": {
+          "grounding": 10,
+          "coverage": 9,
+          "depth": 7.222222222222222,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "B": {
+        "composite": 9.660493827160492,
+        "dims": {
+          "grounding": 9.777777777777779,
+          "coverage": 10,
+          "depth": 9,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "C": {
+        "composite": 8.981481481481481,
+        "dims": {
+          "grounding": 9,
+          "coverage": 9.333333333333334,
+          "depth": 8,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "overhead": {
+        "A": {
+          "ms": 15779,
+          "hops": 1,
+          "tok": 1478
+        },
+        "B": {
+          "ms": 815,
+          "hops": 1,
+          "tok": 2114
+        },
+        "C": {
+          "ms": 1050,
+          "hops": 2,
+          "tok": 5234
+        }
+      }
+    },
+    {
+      "id": "8.3",
+      "category": 8,
+      "sourceLabel": "technical",
+      "routedLabel": "technical",
+      "routedCorrect": true,
+      "span": false,
+      "prompt": "How do synonyms work in Algolia?",
+      "A": {
+        "composite": 9.382716049382715,
+        "dims": {
+          "grounding": 10,
+          "coverage": 8.88888888888889,
+          "depth": 8.88888888888889,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "B": {
+        "composite": 9.783950617283951,
+        "dims": {
+          "grounding": 10,
+          "coverage": 10,
+          "depth": 9.222222222222221,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "C": {
+        "composite": 9.753086419753087,
+        "dims": {
+          "grounding": 10,
+          "coverage": 10,
+          "depth": 9.11111111111111,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "overhead": {
+        "A": {
+          "ms": 17805,
+          "hops": 1,
+          "tok": 3329
+        },
+        "B": {
+          "ms": 633,
+          "hops": 1,
+          "tok": 3544
+        },
+        "C": {
+          "ms": 807,
+          "hops": 2,
+          "tok": 5469
+        }
+      }
+    },
+    {
+      "id": "8.4",
+      "category": 8,
+      "sourceLabel": "technical",
+      "routedLabel": "academy",
+      "routedCorrect": false,
+      "span": true,
+      "prompt": "How do I set up search?",
+      "A": {
+        "composite": 3.0864197530864197,
+        "dims": {
+          "grounding": 10,
+          "coverage": 1,
+          "depth": 1,
+          "relevance": 3.111111111111111
+        },
+        "gateTripped": false
+      },
+      "B": {
+        "composite": 2.993827160493827,
+        "dims": {
+          "grounding": 10,
+          "coverage": 1,
+          "depth": 1,
+          "relevance": 2.7777777777777777
+        },
+        "gateTripped": false
+      },
+      "C": {
+        "composite": 9.351851851851853,
+        "dims": {
+          "grounding": 9.11111111111111,
+          "coverage": 9.666666666666666,
+          "depth": 8.88888888888889,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "overhead": {
+        "A": {
+          "ms": 17176,
+          "hops": 1,
+          "tok": 590
+        },
+        "B": {
+          "ms": 281,
+          "hops": 1,
+          "tok": 311
+        },
+        "C": {
+          "ms": 911,
+          "hops": 2,
+          "tok": 4724
+        }
+      }
+    },
+    {
+      "id": "8.5",
+      "category": 8,
+      "sourceLabel": "support",
+      "routedLabel": "technical",
+      "routedCorrect": false,
+      "span": true,
+      "prompt": "My search results aren't good — how do I improve relevance?",
+      "A": {
+        "composite": 9.074074074074074,
+        "dims": {
+          "grounding": 8.444444444444445,
+          "coverage": 9.777777777777779,
+          "depth": 8.444444444444445,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "B": {
+        "composite": 8.641975308641975,
+        "dims": {
+          "grounding": 7.222222222222222,
+          "coverage": 9.666666666666666,
+          "depth": 8.222222222222221,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "C": {
+        "composite": 9.475308641975309,
+        "dims": {
+          "grounding": 9.333333333333334,
+          "coverage": 9.88888888888889,
+          "depth": 8.88888888888889,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "overhead": {
+        "A": {
+          "ms": 28688,
+          "hops": 1,
+          "tok": 3299
+        },
+        "B": {
+          "ms": 561,
+          "hops": 1,
+          "tok": 6902
+        },
+        "C": {
+          "ms": 1070,
+          "hops": 2,
+          "tok": 6675
+        }
+      }
+    },
+    {
+      "id": "8.6",
+      "category": 8,
+      "sourceLabel": "marketer",
+      "routedLabel": "marketer",
+      "routedCorrect": true,
+      "span": true,
+      "prompt": "Can Algolia handle my catalog?",
+      "A": {
+        "composite": 8.487654320987653,
+        "dims": {
+          "grounding": 7.444444444444445,
+          "coverage": 9,
+          "depth": 8.222222222222221,
+          "relevance": 9.88888888888889
+        },
+        "gateTripped": false
+      },
+      "B": {
+        "composite": 9.012345679012343,
+        "dims": {
+          "grounding": 8.555555555555555,
+          "coverage": 9.88888888888889,
+          "depth": 8,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "C": {
+        "composite": 8.950617283950615,
+        "dims": {
+          "grounding": 8.222222222222221,
+          "coverage": 9.88888888888889,
+          "depth": 8.11111111111111,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "overhead": {
+        "A": {
+          "ms": 19059,
+          "hops": 1,
+          "tok": 1820
+        },
+        "B": {
+          "ms": 381,
+          "hops": 1,
+          "tok": 2173
+        },
+        "C": {
+          "ms": 1067,
+          "hops": 2,
+          "tok": 2497
+        }
+      }
+    },
+    {
+      "id": "S1",
+      "category": 9,
+      "sourceLabel": "support",
+      "routedLabel": "support",
+      "routedCorrect": true,
+      "span": true,
+      "prompt": "I'm getting a 403 on my indexing API call and the docs didn't help — what now?",
+      "A": {
+        "composite": 8.858024691358024,
+        "dims": {
+          "grounding": 7.555555555555555,
+          "coverage": 9.666666666666666,
+          "depth": 8.666666666666666,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "B": {
+        "composite": 8.641975308641975,
+        "dims": {
+          "grounding": 7,
+          "coverage": 9.555555555555555,
+          "depth": 8.555555555555555,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "C": {
+        "composite": 8.641975308641975,
+        "dims": {
+          "grounding": 7,
+          "coverage": 9.555555555555555,
+          "depth": 8.555555555555555,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "overhead": {
+        "A": {
+          "ms": 17238,
+          "hops": 1,
+          "tok": 2120
+        },
+        "B": {
+          "ms": 655,
+          "hops": 1,
+          "tok": 1634
+        },
+        "C": {
+          "ms": 929,
+          "hops": 2,
+          "tok": 1835
+        }
+      }
+    },
+    {
+      "id": "S2",
+      "category": 9,
+      "sourceLabel": "academy",
+      "routedLabel": "academy",
+      "routedCorrect": true,
+      "span": false,
+      "prompt": "Where do I learn Algolia from scratch — is there a course or a guided path?",
+      "A": {
+        "composite": 9.074074074074074,
+        "dims": {
+          "grounding": 7.888888888888889,
+          "coverage": 10,
+          "depth": 8.777777777777779,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "B": {
+        "composite": 8.487654320987653,
+        "dims": {
+          "grounding": 6.555555555555555,
+          "coverage": 9.88888888888889,
+          "depth": 8.11111111111111,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "C": {
+        "composite": 8.487654320987653,
+        "dims": {
+          "grounding": 6.555555555555555,
+          "coverage": 9.88888888888889,
+          "depth": 8.11111111111111,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "overhead": {
+        "A": {
+          "ms": 17692,
+          "hops": 1,
+          "tok": 1242
+        },
+        "B": {
+          "ms": 396,
+          "hops": 1,
+          "tok": 1675
+        },
+        "C": {
+          "ms": 1050,
+          "hops": 2,
+          "tok": 2790
+        }
+      }
+    },
+    {
+      "id": "S3",
+      "category": 9,
+      "sourceLabel": "marketer",
+      "routedLabel": "marketer",
+      "routedCorrect": true,
+      "span": true,
+      "prompt": "Is Algolia worth it for a small Shopify store?",
+      "A": {
+        "composite": 0,
+        "dims": {
+          "grounding": 0,
+          "coverage": 0,
+          "depth": 0,
+          "relevance": 0
+        },
+        "gateTripped": false,
+        "error": "Judge skeptic produced unparseable output after 3 attempts: Unbalanced JSON object in judge output."
+      },
+      "B": {
+        "composite": 4.814814814814814,
+        "dims": {
+          "grounding": 6.666666666666667,
+          "coverage": 5.222222222222222,
+          "depth": 4.444444444444445,
+          "relevance": 5
+        },
+        "gateTripped": false
+      },
+      "C": {
+        "composite": 4.814814814814816,
+        "dims": {
+          "grounding": 6.666666666666667,
+          "coverage": 5.333333333333333,
+          "depth": 4.111111111111111,
+          "relevance": 5.222222222222222
+        },
+        "gateTripped": false
+      },
+      "overhead": {
+        "A": {
+          "ms": 19358,
+          "hops": 1,
+          "tok": 2419
+        },
+        "B": {
+          "ms": 635,
+          "hops": 1,
+          "tok": 2054
+        },
+        "C": {
+          "ms": 822,
+          "hops": 2,
+          "tok": 4138
+        }
+      }
+    },
+    {
+      "id": "S4",
+      "category": 9,
+      "sourceLabel": "support",
+      "routedLabel": "marketer",
+      "routedCorrect": false,
+      "span": true,
+      "prompt": "My search relevance is bad and my boss wants ROI numbers to justify fixing it.",
+      "A": {
+        "composite": 9.691358024691356,
+        "dims": {
+          "grounding": 10,
+          "coverage": 9.88888888888889,
+          "depth": 9,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "B": {
+        "composite": 4.197530864197531,
+        "dims": {
+          "grounding": 4.444444444444445,
+          "coverage": 4.444444444444445,
+          "depth": 3.2222222222222223,
+          "relevance": 7
+        },
+        "gateTripped": false
+      },
+      "C": {
+        "composite": 3,
+        "dims": {
+          "grounding": 2.2222222222222223,
+          "coverage": 9.666666666666666,
+          "depth": 8.666666666666666,
+          "relevance": 10
+        },
+        "gateTripped": true
+      },
+      "overhead": {
+        "A": {
+          "ms": 16963,
+          "hops": 1,
+          "tok": 3412
+        },
+        "B": {
+          "ms": 408,
+          "hops": 1,
+          "tok": 3029
+        },
+        "C": {
+          "ms": 1288,
+          "hops": 2,
+          "tok": 5639
+        }
+      }
+    },
+    {
+      "id": "S5",
+      "category": 9,
+      "sourceLabel": "marketer",
+      "routedLabel": "marketer",
+      "routedCorrect": true,
+      "span": true,
+      "prompt": "How do other fashion retailers use Algolia, and how do I copy what they did?",
+      "A": {
+        "composite": 8.148148148148147,
+        "dims": {
+          "grounding": 6,
+          "coverage": 9.333333333333334,
+          "depth": 8,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "B": {
+        "composite": 8.734567901234568,
+        "dims": {
+          "grounding": 10,
+          "coverage": 9.222222222222221,
+          "depth": 6.444444444444445,
+          "relevance": 9.777777777777779
+        },
+        "gateTripped": false
+      },
+      "C": {
+        "composite": 8.734567901234568,
+        "dims": {
+          "grounding": 10,
+          "coverage": 9.222222222222221,
+          "depth": 6.444444444444445,
+          "relevance": 9.777777777777779
+        },
+        "gateTripped": false
+      },
+      "overhead": {
+        "A": {
+          "ms": 23041,
+          "hops": 1,
+          "tok": 2848
+        },
+        "B": {
+          "ms": 346,
+          "hops": 1,
+          "tok": 2696
+        },
+        "C": {
+          "ms": 1168,
+          "hops": 2,
+          "tok": 5724
+        }
+      }
+    },
+    {
+      "id": "S6",
+      "category": 9,
+      "sourceLabel": "technical",
+      "routedLabel": "technical",
+      "routedCorrect": true,
+      "span": true,
+      "prompt": "search",
+      "A": {
+        "composite": 8.425925925925924,
+        "dims": {
+          "grounding": 6.333333333333333,
+          "coverage": 9.444444444444445,
+          "depth": 8.555555555555555,
+          "relevance": 10
+        },
+        "gateTripped": false
+      },
+      "B": {
+        "composite": 3.919753086419753,
+        "dims": {
+          "grounding": 8.444444444444445,
+          "coverage": 2.3333333333333335,
+          "depth": 1,
+          "relevance": 6.333333333333333
+        },
+        "gateTripped": false
+      },
+      "C": {
+        "composite": 3.9814814814814814,
+        "dims": {
+          "grounding": 8.444444444444445,
+          "coverage": 2.3333333333333335,
+          "depth": 1,
+          "relevance": 6.555555555555555
+        },
+        "gateTripped": false
+      },
+      "overhead": {
+        "A": {
+          "ms": 21121,
+          "hops": 1,
+          "tok": 1732
+        },
+        "B": {
+          "ms": 268,
+          "hops": 1,
+          "tok": 420
+        },
+        "C": {
+          "ms": 1057,
+          "hops": 2,
+          "tok": 694
+        }
+      }
+    }
+  ]
+}

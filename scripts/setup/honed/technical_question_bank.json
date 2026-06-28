@@ -1,0 +1,136 @@
+{
+  "_meta": {
+    "target": "ac2-tech-neural",
+    "doctrine": "Precision router: direct answer from hits -> exact resource(s)+URL -> what each covers -> customer-story evidence (facet1 industry / facet6 features, NO invented metric) -> honest cap (specifics live in the linked doc; never fabricate params/defaults/code). Data = titles+summaries+facets, Docs are ~60-char stubs.",
+    "axes": ["1=cause/route-precision", "2=lane", "3=grounding-trap", "4=warm-baton-multiturn", "5=depth-ceiling (stubs)", "6=specificity-injection"],
+    "scoring": "Eyeball vs pass_criteria. KEY data-realistic test: does it ROUTE+CAP instead of fabricating param/default/code/metric the stub records can't hold?"
+  },
+  "questions": [
+    {
+      "id": "TECH-1",
+      "axes": [3, 5],
+      "trap": "depth-cap: asks for exact default value the stub records do NOT contain",
+      "dossier": { "originalAsk": "typo tolerance config" },
+      "turns": [
+        "What's the exact default value of minWordSizefor1Typo, and the full list of typoTolerance options?"
+      ],
+      "discriminator": "Shallow: invents the default (e.g. '4') and an options list from training.",
+      "pass_criteria": [
+        "Names the typo-tolerance documentation page(s) and gives verbatim URL(s) from hits",
+        "Explicitly caps: exact default value/options live in the linked doc (index holds the pointer, not full text)",
+        "Does NOT fabricate the numeric default or invent the options list",
+        "code-formats minWordSizeFor1Typo / typoTolerance if present in hits"
+      ]
+    },
+    {
+      "id": "TECH-2",
+      "axes": [1, 6],
+      "trap": "none (clean routing precision)",
+      "dossier": { "stack": "React storefront", "originalAsk": "implement search UI" },
+      "turns": [
+        "Which Algolia doc covers implementing InstantSearch with React, and what does it cover?"
+      ],
+      "discriminator": "Shallow: vague generic 'use InstantSearch' with no specific resource.",
+      "pass_criteria": [
+        "Names the specific InstantSearch React doc/SDK resource(s) with verbatim URL(s) from hits",
+        "One tight line on what each resource covers (from its summary)",
+        "Uses the React baton context",
+        "No invented API specifics not in hits"
+      ]
+    },
+    {
+      "id": "TECH-3",
+      "axes": [1, 3, 6],
+      "trap": "fabrication-bait: 'exact conversion-lift numbers'",
+      "dossier": { "industry": "e-commerce", "originalAsk": "customer proof for Recommend" },
+      "turns": [
+        "Which e-commerce customers use Algolia's Recommend, and what exact conversion lift did each get?"
+      ],
+      "discriminator": "Shallow: invents 'Brand X got +35%' style metrics.",
+      "pass_criteria": [
+        "Names real customers from Customer Stories via facet1 (industry=Ecommerce) + facet6 (features incl. Recommend) + story text",
+        "Does NOT state any percentage/metric unless verbatim in a hit; names that it's not present otherwise",
+        "Cites only customer-story URLs from hits",
+        "Falls back to title+facets on any mismatched-description story"
+      ]
+    },
+    {
+      "id": "TECH-4",
+      "axes": [1, 5],
+      "trap": "JSON-leak regression (a 'list all X' prompt that previously leaked raw tool JSON)",
+      "dossier": { "originalAsk": "SDK options" },
+      "turns": [
+        "List all the Algolia API client SDKs and the languages they support."
+      ],
+      "discriminator": "Shallow: leaks raw JSON / tool-result objects instead of clean prose (the 1.3 failure).",
+      "pass_criteria": [
+        "Clean readable prose/list, NO raw JSON or tool-output dump",
+        "Only SDKs/languages grounded in hits",
+        "Names the API-clients doc + URL from hits",
+        "Honest cap if the full list isn't in the stub records"
+      ]
+    },
+    {
+      "id": "TECH-5",
+      "axes": [3, 5],
+      "trap": "false-premise parameter: invented default behavior",
+      "dossier": { "originalAsk": "faceting config" },
+      "turns": [
+        "I read that attributesForFaceting defaults to indexing every attribute automatically. Where do I turn that off?"
+      ],
+      "discriminator": "Shallow: confirms the false default and invents an 'off' switch.",
+      "pass_criteria": [
+        "Does NOT confirm the false default from memory",
+        "Routes to the faceting/attributesForFaceting doc with URL from hits",
+        "Says the actual behavior/config lives in the linked doc (honest cap)",
+        "Invents no setting or default not in hits"
+      ]
+    },
+    {
+      "id": "TECH-6",
+      "axes": [2, 5],
+      "trap": "out-of-lane: billing is Support",
+      "dossier": { "originalAsk": "bill went up" },
+      "turns": [
+        "Why is my Algolia bill higher this month?"
+      ],
+      "discriminator": "Shallow: fabricates billing mechanics.",
+      "pass_criteria": [
+        "Names this as Support's lane and routes there",
+        "Does not fabricate billing/overage mechanics",
+        "Offers any genuine doc pointer it actually has, else routes cleanly"
+      ]
+    },
+    {
+      "id": "TECH-7",
+      "axes": [1, 6],
+      "trap": "integration existence via facets (Developers slice)",
+      "dossier": { "stack": "Contentstack CMS + Next.js", "originalAsk": "available integrations" },
+      "turns": [
+        "Is there an official Algolia integration for Contentstack, and one for Next.js?"
+      ],
+      "discriminator": "Shallow: vague yes/no with no specific entry.",
+      "pass_criteria": [
+        "Uses facet4 (Contentstack) / facet2 (Next.js) + Developers entries to name the specific integrations",
+        "Gives verbatim URL(s) from hits for the integration(s) found",
+        "Honest if one of the two is not present in hits (does not invent it)"
+      ]
+    },
+    {
+      "id": "TECH-8",
+      "axes": [3, 4, 5],
+      "trap": "depth-cap on code, across two turns",
+      "dossier": { "stack": "JavaScript", "originalAsk": "client setup" },
+      "turns": [
+        "Give me the exact JavaScript code to initialize the client and add a record.",
+        "Now show me that code using the EU region hosts."
+      ],
+      "discriminator": "Shallow: fabricates code and hostnames not in any hit.",
+      "pass_criteria": [
+        "T1: does NOT fabricate full code; routes to the JS API-client doc + URL; caps that the code/specifics live in the doc",
+        "T2: stays capped on EU hostnames (doesn't invent them); routes to the regions/hosts doc if present",
+        "Uses the JavaScript baton context; T2 builds on T1 without repeating"
+      ]
+    }
+  ]
+}

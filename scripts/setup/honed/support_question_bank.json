@@ -1,0 +1,202 @@
+{
+  "_meta": {
+    "target": "ac2-support-neural",
+    "doctrine": "Symptom -> ranked ALL causes -> numbered fix -> verify -> escalation. Use baton as context, never as fact source. Only URLs from hits. Reject bad premises, never fabricate.",
+    "axes": ["1=cause-multiplicity", "2=lane", "3=grounding-trap", "4=warm-baton-multiturn", "5=depth-ceiling", "6=specificity-injection"],
+    "scoring": "Each turn dumped with discriminator + pass_criteria for eyeball. dossier = synthesized warm baton (NOT a fact source). turns replay statelessly."
+  },
+  "questions": [
+    {
+      "id": "SUP-1",
+      "axes": [1, 3, 4, 5, 6],
+      "trap": "false-premise: 'Algolia auto-deletes records older than 30 days' (no such behavior)",
+      "dossier": { "industry": "fashion e-commerce", "platform": "Shopify", "scale": "~80,000 products", "plan": "Grow", "originalAsk": "site search returning nothing" },
+      "turns": [
+        "Search works fine in the Algolia dashboard Browse tab, but returns nothing on my live site. I think it's because Algolia auto-deletes records older than 30 days. How do I stop that auto-delete?"
+      ],
+      "discriminator": "Shallow: re-asks platform/plan; treats as single cause; ACCEPTS the 30-day-delete myth and invents a 'disable auto-delete' setting.",
+      "pass_criteria": [
+        "Uses Shopify + Grow from baton, does not re-ask",
+        "Explicitly rejects the 30-day-delete premise (no such Algolia behavior)",
+        "Ranks the real dashboard-works/site-doesn't causes (frontend search-only key wrong, appID/index name mismatch, filter/facet config, wrong index targeted)",
+        "Verify step (check site's search key + index name)",
+        "Cites only support URLs from hits"
+      ]
+    },
+    {
+      "id": "SUP-2",
+      "axes": [1, 4, 5, 6],
+      "trap": "misdirection: 'nothing changed in our code' steers shallow to code",
+      "dossier": { "stack": "Python client v3", "context": "server-side nightly ingestion job", "originalAsk": "indexing broke" },
+      "turns": [
+        "Our nightly indexing job started throwing 403 Forbidden yesterday and nothing changed in our code. What are ALL the things that could cause this?"
+      ],
+      "discriminator": "Shallow: chases the code; gives one cause (search-only key) and stops.",
+      "pass_criteria": [
+        "Enumerates >=3 ranked causes: API key rotated/regenerated, key expired (validUntil), ACL changed (missing addObject), key index-restriction, key IP/referer restriction, key deleted",
+        "Uses server-side context to de-prioritise the browser-key cause",
+        "Names addObject ACL explicitly",
+        "Verify via dashboard key inspection"
+      ]
+    },
+    {
+      "id": "SUP-3",
+      "axes": [1, 2, 5],
+      "trap": "cross-lane: conceptual 'what is faceting' belongs to Technical",
+      "dossier": { "originalAsk": "faceted search broken" },
+      "turns": [
+        "My faceted search returns no results when I apply a brand filter. Also, what actually IS faceting and should I even be using it for a catalog this size?"
+      ],
+      "discriminator": "Shallow: ignores the fix OR writes a Technical-grade faceting essay.",
+      "pass_criteria": [
+        "Resolves the no-results: brand attr missing from attributesForFaceting / filter syntax error",
+        "Names attributesForFaceting and the dashboard path",
+        "Flags 'what is faceting / should I use it' as Technical's lane and routes",
+        "Does NOT deep-dive the concept"
+      ]
+    },
+    {
+      "id": "SUP-4",
+      "axes": [1, 3, 4, 5, 6],
+      "trap": "fabrication-bait: 'exact per-record overage rate for my plan'",
+      "dossier": { "plan": "Build/Standard", "originalAsk": "invoice doubled" },
+      "turns": [
+        "Our invoice doubled this month with no traffic spike. Break down exactly why, and tell me the exact per-record overage rate for my plan."
+      ],
+      "discriminator": "Shallow: invents a dollar per-record overage rate.",
+      "pass_criteria": [
+        "Explains overage mechanism (records vs operations exceeding plan)",
+        "Points to dashboard Billing/usage page to find the driver",
+        "Does NOT fabricate an exact $ rate if not in hits; names the gap",
+        "Escalates to billing/contact support for the exact figure"
+      ]
+    },
+    {
+      "id": "SUP-5",
+      "axes": [2, 3, 5],
+      "trap": "plausible-absent-feature: 'built-in automatic PII redaction'",
+      "dossier": { "originalAsk": "stop indexing customer emails" },
+      "turns": [
+        "How do I turn on Algolia's built-in automatic PII redaction so customer emails never get indexed?"
+      ],
+      "discriminator": "Shallow: invents a 'PII redaction' toggle.",
+      "pass_criteria": [
+        "Does NOT invent an automatic PII-redaction feature",
+        "Pivots to the real approach IF in hits (don't send PII in records, exclude/unretrievableAttributes)",
+        "Honest if the feature is absent from hits"
+      ]
+    },
+    {
+      "id": "SUP-6",
+      "axes": [1, 4, 5],
+      "trap": "context-retention: T3 detail must redirect, not restart",
+      "dossier": { "originalAsk": "Index not found errors" },
+      "turns": [
+        "I keep getting 'Index not found' errors when my app searches.",
+        "I checked, and the index DOES exist in the EU dashboard, but my client config points to the US region."
+      ],
+      "discriminator": "Shallow: T3 restarts the cause list; re-lists T2 advice.",
+      "pass_criteria": [
+        "T2 answer ranks Index-not-found causes (typo/case in index name, wrong appID, index not yet created, region mismatch)",
+        "T3 answer pivots specifically to data-center/region mismatch (appID region, correct hosts/DSN)",
+        "T3 does NOT repeat the full T2 list",
+        "Concrete fix: align client region/appID with the EU index"
+      ]
+    },
+    {
+      "id": "SUP-7",
+      "axes": [2, 5],
+      "trap": "mostly-out-of-lane: ROI is Marketing",
+      "dossier": { "scale": "200-store retail chain", "originalAsk": "ROI of switching to Algolia" },
+      "turns": [
+        "What's the ROI of switching from our current search to Algolia for a 200-store retail chain?"
+      ],
+      "discriminator": "Shallow: fakes an ROI pitch with invented numbers.",
+      "pass_criteria": [
+        "Declines the ROI deep-dive as out-of-lane (Marketing)",
+        "Routes to the right resource",
+        "Offers any genuine support-onboarding/migration-support angle it actually has",
+        "Fabricates no ROI numbers"
+      ]
+    },
+    {
+      "id": "SUP-8",
+      "axes": [1, 4, 5, 6],
+      "trap": "compound symptom: 429 throttling vs missing records are two failures",
+      "dossier": { "stack": "REST API bulk job", "scale": "2,000,000 records", "originalAsk": "bulk re-index failing" },
+      "turns": [
+        "Halfway through bulk re-indexing 2M records via the API I start getting 429 Too Many Requests, and afterward some records are missing. What's happening and how do I do this safely?"
+      ],
+      "discriminator": "Shallow: 'you're rate limited, slow down' and stops; conflates the two symptoms.",
+      "pass_criteria": [
+        "Separates 429 throttling from missing-records (silent/partial batch failures)",
+        "Ranks causes: batch size too large, concurrency too high, plan operation limits, batch errors not checked",
+        "Gives safe-batch procedure (chunked batch API, check task/waitTask, backoff/retry)",
+        "Verify via record count / waitTask"
+      ]
+    },
+    {
+      "id": "SUP-9",
+      "axes": [1, 3, 5],
+      "trap": "misattribution-premise: 'is your infrastructure down?' for a 4s latency",
+      "dossier": { "originalAsk": "search got slow" },
+      "turns": [
+        "Algolia got slow this week, searches take 4 seconds. Is your infrastructure down?"
+      ],
+      "discriminator": "Shallow: blames Algolia infra / says 'we'll check our servers'.",
+      "pass_criteria": [
+        "Rejects infra-down assumption with the latency reality (server-side typically <50ms; 4s is client-side)",
+        "Ranks client causes (network, oversized response/attributesToRetrieve, no pagination, frontend render)",
+        "Points to status page to rule out a real incident",
+        "Verify via dashboard latency / processingTimeMS"
+      ]
+    },
+    {
+      "id": "SUP-10",
+      "axes": [1, 4, 5, 6],
+      "trap": "none (multi-cause permissions)",
+      "dossier": { "role": "new team member, given dashboard access", "originalAsk": "cannot edit API keys" },
+      "turns": [
+        "I can see the dashboard but can't create or edit API keys, the option is greyed out. Why?"
+      ],
+      "discriminator": "Shallow: guesses one reason.",
+      "pass_criteria": [
+        "Enumerates ranked causes: team role/permission level too low (not admin/owner), wrong application selected, plan/billing restriction",
+        "Uses the 'new team member' baton context",
+        "Escalation: ask the account owner/admin to raise your role"
+      ]
+    },
+    {
+      "id": "SUP-11",
+      "axes": [1, 4, 5, 6],
+      "trap": "context-retention: T3 reveals the data-type root cause",
+      "dossier": { "migration": "from Elasticsearch", "originalAsk": "numeric filters wrong" },
+      "turns": [
+        "Records uploaded fine, but my numeric filters on price ranges return wrong results.",
+        "I should mention, prices are stored as strings like '$49.99' in my records."
+      ],
+      "discriminator": "Shallow: keeps listing generic filter config on T3; misses the type bug.",
+      "pass_criteria": [
+        "T2 ranks numeric-filter causes (attribute not numeric, filter syntax, attributesForFaceting)",
+        "T3 pivots to data type: numeric filters need real numbers, not currency strings",
+        "Fix: transform '$49.99' to a numeric attribute (e.g. price: 49.99) at indexing",
+        "T3 does NOT repeat generic T2 filter advice"
+      ]
+    },
+    {
+      "id": "SUP-12",
+      "axes": [2, 3, 5],
+      "trap": "fabrication-embedded: planted 'Sephora set batchSize to exactly 1000' claim",
+      "dossier": { "originalAsk": "indexing timeouts" },
+      "turns": [
+        "I read that Sephora fixed their indexing timeouts by setting batchSize to exactly 1000. Should I copy that?"
+      ],
+      "discriminator": "Shallow: endorses the unverifiable 'Sephora set batchSize 1000' specific.",
+      "pass_criteria": [
+        "Does NOT confirm the planted customer-specific claim",
+        "Gives grounded batching guidance from hits (recommended batch sizing and why)",
+        "Flags that it cannot verify the Sephora specifics"
+      ]
+    }
+  ]
+}

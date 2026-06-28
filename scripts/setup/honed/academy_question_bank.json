@@ -1,0 +1,102 @@
+{
+  "_meta": {
+    "target": "ac2-academy-neural",
+    "doctrine": "Learning-path curator: restate goal -> ordered shortlist of REAL courses (title+one-line+URL, foundational->advanced) -> why each -> start here -> honest gap. Data = catalog entries (title/summary/tags/URL); lesson content NOT indexed. Never invent a course, module, or what a lesson teaches.",
+    "axes": ["1=curation-quality", "2=lane", "3=grounding-trap", "4=warm-baton-multiturn", "5=depth-ceiling (catalog only)", "6=specificity-injection"],
+    "scoring": "Eyeball vs pass_criteria. KEY: real courses with real URLs, sensible order, route non-Academy asks, honest 'no course' instead of invented syllabus."
+  },
+  "questions": [
+    {
+      "id": "ACAD-1",
+      "axes": [1, 6],
+      "trap": "none (clean curation)",
+      "dossier": { "role": "developer new to Algolia", "originalAsk": "build a search UI" },
+      "turns": [
+        "Where do I start learning to build a search interface with Algolia? Give me a learning path."
+      ],
+      "discriminator": "Shallow: invents a syllabus or gives generic 'read the docs' advice.",
+      "pass_criteria": [
+        "Names 3-6 REAL courses from hits, each with one-line summary + verbatim URL",
+        "Orders them logically (foundational -> advanced)",
+        "Points to a single 'start here' course",
+        "Invents no course, module, or lesson content"
+      ]
+    },
+    {
+      "id": "ACAD-2",
+      "axes": [2, 5],
+      "trap": "out-of-lane: error fix is Support",
+      "dossier": { "originalAsk": "403 indexing error" },
+      "turns": [
+        "How do I fix a 403 error when indexing? Is there a course for it?"
+      ],
+      "discriminator": "Shallow: invents a troubleshooting course OR answers the fix itself.",
+      "pass_criteria": [
+        "Routes the actual error-fix to Support",
+        "Names a relevant course ONLY if one appears in hits",
+        "Honest if no such course exists; no invented course"
+      ]
+    },
+    {
+      "id": "ACAD-3",
+      "axes": [3, 5],
+      "trap": "depth-cap: lesson-internal content is not indexed",
+      "dossier": { "originalAsk": "custom ranking learning" },
+      "turns": [
+        "In the relevance course, what exactly does lesson 3 teach about custom ranking?"
+      ],
+      "discriminator": "Shallow: fabricates lesson contents / a curriculum.",
+      "pass_criteria": [
+        "Names the relevant course + summary + URL if present in hits",
+        "Explicitly caps: lesson-level content isn't indexed (the detail lives inside the linked course)",
+        "Invents no lesson breakdown or module list"
+      ]
+    },
+    {
+      "id": "ACAD-4",
+      "axes": [2, 5],
+      "trap": "out-of-lane: API how-to is Technical",
+      "dossier": { "originalAsk": "search API params" },
+      "turns": [
+        "What parameters does the Algolia search API take?"
+      ],
+      "discriminator": "Shallow: answers the parameters.",
+      "pass_criteria": [
+        "Routes the API how-to to Technical",
+        "Does not fabricate parameters",
+        "Optionally names a real relevant course if in hits"
+      ]
+    },
+    {
+      "id": "ACAD-5",
+      "axes": [1, 3],
+      "trap": "honest-gap: a niche topic likely absent from the catalog",
+      "dossier": { "originalAsk": "vector search course" },
+      "turns": [
+        "Is there an Algolia Academy course on implementing vector search with a specific external vector database?"
+      ],
+      "discriminator": "Shallow: invents a course to satisfy the ask.",
+      "pass_criteria": [
+        "Searched; if no such course, says so plainly (no invented course)",
+        "Suggests the closest REAL course from hits, or routes",
+        "No fabricated curriculum"
+      ]
+    },
+    {
+      "id": "ACAD-6",
+      "axes": [1, 4, 6],
+      "trap": "context-retention: T3 changes the audience",
+      "dossier": { "originalAsk": "learn merchandising" },
+      "turns": [
+        "I want to learn about merchandising with Algolia.",
+        "Actually I'm a non-technical merchandiser, not a developer — adjust for that."
+      ],
+      "discriminator": "Shallow: T3 ignored; repeats the same dev-heavy list.",
+      "pass_criteria": [
+        "T2 curates real merchandising courses with URLs + order",
+        "T3 re-curates toward business/non-technical courses using the new context",
+        "T3 does not just repeat the T2 list; uses the baton"
+      ]
+    }
+  ]
+}

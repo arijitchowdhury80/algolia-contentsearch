@@ -1,78 +1,53 @@
 # SESSION.md — Algolia-Central2
 
-_Last updated: 2026-06-28 (handoff). Latest session = closed Backlog A (expandedQuery drop, shipped) + Backlog B (native memory, negative). Judge "Confidence" build was completed in the prior session._
+_Last updated: 2026-06-28 PM. This session = content-source multi-agent routing SPIKE → verdict KILL on scoping; data-hardened the corpus; drafted honed specialist prompts + warm-baton design. Mid-stream on the honed-prompt phase._
 
 ## ▶ STATUS (one line)
-**Backlog A + B CLOSED; on `main` `03e9184` (synced, clean tree).** A = `brain.expandedQuery` DROPPED from retrieval (raw turn to agent; grounding hazard removed) `dc03bc7`. B = Agent Studio native memory does NOT carry context → AC2 keeps stateless `messages[]` replay, no Redis `03e9184` + ADR-002. Judge build shipped earlier (`a3402bb`). **Only `P2b` (human-rank judge calibration, needs Arijit ~20 min) remains; P3 skipped.** Repo `github.com/arijitchowdhury80/algolia-contentsearch`.
+**Content-source SCOPING = KILLED** (no answer-quality lift over one all-source neural agent on a FAIR baseline: oracle ΔBA **+0.25**, within ±0.3 noise). Depth ceiling is the DATA (corpus = titles+summaries+facets; deep content only in **Support** + **"Other"**). **Now mid-stream on Path 1: honed purpose-built prompts + warm baton — about to push Support live and smoke-test it.** Working tree DIRTY (uncommitted). Prior milestones (Judge build, Backlog A, B) are on `main` `03e9184`.
 
 ## ▶ RESUME — first actions next session
-1. Read this file. Judge build + Backlog A + Backlog B all DONE and on `main` (`03e9184`, clean tree). Nothing in-progress, nothing broken. **The single remaining task is `P2b` (item 3 below) — needs Arijit.** If Arijit gives no direction, propose P2b or wait.
-2. **DONE (Arijit approved "A", 2026-06-28) — expandedQuery dropped from retrieval:** `orchestrate.ts:40,65` now send the **raw user turn** to the agent (was `brain.expandedQuery`). brain still runs (intent/entities/proposedQuestion → dossier, baton routing, judge Coverage). `expandedQuery` field survives ONLY as baton's routing-prompt signal (`baton.ts:26`) — NOT retrieval, so no grounding risk. New TDD test `orchestrate.test.ts` "sends the RAW user turn". Tests 109 green, tsc clean. **NOT committed** (working tree dirty). Validation behind it: Gate 1 ✅ (NeuralSearch fires on raw NL); Gate 2 (32-Q A/B) = +0.24 (noise) + grounding hazard on baits (7.5). Writeup: `docs/experiment/2026-06-28-expandedquery-drop-validation.md`. Optional follow-up: a narrow turn-≥2 coreference rewrite (not needed today — turns are sent fresh + self-contained).
-3. Remaining deferred items (optional):
-   - **P2b — calibration ranking (needs Arijit, ~20 min):** the judge's trust-gate. Run `cd lab/server && npm run calibrate` AFTER putting real human ranks into `lab/server/calibration/set.json`. Tune `lab/judge/src/rubric.ts` / `prompt.ts` until Spearman ≥ 0.7. Autonomous gate FAILS (~0.0) — see "Calibration status"; human ranking is the real signal.
-   - ~~Backlog B — prove native memory live~~ **DONE 2026-06-28 → NEGATIVE.** Native Agent Studio memory does NOT carry context via the completions API (2-turn probe: same conv-id, "what was my previous question?" → "you have not asked me a previous question"; negative across client-id / +5s-delay+msg-id / server-returned-id). Corrects the prior findings-doc claim. AC2 KEEPS manual `messages[]` replay; no Redis (never used). Probe `lab/server/src/experiments/nativeMemoryProbe.ts` (`npm run expt:nativememory`). Memory [[project-native-memory-not-usable]]. Architecture decision recorded: `docs/design/adr-002-conversation-state-stateless-replay-vs-redis.md` (Redis≠token-saving; AC2 stateless replay + dossier is right; native transcript store > Redis for any future persistence).
-   - **P3 (SKIPPED by Arijit) — RC2 win/tie/loss gym.** Only if a head-to-head RC2 benchmark is wanted; live-eval-heavy.
-4. Don't re-litigate the proven facts (see "Decisions locked").
+1. Read this file. Then **continue the honed-prompt phase** (Arijit approved Path 1 + "Full fidelity" + "update live agents, snapshot first"). The immediate next step is item 2.
+2. **PUSH SUPPORT + ADHERENCE SMOKE (the concrete next action):**
+   a. **Snapshot** the 4 live specialists' current instructions to a file (reversible restore). Use the Agent Studio GET (`GET /agent-studio/1/agents/{id}` — instructions field) via a small script or `scripts/setup/agent_admin.mjs`. App = CENTRAL `0EXRPAXB56`, key = `ALGOLIA_ADMIN_API_KEY`. **List API paginates at 10 → use `?limit=100`.**
+   b. **Push** the honed Support prompt (`scripts/setup/honed/instructions_support.md`, with `[[SHARED_GROUNDING]]` substituted from `_shared_grounding.md`) to `ac2-support-neural` via PUT/update + publish.
+   c. **Smoke:** run 3–4 support questions (e.g. S1 "403 on indexing", 8.5, a billing/error Q) through `ac2-support-neural` and EYEBALL: does it follow the resolver doctrine (symptom→ranked causes→numbered fix→verify→escalation)? Does it leak JSON (like tech did on 1.3)? 
+   d. **If adherent →** push the other 3 honed prompts, build the warm-baton multi-turn harness, run A/B vs `ac2-allsource-neural`. **If not →** fix adherence once, cheaply, before the full run.
+3. Honest expectation to hold: Support (+ Marketer-on-"Other") may show real lift; Technical/Academy likely tie the baseline (their depth ceiling is the DATA, not the prompt). A tie there is a valid finding, not a failure.
+4. Then decide **Path 2** (enrich the index with chunked full doc/lesson bodies) — the real unlock for deep Technical/Academy answers — only if the data ceiling visibly bites.
 
-## ▶ BACKLOG A RESULT (2026-06-28) — expandedQuery drop VALIDATED
-- Harness: `lab/server/src/experiments/expandedQueryAb.ts` (+ pure `expandedQueryAgg.ts`, 7 unit tests). Run: `cd lab/server && npm run expt:expandedquery -- --rounds 3 --concurrency 4`. Artifacts: `docs/experiment/expandedquery-ab-{results.json,summary.md}` + analysis doc `docs/experiment/2026-06-28-expandedquery-drop-validation.md`.
-- Verdict: NO reliable quality lift (+0.24, within ±0.3 noise) AND a real grounding HAZARD on bait/refusal queries (the documented false-refusal bug, reproduced with a score). Recommendation = drop full rephrase, keep narrow coref. Lesson captured: `docs/sop/lessons-log.md` + memory [[feedback-query-rephrase-strips-skeptical-framing]].
-- Caveats: indicative thin-source judge (agentRunner discards source bodies) + flash-judge noise (2 rows lost to JSON-parse errors; clean Qs occasionally gate-trip). Gross pattern trustworthy; fine deltas not. An authoritative full-source batch re-run was NOT done.
-
-## ▶ WHAT SHIPPED (the judge build) — merged via `a3402bb`
-Branch `refactor/2x2-answer-quality-lab` → merged + pushed to `main`. Judge commits:
-- `4512ee4` P1 — 4-dim rubric (Grounding/Coverage/Depth/Relevance), `confidence`→`certainty` rename, retire reference judge, replay rewired to mature engine.
-- `713cbcc` P2 — calibration harness + **gate-bug fix** (unverifiable claims no longer trip the multi-round gate; `synthesis.ts:~182`) + P4 Confidence UI (ConfidenceChip + 4-bar drawer).
-- `361a26e` P5 — standalone HTTP judge service (`npm run judge:serve`) + CLI (`npm run judge:cli`) + `ai-judge-cli` skill (live-verified on Gemini).
-- `5a5aa40` docs — `lab/judge/README.md` (4 dims, gate, 3 integration paths, types, calibration).
-- `50b1dcc` refactor — judge server surface grouped under `lab/server/src/judge/` (engine stays `lab/judge/`).
-- `a3402bb` merge commit into main.
-
-**Tests (verified by me, not on faith): judge 88 · server 101 · web 107 — all green, tsc clean.**
-
-**Judge is usable now, 3 ways:** import `@lab/judge` (write an `LlmComplete` adapter, call `judgeArtifactMultiRound`) · HTTP `npm run judge:serve` → POST `/api/judge` · CLI `npm run judge:cli` / `ai-judge-cli` skill.
-
-## ▶ JUDGE DESIGN (locked)
-- **4 dims, equal-weight mean = composite "Confidence":** Grounding (also the hard gate), Coverage (checklist from `dossier.signals`+`brain.entities` via `Artifact.extractedEntities` — no new extraction), Depth, Relevance.
-- **Grounding gate:** only `contradicted` violations cap (to 3); `unverifiable` lowers the grounding dim but does NOT gate; multi-round = a claim must recur to trip (anti-flicker, `claimGate.ts`).
-- **3-lens adversarial panel** (skeptic/referee/advocate, temp 0) — already existed; we kept it.
-- **Naming:** composite = "Confidence" end-to-end; per-claim signal = `certainty` (renamed from confidence to avoid UI collision).
-- Spec: `docs/superpowers/specs/2026-06-27-judge-confidence-refactor-design.md`.
-
-## ▶ CALIBRATION STATUS (P2b — the open trust gate)
-- Harness built: `lab/judge/src/calibration.ts` (Spearman + runCalibration) + `lab/server/src/judge/calibrationCli.ts` (`npm run calibrate`).
-- Autonomous construct-validity gate **FAILS** (Spearman ~0.0). ROOT CAUSE diagnosed: the gym gold records (`lab/replay/gold/*.json`) have **NO source bodies** (citation labels only), so any grounding eval against them is invalid; a fair set needs REAL retrieved source chunks. The p2-real agent captured some real sources into `lab/server/calibration/set.json`, but strong answers still gate (skeptic labels claims "contradicted" — likely answer↔source mismatch in the synthetic set). 
-- **DECISION (Arijit):** stop grinding the synthetic gate; the judge engine is unit-tested + the one real bug it found (the multi-round `unverifiable` gate bug) is fixed. The REAL gate = a 20-min human-rank session with Arijit, deferred.
+## ▶ WHAT HAPPENED THIS SESSION (the spike + data work)
+- **Reframed the question:** AC2 is already single-specialist routing (fan-out retired). RC2 routes on persona/intent, NOT content-source — Arijit's "support→support agent" is a distinct, legitimate architecture. The 4 content-source specialists already exist on the app but were never wired.
+- **A/B/C spike** (4-dim judge, 32 v3 Qs + 6 stress, 3 rounds): A=baseline, B=oracle-routed specialist, C=real-router specialist. Harness `lab/server/src/experiments/sourceRoutingAb.ts` + `sourceRouting/{labels,extraQuestions,classifier,routingAgg}.ts` (18 unit tests, full suite 127 green, tsc clean).
+- **The flip = the lesson.** First run baseline = 6-source incumbent Maverick → +0.76 "multi-agent wins." That baseline is BLIND to Academy/Support (charter excludes them), so specialists won by default. Re-ran with a FAIR all-source baseline (`ac2-allsource-neural`, same MULTI_NEURAL index, NO source filter) → **+0.25 = KILL.** The +0.51 swing was pure baseline-blindness confound. [[feedback-ab-baseline-same-information-set]]
+- **Data-hardening (n=1,000/source)** — Arijit insisted, correctly. Findings: corpus has NO full-body field; `description` depth varies hugely. **Support median 626 chars (70% deep); "Other" median 6,503 (55% deep); Documentation median 60 (96% stubs); Academy/Blog/Developers catalog-grade.** Corrected two of my own n=2 errors: Customer Stories 85% usable (not corrupted; 15% Oh Polly dup bug); "Other" is deep (not 1-line). **Facets reach the model** (verified via live tool-result dump: `facet1` industry + `facet6` features present in the agent's search results).
+- **Honed prompts (data-realistic v3)** drafted: Support = deep resolver (data supports it); Technical = precise router + customer-story evidence; Academy = course curator; Marketer = value-frame + long-form on "Other"/Resources. Each + a shared grounding + warm-baton block.
+- **Warm baton designed** (RC2-style): on handoff the specialist gets history + a dossier preamble (industry/product/stack/original ask) — never repeat. Baton = framing/retrieval context, NOT a grounding source (Algolia facts still must trace to hits).
 
 ## ▶ DECISIONS LOCKED THIS SESSION
-1. Consolidate onto the mature judge engine; **retire** the weak reference judge (`judgeReference.ts` et al.) — DONE.
-2. 4 dims (drop old decisiveness "confidence" dim; split breadth_depth→coverage+depth; add relevance); equal weight; grounding = hard gate.
-3. Composite named "Confidence"; per-claim → `certainty`.
-4. RC2 role: calibration anchor + (deferred) gym yardstick — NOT a per-answer token-diff.
-5. **No separate GitHub repo** for the judge — keep in AC2 monorepo, logically separated (`lab/judge` engine + `lab/server/src/judge` service). Split later only if needed.
-6. Packaging: HTTP service + runnable CLI skill (both built).
-7. UX: per-answer Confidence chip → right drawer (built).
-8. **Coordinator stays custom — PROVEN:** Agent Studio has NO native multi-agent handoff (`/handoffs`,`/teams`,`/orchestrators`,`/workflows`,`/sessions` → 404 live on `0EXRPAXB56`; agent config has no handoff field). "Orchestrator" agents are classifiers + client routing = exactly what `brain`+`baton` are. Conversation memory IS native (on by default). `brain.expandedQuery` is likely redundant (NeuralSearch understands NL) — but deleting it is gated by backlog A. Full findings: `docs/research/2026-06-27-coordinator-algolia-native-findings.md`.
-9. P3 (RC2 gym) SKIPPED by Arijit.
+1. Content-source SCOPING (cordon + same prompt) = no lift → KILLED. (Vault ADR `2026-06-28-content-source-routing-spike-verdict.md`, supersedes-in-part `2026-06-18-content-source-multi-agent`.)
+2. Depth is DATA-bound; honing can only help where content is deep (Support, "Other").
+3. Path 1 chosen: hone within data limits + warm baton, then test. (Path 2 = enrich index, deferred.)
+4. Baseline for any fairness test = `ac2-allsource-neural` (same index, no filter), NOT the 6-source Maverick.
+5. Customer Stories proof = text (85% ok) + facet1/facet6; never invented metrics.
 
-## ▶ WHAT HAS NOT BEEN DONE (prevent false-completion claims)
-- P2b human-rank calibration NOT done (autonomous gate fails; needs Arijit). Judge is NOT yet human-validated.
-- P3 (RC2 win/tie/loss gym) NOT built (skipped). Replay currently scores AC2 absolutely.
-- Backlog A (`expandedQuery` drop) + B (native memory) NOT done.
-- Live VISUAL UI confirm NOT done — `web/.env.local` lacks `VITE_ALGOLIA_*` keys so the web dev server won't boot; the chip/drawer are covered by static-markup tests only.
-- `brain.expandedQuery` NOT deleted (gated by A).
-- Working tree: `CLAUDE.md` + `SESSION.md` were dirty pre-session (not mine); this persist overwrites SESSION.md.
+## ▶ FILES WRITTEN THIS SESSION (all UNCOMMITTED)
+- **Spike harness:** `lab/server/src/experiments/sourceRoutingAb.ts` + `sourceRouting/{labels.ts,extraQuestions.ts,classifier.ts,routingAgg.ts}` + 3 `.test.ts`. `lab/server/package.json` (`expt:sourcerouting` script).
+- **Honed prompts:** `scripts/setup/honed/instructions_{support,technical,academy,marketer}.md` + `_shared_grounding.md`.
+- **Baseline agent creator:** `scripts/setup/create_allsource_agent.mjs` (already RUN — `ac2-allsource-neural` live, id `26712546-8a6b-4a17-bd7d-18f7a7621746`).
+- **Verdict doc:** `docs/experiment/2026-06-28-content-source-routing-verdict.md` + `source-routing-ab-{results.json,summary.md}`.
+- **Lessons log:** `docs/sop/lessons-log.md` (+1 entry: A/B baseline-blindness confound).
+- **Vault:** ADR + dev-log + open-questions + index + log under `Projects/algolia-central2/`.
+- **Memory:** [[project-content-source-routing-killed]], [[feedback-ab-baseline-same-information-set]], [[project-ac2-agent-inventory-reality]], updated [[feedback-verify-facts-against-live-system]], session_pointer, MEMORY.md.
 
-## ▶ KEY FILES (paths + purpose)
-- `docs/superpowers/specs/2026-06-27-judge-confidence-refactor-design.md` — judge design spec.
-- `docs/research/2026-06-27-coordinator-algolia-native-findings.md` — why coordinator stays custom + expandedQuery-drop case.
-- `~/.claude/plans/create-the-plan-for-whimsical-hanrahan.md` — the approved 6-phase judge build plan.
-- `lab/judge/` — engine (README.md, rubric.ts, judge.ts, synthesis.ts, gate.ts, claimGate.ts, calibration.ts, types.ts).
-- `lab/server/src/judge/` — service surface (judgeService.ts, judgeCli.ts, judgeHandler.ts, liveJudge.ts, calibrationCli.ts, calibration tooling).
-- `lab/server/calibration/` — set.json (real-source attempt), key.json, RANKING-SHEET.md (blind), cli-fixture.json.
-- `web/src/components/{ConfidenceChip,JudgeDrawer,PanelCell}.tsx` — the Confidence UI.
+## ▶ WHAT HAS NOT BEEN DONE (no false-completion)
+- Honed prompts NOT pushed live (drafts on disk only). NOT tested against any agent — adherence unproven (Agent Studio agents can mis-format, e.g. tech leaked JSON on 1.3).
+- Warm-baton harness NOT built (designed only). Multi-turn A/B NOT run.
+- Nothing committed to git this session (Arijit commits on request only). `ac2-allsource-neural` IS live on the app but NOT in `.env.local` (resolved by name).
+- Customer Stories 15% dup bug NOT fixed.
+- P2b human-rank judge calibration still open (the judge scoring all this is uncalibrated — treat scores as indicative).
 
-## ▶ ENV / INFRA NOTES
-- App = CENTRAL `0EXRPAXB56` (`ALGOLIA_*` in `.env.local`); judge uses provider via `activeJudgeLlm`/`provider.ts` (OpenAI key dead → Gemini fallback; gemini model = `ALGOLIA_AGENT_MODEL` default `gemini-2.5-pro`; flash override = `ALGOLIA_AGENT_MODEL=gemini-2.5-flash`, NOT `JUDGE_MODEL`).
-- Reading `.env.local` from a bash command is blocked by the secrets guard; scripts (`scripts/setup/*.mjs`, calibrationCli) read it themselves — use those.
-- Repo remote: `github.com/arijitchowdhury80/algolia-contentsearch` (origin). main = `a3402bb` (synced).
+## ▶ KEY FACTS / GOTCHAS
+- App = CENTRAL `0EXRPAXB56`; keys in `.env.local` (read by scripts, not bash — secrets guard). `.env.local` is STALE for specialist ids → resolve agents BY NAME from `GET /agent-studio/1/agents?limit=100`.
+- Index `AC2_WWW_MULTI_NEURAL` = the specialists' shared index (source-filtered per agent). `ac2-allsource-neural` = same index, no filter.
+- Judge is INDICATIVE here: agent stream → harness keeps only `{title,url}` (no body), so grounding dim is directional; trust composite/coverage/depth deltas (symmetric). Flash-judge drops ~1–5 rows/run to JSON noise (excluded).
+- Tests: `cd lab/server && npm test` (127 green) · `npm run typecheck` (clean).

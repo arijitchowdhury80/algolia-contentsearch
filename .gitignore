@@ -39,6 +39,12 @@ scripts/setup/current_instructions.txt
 .vscode/
 .idea/
 
+# === honed-prompt + calibration scratch (regenerable / local rollback) ===
+scripts/setup/honed/baton_run_*.md
+scripts/setup/honed/snapshot_*.txt
+scripts/setup/honed/current_instructions.txt
+lab/server/calibration/set.construct.json
+
 # === misc ===
 *.tsbuildinfo
 .persisted_recently

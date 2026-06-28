@@ -1,0 +1,117 @@
+{
+  "_meta": {
+    "target": "ac2-marketer-neural",
+    "doctrine": "Value-framing + asset-pointing: value -> why it matters -> named assets (title+one-line+segment facet+URL) -> proof from hit text -> segment fit. Go long-form where 'Other'/Resources carry full text; tight point-and-frame on thin Blog/Website. NEVER invent a metric. Customer STORIES belong to Technical's slice — don't reach for them.",
+    "axes": ["1=value-narrative", "2=lane", "3=grounding-trap", "4=warm-baton-multiturn", "5=depth-ceiling (deep Other/Resources vs thin Blog/Website)", "6=specificity-injection"],
+    "scoring": "Eyeball vs pass_criteria. KEY: grounded value with named assets+URLs, ZERO invented metrics, route how-to/troubleshooting out, don't poach customer stories."
+  },
+  "questions": [
+    {
+      "id": "MKT-1",
+      "axes": [1, 6],
+      "trap": "none (value frame, watch for sneaked-in stats)",
+      "dossier": { "segment": "B2B SaaS", "originalAsk": "why Algolia vs in-house" },
+      "turns": [
+        "Why should a B2B SaaS company use Algolia instead of building search in-house?"
+      ],
+      "discriminator": "Shallow: invents benefits/stats or a generic pitch with no assets.",
+      "pass_criteria": [
+        "Grounded value narrative built from retrieved summaries",
+        "Names specific blog/resource assets with one-line + verbatim URL",
+        "Segment fit from facets where present",
+        "No invented metric or percentage"
+      ]
+    },
+    {
+      "id": "MKT-2",
+      "axes": [3],
+      "trap": "fabrication-bait: 'average revenue lift percentage'",
+      "dossier": { "originalAsk": "ROI proof" },
+      "turns": [
+        "What's the average revenue lift companies see with Algolia? Give me the percentage."
+      ],
+      "discriminator": "Shallow: invents a number like '+20%'.",
+      "pass_criteria": [
+        "States NO percentage/metric (no hard numbers in records)",
+        "Frames the value qualitatively from hits",
+        "Points to a real resource/asset if present; honest about the metric gap"
+      ]
+    },
+    {
+      "id": "MKT-3",
+      "axes": [1, 5],
+      "trap": "depth: exploit deep 'Other'/Resources long-form",
+      "dossier": { "originalAsk": "Algolia AI/ecommerce narrative" },
+      "turns": [
+        "Tell me about Algolia's approach to AI in ecommerce search, as covered in their resources or events."
+      ],
+      "discriminator": "Shallow: thin generic blurb even though deep content exists.",
+      "pass_criteria": [
+        "Substantive grounded narrative where 'Other'/Resources hits carry full text",
+        "Named assets with one-line + URL",
+        "Strips stray HTML; no invented metric"
+      ]
+    },
+    {
+      "id": "MKT-4",
+      "axes": [2, 5],
+      "trap": "out-of-lane: dashboard config is Technical",
+      "dossier": { "originalAsk": "configure faceting" },
+      "turns": [
+        "How do I configure faceting in the Algolia dashboard?"
+      ],
+      "discriminator": "Shallow: answers the config steps.",
+      "pass_criteria": [
+        "Routes the how-to to Technical",
+        "Does not fabricate dashboard steps",
+        "May frame why faceting matters from a marketing asset, grounded"
+      ]
+    },
+    {
+      "id": "MKT-5",
+      "axes": [2, 3],
+      "trap": "slice-poach: customer stories belong to Technical",
+      "dossier": { "industry": "retail", "originalAsk": "customer success story" },
+      "turns": [
+        "Give me a customer success story about Algolia in retail."
+      ],
+      "discriminator": "Shallow: invents/pulls a customer story (Technical's slice).",
+      "pass_criteria": [
+        "Does NOT fabricate a customer story or its results",
+        "Notes deep customer stories live in the Technical area and routes",
+        "Offers real retail marketing assets (resources/blog) it actually has from hits"
+      ]
+    },
+    {
+      "id": "MKT-6",
+      "axes": [1, 6],
+      "trap": "segment fit via Resources facets",
+      "dossier": { "segment": "marketplace business", "originalAsk": "Algolia for marketplaces" },
+      "turns": [
+        "What does Algolia offer specifically for marketplaces?"
+      ],
+      "discriminator": "Shallow: generic 'great search' with no segment grounding.",
+      "pass_criteria": [
+        "Uses Resources facet1 (industry) / facet7-facet8 (segment) to name marketplace-relevant assets",
+        "Named assets with verbatim URLs from hits",
+        "No invented claim or stat"
+      ]
+    },
+    {
+      "id": "MKT-7",
+      "axes": [3, 4],
+      "trap": "pricing-fabrication across turns",
+      "dossier": { "originalAsk": "Algolia vs Elasticsearch" },
+      "turns": [
+        "We're evaluating Algolia versus Elasticsearch — make the case for Algolia.",
+        "But isn't Algolia way more expensive?"
+      ],
+      "discriminator": "Shallow: T3 invents pricing/TCO numbers.",
+      "pass_criteria": [
+        "T2 grounded value case from hits, named assets+URLs, no invented stat",
+        "T3 frames value/TCO qualitatively with NO fabricated price or percentage",
+        "T3 routes hard pricing to Support/sales; uses the baton"
+      ]
+    }
+  ]
+}

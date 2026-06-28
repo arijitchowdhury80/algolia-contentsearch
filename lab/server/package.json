@@ -15,6 +15,7 @@
     "judge:cli": "tsx src/judge/judgeCli.ts",
     "expt:expandedquery": "tsx src/experiments/expandedQueryAb.ts",
     "expt:nativememory": "tsx src/experiments/nativeMemoryProbe.ts",
+    "expt:sourcerouting": "tsx src/experiments/sourceRoutingAb.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit"
