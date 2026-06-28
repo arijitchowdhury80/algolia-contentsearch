@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   ALGOLIA_ANSWER_RUBRIC,
   BLINDING_INSTRUCTION,
+  CITATION_IS_NOT_EVIDENCE,
   DEFAULT_JUDGES,
   buildJudgePrompt,
   buildSynthesisPrompt,
@@ -45,6 +46,17 @@ describe("buildJudgePrompt", () => {
   it("includes the JSON output contract", () => {
     expect(prompt).toContain('"dimensionScores"');
     expect(prompt).toContain('"groundingViolations"');
+  });
+
+  it("instructs that a citation/URL/brand is NOT evidence — unsourced stats are violations", () => {
+    // The retail-weak defect: a fabricated stat ('guaranteed 5.1x ROAS') wrapped
+    // in plausible customer-story URLs passed the gate because the judge treated
+    // a cited-looking claim as grounded. The prompt must tell the judge that only
+    // the SOURCES are ground truth and an unsourced statistic is a violation even
+    // with an attached URL or brand attribution.
+    expect(prompt).toContain(CITATION_IS_NOT_EVIDENCE);
+    expect(CITATION_IS_NOT_EVIDENCE.toLowerCase()).toContain("statistic");
+    expect(CITATION_IS_NOT_EVIDENCE.toLowerCase()).toContain("url");
   });
 
   it("is deterministic (pure)", () => {

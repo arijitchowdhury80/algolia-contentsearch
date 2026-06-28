@@ -49,6 +49,30 @@ const GROUNDING_NOTE =
   "answer is weak Coverage. Absence of fabrication is not the same as a good " +
   "answer — do not reward a non-answer.";
 
+/**
+ * Closes the "cited-looking ≠ grounded" hole: a fabricated stat wrapped in a
+ * plausible URL or attributed to a named brand was passing the gate because the
+ * judge read a confident, linked claim as supported. Only the SOURCES block is
+ * ground truth — a URL, link, or brand name in the artifact is NOT evidence.
+ * Quantified claims (percentages, dollar amounts, ROI/ROAS multiples, sweeping
+ * guarantees) absent from the SOURCES are violations even when they carry a link.
+ */
+export const CITATION_IS_NOT_EVIDENCE =
+  "CITATIONS ARE NOT EVIDENCE: Only the SOURCES block above is ground truth. A URL, link, " +
+  "brand name, or confident tone in the ARTIFACT does NOT make a claim grounded, and an " +
+  "attached link is not source support. Apply this to every specific statistic, percentage, " +
+  "dollar amount, or ROI/ROAS multiple:\n" +
+  "  • A SWEEPING quantified guarantee NOT tied to one named customer — e.g. a figure framed " +
+  "as 'guaranteed', 'documented', 'certified', 'proven', or holding 'across every client' — " +
+  "that is absent from the SOURCES is a FABRICATION: record it in groundingViolations with " +
+  "kind 'contradicted' and certainty >= 0.8, even if it carries a URL. This is the canonical " +
+  "fabrication an attached link tries to disguise.\n" +
+  "  • A statistic ATTRIBUTED to a specific named customer (e.g. 'PUMA saw 15%') that is not " +
+  "in the SOURCES is 'unverifiable' — lower the Grounding score for it, but do NOT mark it " +
+  "'contradicted' (it is plausibly real, just not in these thin sources).\n" +
+  "Do not penalize a generic routing link to docs/support/contact — only quantified or " +
+  "named-result claims the SOURCES don't back.";
+
 /** Authoritative block when the artifact is expected to refuse (out-of-scope prompt). */
 const REFUSAL_DIRECTIVE =
   "OUT-OF-SCOPE / REFUSAL TEST (authoritative — overrides the rubric's default reading): " +
@@ -141,6 +165,8 @@ export function buildJudgePrompt(
     renderExpectedCoverage(artifact),
     "",
     GROUNDING_NOTE,
+    "",
+    CITATION_IS_NOT_EVIDENCE,
     "",
     renderRubric(rubric, dims),
     "",
