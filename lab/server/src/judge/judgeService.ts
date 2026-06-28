@@ -64,7 +64,7 @@
  */
 import { createServer } from "node:http";
 import { handleJudge } from "./judgeHandler.js";
-import { API_KEY_HEADER, isAuthorized, clientIp, RateLimiter } from "./auth.js";
+import { API_KEY_HEADER, isAuthorized, clientIp, RateLimiter } from "../auth.js";
 
 // Default 8788 (one above the full lab server's 8787) so both can run locally.
 const PORT = Number(process.env.PORT ?? 8788);

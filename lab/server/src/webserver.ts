@@ -20,7 +20,7 @@
  * the host's $PORT.
  */
 import { createServer } from "node:http";
-import { handleJudge } from "./judgeHandler.js";
+import { handleJudge } from "./judge/judgeHandler.js";
 import { API_KEY_HEADER, isAuthorized, clientIp, RateLimiter } from "./auth.js";
 import {
   makeAnswerDeps,

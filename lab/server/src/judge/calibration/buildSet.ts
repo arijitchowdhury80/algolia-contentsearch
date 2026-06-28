@@ -22,7 +22,7 @@
  */
 import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { REPO_ROOT } from "../config.js";
+import { REPO_ROOT } from "../../config.js";
 import type { CalibrationItem } from "@lab/judge";
 
 interface GoldSource {

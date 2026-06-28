@@ -14,8 +14,8 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { DEFAULT_JUDGE_CONFIG, runCalibration, type CalibrationItem } from "@lab/judge";
-import { REPO_ROOT, getEnv } from "./config.js";
-import { makeActiveJudgeLlm } from "./activeJudgeLlm.js";
+import { REPO_ROOT, getEnv } from "../config.js";
+import { makeActiveJudgeLlm } from "../activeJudgeLlm.js";
 
 async function main(): Promise<void> {
   const env = getEnv();

@@ -13,7 +13,7 @@
  * Run: JUDGE_MODEL=gemini-2.5-flash npx tsx src/captureRealSources.ts <out.json>
  */
 import { writeFileSync } from "node:fs";
-import { getEnv } from "./config.js";
+import { getEnv } from "../config.js";
 
 /**
  * `displayQuestion` = the canonical gold turn-0 question (what the calibration set

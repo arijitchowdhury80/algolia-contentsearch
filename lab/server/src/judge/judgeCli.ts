@@ -30,7 +30,7 @@
  *     npx tsx src/judgeCli.ts --file calibration/cli-fixture.json
  */
 import { readFileSync } from "node:fs";
-import { makeActiveJudgeLlm } from "./activeJudgeLlm.js";
+import { makeActiveJudgeLlm } from "../activeJudgeLlm.js";
 import {
   judgeLive,
   makeLlmScorer,

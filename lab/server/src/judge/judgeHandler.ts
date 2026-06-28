@@ -27,7 +27,7 @@
  * node res, so callers wire CORS/auth/rate-limit themselves.
  */
 import type { ServerResponse } from "node:http";
-import { makeActiveJudgeLlm } from "./activeJudgeLlm.js";
+import { makeActiveJudgeLlm } from "../activeJudgeLlm.js";
 import {
   judgeLive,
   makeLlmScorer,
