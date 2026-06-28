@@ -46,6 +46,13 @@ export {
   evaluateClaimGate,
   DEFAULT_CLAIM_GATE,
 } from "./claimGate.js";
+export { spearman, averageRanks, runCalibration } from "./calibration.js";
+export type {
+  CalibrationItem,
+  CalibrationPerItem,
+  CalibrationResult,
+  CalibrationDiagnostics,
+} from "./calibration.js";
 export type {
   ClaimCluster,
   ClaimGateConfig,

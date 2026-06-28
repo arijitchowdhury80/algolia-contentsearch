@@ -7,9 +7,9 @@
  * vocabulary (arail__*) extended with jdrawer__* for drawer-specific pieces.
  *
  * Lean default (blocks always visible):
- *   ① Composite + one-line verdict + grounding-status badge
- *   ②③ Dimension bars — Grounding / Confidence / Breadth & depth
- *        (mean-of-3 + inline consensus marks)
+ *   ① Composite ("Confidence") + one-line verdict + grounding-status badge
+ *   ②③ Dimension bars — Grounding / Coverage / Depth / Relevance
+ *        (mean-of-3 + inline consensus marks; spec 2026-06-27 D2)
  *   ⑥ Comparison — multi-lift · neural-lift · compound vs P1
  *
  * Conditional:
@@ -79,8 +79,8 @@ const JUDGE_LABEL: Record<string, string> = {
 };
 const JUDGE_LENS: Record<string, string> = {
   skeptic: 'Adversarial — assumes claims wrong until sourced. Strict on grounding.',
-  referee: 'Practitioner — would this actually help the asker? Confidence + usefulness.',
-  advocate: 'Expert — complete, accurate, deep? Breadth and depth through a specialist lens.',
+  referee: 'Practitioner — would this actually help the asker? Coverage + relevance.',
+  advocate: 'Expert — complete, accurate, deep? Coverage and depth through a specialist lens.',
 };
 const JUDGE_ACCENT_VAR: Record<string, string> = {
   skeptic: '--color-warning',
@@ -189,16 +189,16 @@ function DeltaPill({ delta, label }: { delta: number | undefined; label: string 
   );
 }
 
-/** Flagged-claim card (conditional — only rendered on violation). */
+/** Flagged-claim card (conditional — only rendered on violation). Shows the
+ *  Skeptic's `certainty` (0–1) that the claim is a real violation, as a percent. */
 function ClaimCard({ claim }: { claim: FlaggedClaim }) {
-  const judgeCount = Math.round(claim.certainty * 3);
-  const safeCount = Math.min(3, Math.max(1, judgeCount || 2));
+  const certaintyPct = Math.round(Math.min(1, Math.max(0, claim.certainty)) * 100);
   return (
     <div className="jdrawer__claim">
       <p className="jdrawer__claim-text">"{claim.claim}"</p>
       <p className="jdrawer__claim-reason">
         {claim.reason}
-        <span className="jdrawer__claim-votes"> · {safeCount}/3 judges</span>
+        <span className="jdrawer__claim-votes"> · {certaintyPct}% certainty</span>
       </p>
     </div>
   );
@@ -284,7 +284,8 @@ function CompositeBlock({
           </span>
           <span className="jdrawer__retrieval-tag">{config.retrieval}</span>
         </div>
-        <div className={`analysis__score ${tone}`}>
+        <div className={`analysis__score ${tone}`} aria-label={`Confidence ${verdict.composite.toFixed(1)} out of 10`}>
+          <span className="jdrawer__confidence-label">Confidence</span>
           <span className="analysis__score-num">
             {isWinner && <span className="jdrawer__winner-star" aria-label="Winner">★</span>}
             {verdict.composite.toFixed(1)}

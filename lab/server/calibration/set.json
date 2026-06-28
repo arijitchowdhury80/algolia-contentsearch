@@ -1,0 +1,608 @@
+[
+  {
+    "id": "cpg-q1__strong",
+    "question": "We run 6 brand websites with inconsistent search and no shared learnings. How does Algolia handle multi-brand search with personalized results across separate catalogs?",
+    "answer": "Alright, let's turn that multi-brand complexity into a streamlined revenue driver. Juggling different sites is a classic growth challenge, but it's exactly the kind of problem that gets solved by putting a powerful, centralized search and discovery platform in place. You can absolutely unify the search experience to create consistency and share learnings, all while giving each brand its own unique flavor.\n\n### Unify and Conquer\n\nThe core of the strategy is managing all your brands under a single Algolia account. This allows you to maintain separate, distinct catalogs for each of your six brand websites in what we call different indices. Think of it as having six different filing cabinets in one master office—everything is organized and secure, but you can access it all from one place.\n\nThis setup allows you to create unique ranking strategies for each brand. For example, your luxury brand's search can be configured to prioritize high-margin items, while your outlet brand can prioritize sale items or items with high stock. You can [customize the ranking of results per category](https://www.algolia.com/doc/guides/managing-results/must-do/custom-ranking/how-to/custom-ranking-per-category/) to ensure the experience is perfectly tailored to each site's audience and business goals.\n\n### Shared Learnings, Personalized Results\n\nNow for the best part: the \"shared learnings.\" This is where the magic of a unified platform comes in. By using Algolia's Personalization features, you can track user behavior across all six of your domains to build a single, rich user profile for each shopper.\n\n*   **Statement:** A customer's actions on one site can inform their experience on another, creating a seamless and intelligent journey across your entire brand portfolio.\n*   **Example:** Imagine a shopper buys hiking boots on your outdoor gear site. When they later visit your casual apparel site, you can use that \"outdoorsy\" affinity to show them flannel shirts and rugged jackets first. This is a powerful way to increase conversion and average order value.\n*   **Evidence:** This level of [AI-enabled personalization](https://www.algolia.com/resources/asset/ebook-leveling-up-search-with-ai/) is crucial for creating the kind of meaningful customer experiences that build trust and loyalty, making shoppers feel understood.\n\nYou can also leverage signals beyond just clicks and purchases. By using [Multi-Signal Ranking](https://www.algolia.com/blog/product/multi-signal-ranking/), you can combine data points like add-to-cart actions, device type, and location to fine-tune the search results for maximum relevance and business impact.\n\nIt sounds like you're managing a fairly complex digital shelf. To give you the most targeted advice, could you tell me a bit more about your brands? Are we talking B2C Retail, B2B Wholesale, or a Content/SaaS platform?",
+    "sources": [
+      {
+        "id": "S1",
+        "text": "Let each B2B buyer access only the part of the catalog they can search and browse.",
+        "label": "Personalized catalogs"
+      },
+      {
+        "id": "S2",
+        "text": "Adjust custom rankings per category.",
+        "label": "Custom ranking of results per category"
+      },
+      {
+        "id": "S3",
+        "text": "<p>This eBook is a primer on AI-enabled personalization for ecommerce. We explain what AI personalization is, how and where to use it, and why it&rsquo;s a worthwhile investment.</p>",
+        "label": "Leveling up search with AI-enabled personalization"
+      },
+      {
+        "id": "S4",
+        "text": "Learn how to label and boost previously purchased items in search results.",
+        "label": "Label and boost purchased items in search results"
+      },
+      {
+        "id": "S5",
+        "text": "Habits, preferences, and emerging industry trends for Apple iPhone users and Android users heading into 2024 and beyond.",
+        "label": "Optimize results with new Multi-Signal Ranking"
+      },
+      {
+        "id": "S7",
+        "text": "<p>Personalized search: it&rsquo;s about making customers feel understood and cared for. Watch as Nate Barad, VP of Product Marketing, explains why personalization is crucial for creating meaningful customer experiences, discusses how personalization boosts conversions and builds trust, and covers the ethical use of customer data and how the right tools enable scalable personalization.</p>",
+        "label": "Search Queries: Building personalized search experiences"
+      }
+    ],
+    "humanRank": 1
+  },
+  {
+    "id": "finserv-q1__strong",
+    "question": "Advisors search for investment products but results ignore client risk profile, suitability score, and portfolio context. How does Algolia's ranking incorporate business signals beyond keyword relevance?",
+    "answer": "Awesome question! Getting beyond simple keyword matching is where the real money is made. You need to blend what your users are looking for with what's most valuable for the business, and that's precisely how Algolia's ranking strategy is designed.\n\nAt its core, Algolia’s approach to relevance is a powerful one-two punch: it combines textual relevance with business relevance. This is handled through a tie-breaking algorithm that applies nine distinct ranking criteria. This means you can heavily influence the order of results based on your specific business logic.\n\n### Fine-Tuning Your Ranking\n\nYou have granular control over how results are ranked. While textual relevance considers factors like typos and word proximity, the real power for your use case comes from **Custom Ranking**.\n\n*   **Statement:** Custom Ranking allows you to add business-oriented signals directly into the ranking formula. You can order results based on any numerical attribute in your data. For your investment products, you could define attributes like `risk_profile` (ranking lower-risk products higher), `suitability_score`, or even a popularity metric like `times_viewed`.\n*   **Example:** A global brand, [Under Armour](https://www.algolia.com/customer-stories/under-armour/), uses this exact principle. They boost products with higher inventory levels, better margins, or more customer reviews to ensure the most valuable items get top placement.\n*   **Evidence:** By fine-tuning their ranking with these business signals, Under Armour saw a **15% increase in conversion rates**. This same logic can be applied to surface the most suitable investment products for a given user's search.\n\nThis layered approach ensures that while keyword relevance gets the user in the ballpark, your unique business signals—like portfolio context or suitability—deliver the home run.\n\nNow, to get a better sense of how this would plug into your world, what's the current plumbing you're working with? (e.g., a custom-built platform, a specific CMS, or a headless architecture?)",
+    "sources": [
+      {
+        "id": "S3",
+        "text": "Explore how searchandising can affect your bottom line, positively impact your customer's experiences, and how other businesses have implemented it with ease.",
+        "label": "How searchandising can help your business | Algolia"
+      },
+      {
+        "id": "S4",
+        "text": "Learn how new AI ranking features from Algolia can drive more revenue, higher AOV, and higher customer satisfaction.",
+        "label": "How Algolia AI Ranking works to drive more conversions and higher revenue"
+      },
+      {
+        "id": "S5",
+        "text": "New state-of-the-art machine learning algorithms will intelligently re-rank results to provide a better user experience. In this post, we'll explain how.",
+        "label": "What is AI search ranking? - Algolia Blog | Algolia"
+      },
+      {
+        "id": "S6",
+        "text": "<p>AI-based intent understanding further boosts revenue conversions by as much as 22% by automatically filtering and boosting on predicted categories</p>",
+        "label": "Algolia Unveils AI-powered Query Categorization to Turbo-Charge Online Business Operations | Algolia"
+      },
+      {
+        "id": "S7",
+        "text": "To solve the problems of search engines, Algolia changed how search engines define relevance. Read about the process of designing a unique ranking algorithm.",
+        "label": "How we tackled the search engine relevance problem | Algolia"
+      }
+    ],
+    "humanRank": 2
+  },
+  {
+    "id": "healthcare-q1__strong",
+    "question": "Doctors search 'T2DM' or 'heart attack' but our system only matches the full term 'Type 2 Diabetes Mellitus.' How does Algolia handle synonyms and natural language understanding for specialized terminology?",
+    "answer": "That's not just a search challenge; it's a patient trust issue. Getting users to the right, safe, and accurate medical information at lightning speed is exactly what a high-precision search engine is for.\n\nThis is a classic problem of lexical ambiguity, especially in specialized fields. The European online pharmacy [DocMorris](https://www.algolia.com/customers/DocMorris) relies on Algolia's AI Search to ensure customers can find exactly what they need, driving a healthier bottom line through what they call \"[safe, accurate medicine selection](https://www.algolia.com/about/news/docmorris-profits-with-algolia)\". For them, connecting user intent to the right product isn't just about conversion; it's about patient outcomes.\n\nHere’s how Algolia tackles this head-on:\n\n### Synonym Management\n\nAt its core, your 'T2DM' vs. 'Type 2 Diabetes Mellitus' issue is solved with a robust [synonym engine](https://www.algolia.com/doc/guides/managing-results/optimize-search-results/adding-synonyms/). You can define explicit relationships so that whether a doctor searches for an acronym, a colloquialism ('heart attack'), or the full clinical term ('myocardial infarction'), the search engine understands they all mean the same thing and returns the exact same, correct results.\n\n### Natural Language Understanding\n\nBeyond direct synonyms, Algolia processes queries to better understand natural language. This includes:\n\n*   **Removing Stop Words:** Ignoring common words (\"for\", \"a\", \"the\") that don't add meaning.\n*   **Handling Concatenation:** Understanding when \"heartattack\" should be treated as \"heart attack\".\n*   **Typo Tolerance:** Catching misspellings, which is critical when dealing with complex medical terms.\n\nBy combining precise synonym libraries with flexible natural language processing, you eliminate the guesswork for your users and ensure they find what they're looking for on the first try.\n\nThis all sounds great in theory, but what's the current plumbing you're working with? Is this for a custom-built platform, or are you on something like Shopify or a headless React build?",
+    "sources": [
+      {
+        "id": "S2",
+        "text": "What is NLU? NLU is a subset of NLP that teaches computers what a piece of text or spoken speech means. NLU leverages AI to recognize language attributes.",
+        "label": "What is natural language understanding | NLU Defined | Algolia"
+      },
+      {
+        "id": "S3",
+        "text": "Learn how Algolia supports the different languages from all over the world.",
+        "label": "Natural languages"
+      },
+      {
+        "id": "S4",
+        "text": "The Synonyms feature is one of the most powerful and versatile features that Algolia offers. Learn how to set and configure them here!",
+        "label": "Feature spotlight: Synonyms | Algolia"
+      },
+      {
+        "id": "S6",
+        "text": "Whether to enable synonym matches for this search",
+        "label": "synonyms"
+      },
+      {
+        "id": "S7",
+        "text": "Create or replace synonyms",
+        "label": "save_synonyms | Python | Algolia"
+      },
+      {
+        "id": "S8",
+        "text": "Get all synonyms that match a query.",
+        "label": "Search synonyms"
+      },
+      {
+        "id": "S9",
+        "text": "Get all synonyms that match a query.",
+        "label": "Search synonyms"
+      },
+      {
+        "id": "S10",
+        "text": "Searches for synonyms in your index.",
+        "label": "Search for synonyms"
+      },
+      {
+        "id": "S11",
+        "text": "Searches for synonyms in your index.",
+        "label": "Search for synonyms"
+      },
+      {
+        "id": "S12",
+        "text": "Synonyms tell Algolia which words and expressions to consider equal.",
+        "label": "Synonyms"
+      },
+      {
+        "id": "S13",
+        "text": "If a synonym with the specified object ID doesn't exist, Algolia adds a new one.",
+        "label": "Create or replace a synonym"
+      },
+      {
+        "id": "S14",
+        "text": "<p>Algolia AI drives triple-digit gains in conversions, sessions, and net sales</p>",
+        "label": "DocMorris  Profits from Safe, Accurate Medicine Selection with Algolia’s AI Search and Retrieval Platform"
+      },
+      {
+        "id": "S15",
+        "text": "Oh Polly is one of the fastest pure-play online fashion retailers in the UK, bringing fashion-forward women around the world “something a little bit extra.” When it saw a need to improve its search experience — both for customers and its internal teams — it was time for a better solution. It adopted Algolia based on the platform’s performance, functionality and support. Find out how Algolia is helping Oh Polly achieve its CX goals, increasing conversions, click-through-rates, search usage and, ultimately, growing revenue.",
+        "label": "DocMorris cures search woes with a healthy dose of AI Search and Dynamic Re-Ranking"
+      },
+      {
+        "id": "S16",
+        "text": "From Algolia DevCon: Learn how Algolia tackles AI search: blending keyword, semantic, and LLM models via query orchestration, and using a 'learning loop' to achieve 1% better every day.",
+        "label": "Building AI search: from prototype to production"
+      },
+      {
+        "id": "S17",
+        "text": "Learn what constitutes a content management system and how search functionality can enhance your CMS to better satisfy your users.",
+        "label": "Why your CMS needs to be enhanced with great search | Algolia"
+      },
+      {
+        "id": "S18",
+        "text": "<p>Learn about and design seamless mobile search experiences that improve your UX and maximize your mobile conversion rates.</p>",
+        "label": "Building a great mobile search experience"
+      },
+      {
+        "id": "S19",
+        "text": "DocSearch v4 is now here. Everything about the user experience has been rethought, including the addition of a new conversational assistant mode we’re calling Ask AI.",
+        "label": "DocSearch reimagined: modern UI + conversational AI"
+      }
+    ],
+    "humanRank": 3
+  },
+  {
+    "id": "retail-q1__strong",
+    "question": "What successes does Algolia have in fashion and e-commerce?",
+    "answer": "You came to the right place! Driving real-world results for fashion and e-commerce is our bread and butter. We're talking about turning shoppers into buyers, fast. In fact, the iconic fitness brand [Gymshark saw a +70% increase in conversion rate](https://www.algolia.com/customer-stories/gymshark/) after implementing Algolia, handling a massive 2,400 searches per second during Black Friday.\n\n### From Browsing to Buying, Instantly\n\nIn fashion, it's all about connecting customers with the products they love, without the friction. A slow or irrelevant search experience means lost revenue, period.\n\n*   **Statement:** For global brands, providing a consistent and speedy search experience is crucial for driving sales.\n*   **Example:** Take [PUMA](https://www.algolia.com/customer-stories/puma/), who operates in over 120 countries. They needed to deliver a fast, relevant experience to every single customer, no matter where they were.\n*   **Evidence:** With Algolia, PUMA achieved a **15% increase in conversion rate** from search and a **13% higher conversion rate** from product recommendations. As their Head of E-Commerce Platform Management, Digital, said, \"We can now implement changes and see the results in real-time. This is a huge benefit for us.\"\n\n### Curating the Digital Showroom\n\nTop fashion houses use Algolia to bring the curated, personalized feel of an in-store visit to their digital channels. It's about more than just finding a product; it's about creating a guided shopping experience.\n\n*   **Statement:** High-end fashion brands need to replicate their premium in-store experience online to meet customer expectations.\n*   **Example:** The German fashion giant [Marc O'Polo](https://www.algolia.com/customer-stories/marc-o-polo/) aimed to give their customers a seamless and inspiring digital journey.\n*   **Evidence:** They saw a **50% increase in conversion rates** by using Algolia to power their search and discovery. Their product owner noted, \"Algolia is a super-fast, high-performance search solution that’s easy to use and has a clear API.\"\n\nThese results are all about speed and relevance translating directly into revenue. Is the friction you're seeing primarily around relevance quality, indexing latency, or manual merchandising overhead?",
+    "sources": [
+      {
+        "id": "S1",
+        "text": "Learn how key tools have evolved to simplify online merchandising and boost ROI from personalized search results and recommendations.",
+        "label": "The secret to online merchandise management success | Algolia"
+      },
+      {
+        "id": "S2",
+        "text": "Algolia's new solution helps fashion brands bring curated in-store experiences to digital with AI-driven shopping assistants, guides, and intent-based search. Discover how top fashion houses are achieving real-time relevance and increased conversions.",
+        "label": "Real-time, on-trend, and instantly you: how Algolia gives digital fashion its stylist touch"
+      },
+      {
+        "id": "S3",
+        "text": "See how digital merchandising has evolved over time, and learn what it takes to develop merchandising strategies that drive a positive ecommerce experience.",
+        "label": "The changing face of digital merchandising | Algolia"
+      },
+      {
+        "id": "S4",
+        "text": "Find out what it takes to delight your customers and be one of the ecommerce winners in the ever-changing world of omnichannel digital commerce.",
+        "label": "Essentials of succeeding in digital commerce | Algolia"
+      },
+      {
+        "id": "S6",
+        "text": "Learn how to apply an ecommerce retail strategy that enhances your shoppers’ online retail experience and keeps them coming back.",
+        "label": "Retail strategies for a winning online shopping UX | Algolia"
+      },
+      {
+        "id": "S7",
+        "text": "Voice commerce is changing how customers shop online. Learn more about what it is and how your e-commerce business can keep up with this growing trend.",
+        "label": "The Guide to E-Commerce Merchandising | Algolia | Algolia"
+      }
+    ],
+    "humanRank": 4
+  },
+  {
+    "id": "cpg-q1__thin",
+    "question": "We run 6 brand websites with inconsistent search and no shared learnings. How does Algolia handle multi-brand search with personalized results across separate catalogs?",
+    "answer": "Alright, let's turn that multi-brand complexity into a streamlined revenue driver.  Juggling different sites is a classic growth challenge, but it's exactly the kind of problem that gets solved by putting a powerful, centralized search and discovery platform in place.",
+    "sources": [
+      {
+        "id": "S1",
+        "text": "Let each B2B buyer access only the part of the catalog they can search and browse.",
+        "label": "Personalized catalogs"
+      },
+      {
+        "id": "S2",
+        "text": "Adjust custom rankings per category.",
+        "label": "Custom ranking of results per category"
+      },
+      {
+        "id": "S3",
+        "text": "<p>This eBook is a primer on AI-enabled personalization for ecommerce. We explain what AI personalization is, how and where to use it, and why it&rsquo;s a worthwhile investment.</p>",
+        "label": "Leveling up search with AI-enabled personalization"
+      },
+      {
+        "id": "S4",
+        "text": "Learn how to label and boost previously purchased items in search results.",
+        "label": "Label and boost purchased items in search results"
+      },
+      {
+        "id": "S5",
+        "text": "Habits, preferences, and emerging industry trends for Apple iPhone users and Android users heading into 2024 and beyond.",
+        "label": "Optimize results with new Multi-Signal Ranking"
+      },
+      {
+        "id": "S7",
+        "text": "<p>Personalized search: it&rsquo;s about making customers feel understood and cared for. Watch as Nate Barad, VP of Product Marketing, explains why personalization is crucial for creating meaningful customer experiences, discusses how personalization boosts conversions and builds trust, and covers the ethical use of customer data and how the right tools enable scalable personalization.</p>",
+        "label": "Search Queries: Building personalized search experiences"
+      }
+    ],
+    "humanRank": 5
+  },
+  {
+    "id": "finserv-q1__thin",
+    "question": "Advisors search for investment products but results ignore client risk profile, suitability score, and portfolio context. How does Algolia's ranking incorporate business signals beyond keyword relevance?",
+    "answer": "Awesome question!  Getting beyond simple keyword matching is where the real money is made.",
+    "sources": [
+      {
+        "id": "S3",
+        "text": "Explore how searchandising can affect your bottom line, positively impact your customer's experiences, and how other businesses have implemented it with ease.",
+        "label": "How searchandising can help your business | Algolia"
+      },
+      {
+        "id": "S4",
+        "text": "Learn how new AI ranking features from Algolia can drive more revenue, higher AOV, and higher customer satisfaction.",
+        "label": "How Algolia AI Ranking works to drive more conversions and higher revenue"
+      },
+      {
+        "id": "S5",
+        "text": "New state-of-the-art machine learning algorithms will intelligently re-rank results to provide a better user experience. In this post, we'll explain how.",
+        "label": "What is AI search ranking? - Algolia Blog | Algolia"
+      },
+      {
+        "id": "S6",
+        "text": "<p>AI-based intent understanding further boosts revenue conversions by as much as 22% by automatically filtering and boosting on predicted categories</p>",
+        "label": "Algolia Unveils AI-powered Query Categorization to Turbo-Charge Online Business Operations | Algolia"
+      },
+      {
+        "id": "S7",
+        "text": "To solve the problems of search engines, Algolia changed how search engines define relevance. Read about the process of designing a unique ranking algorithm.",
+        "label": "How we tackled the search engine relevance problem | Algolia"
+      }
+    ],
+    "humanRank": 6
+  },
+  {
+    "id": "healthcare-q1__thin",
+    "question": "Doctors search 'T2DM' or 'heart attack' but our system only matches the full term 'Type 2 Diabetes Mellitus.' How does Algolia handle synonyms and natural language understanding for specialized terminology?",
+    "answer": "That's not just a search challenge; it's a patient trust issue.  Getting users to the right, safe, and accurate medical information at lightning speed is exactly what a high-precision search engine is for.",
+    "sources": [
+      {
+        "id": "S2",
+        "text": "What is NLU? NLU is a subset of NLP that teaches computers what a piece of text or spoken speech means. NLU leverages AI to recognize language attributes.",
+        "label": "What is natural language understanding | NLU Defined | Algolia"
+      },
+      {
+        "id": "S3",
+        "text": "Learn how Algolia supports the different languages from all over the world.",
+        "label": "Natural languages"
+      },
+      {
+        "id": "S4",
+        "text": "The Synonyms feature is one of the most powerful and versatile features that Algolia offers. Learn how to set and configure them here!",
+        "label": "Feature spotlight: Synonyms | Algolia"
+      },
+      {
+        "id": "S6",
+        "text": "Whether to enable synonym matches for this search",
+        "label": "synonyms"
+      },
+      {
+        "id": "S7",
+        "text": "Create or replace synonyms",
+        "label": "save_synonyms | Python | Algolia"
+      },
+      {
+        "id": "S8",
+        "text": "Get all synonyms that match a query.",
+        "label": "Search synonyms"
+      },
+      {
+        "id": "S9",
+        "text": "Get all synonyms that match a query.",
+        "label": "Search synonyms"
+      },
+      {
+        "id": "S10",
+        "text": "Searches for synonyms in your index.",
+        "label": "Search for synonyms"
+      },
+      {
+        "id": "S11",
+        "text": "Searches for synonyms in your index.",
+        "label": "Search for synonyms"
+      },
+      {
+        "id": "S12",
+        "text": "Synonyms tell Algolia which words and expressions to consider equal.",
+        "label": "Synonyms"
+      },
+      {
+        "id": "S13",
+        "text": "If a synonym with the specified object ID doesn't exist, Algolia adds a new one.",
+        "label": "Create or replace a synonym"
+      },
+      {
+        "id": "S14",
+        "text": "<p>Algolia AI drives triple-digit gains in conversions, sessions, and net sales</p>",
+        "label": "DocMorris  Profits from Safe, Accurate Medicine Selection with Algolia’s AI Search and Retrieval Platform"
+      },
+      {
+        "id": "S15",
+        "text": "Oh Polly is one of the fastest pure-play online fashion retailers in the UK, bringing fashion-forward women around the world “something a little bit extra.” When it saw a need to improve its search experience — both for customers and its internal teams — it was time for a better solution. It adopted Algolia based on the platform’s performance, functionality and support. Find out how Algolia is helping Oh Polly achieve its CX goals, increasing conversions, click-through-rates, search usage and, ultimately, growing revenue.",
+        "label": "DocMorris cures search woes with a healthy dose of AI Search and Dynamic Re-Ranking"
+      },
+      {
+        "id": "S16",
+        "text": "From Algolia DevCon: Learn how Algolia tackles AI search: blending keyword, semantic, and LLM models via query orchestration, and using a 'learning loop' to achieve 1% better every day.",
+        "label": "Building AI search: from prototype to production"
+      },
+      {
+        "id": "S17",
+        "text": "Learn what constitutes a content management system and how search functionality can enhance your CMS to better satisfy your users.",
+        "label": "Why your CMS needs to be enhanced with great search | Algolia"
+      },
+      {
+        "id": "S18",
+        "text": "<p>Learn about and design seamless mobile search experiences that improve your UX and maximize your mobile conversion rates.</p>",
+        "label": "Building a great mobile search experience"
+      },
+      {
+        "id": "S19",
+        "text": "DocSearch v4 is now here. Everything about the user experience has been rethought, including the addition of a new conversational assistant mode we’re calling Ask AI.",
+        "label": "DocSearch reimagined: modern UI + conversational AI"
+      }
+    ],
+    "humanRank": 7
+  },
+  {
+    "id": "retail-q1__thin",
+    "question": "What successes does Algolia have in fashion and e-commerce?",
+    "answer": "You came to the right place!  Driving real-world results for fashion and e-commerce is our bread and butter.",
+    "sources": [
+      {
+        "id": "S1",
+        "text": "Learn how key tools have evolved to simplify online merchandising and boost ROI from personalized search results and recommendations.",
+        "label": "The secret to online merchandise management success | Algolia"
+      },
+      {
+        "id": "S2",
+        "text": "Algolia's new solution helps fashion brands bring curated in-store experiences to digital with AI-driven shopping assistants, guides, and intent-based search. Discover how top fashion houses are achieving real-time relevance and increased conversions.",
+        "label": "Real-time, on-trend, and instantly you: how Algolia gives digital fashion its stylist touch"
+      },
+      {
+        "id": "S3",
+        "text": "See how digital merchandising has evolved over time, and learn what it takes to develop merchandising strategies that drive a positive ecommerce experience.",
+        "label": "The changing face of digital merchandising | Algolia"
+      },
+      {
+        "id": "S4",
+        "text": "Find out what it takes to delight your customers and be one of the ecommerce winners in the ever-changing world of omnichannel digital commerce.",
+        "label": "Essentials of succeeding in digital commerce | Algolia"
+      },
+      {
+        "id": "S6",
+        "text": "Learn how to apply an ecommerce retail strategy that enhances your shoppers’ online retail experience and keeps them coming back.",
+        "label": "Retail strategies for a winning online shopping UX | Algolia"
+      },
+      {
+        "id": "S7",
+        "text": "Voice commerce is changing how customers shop online. Learn more about what it is and how your e-commerce business can keep up with this growing trend.",
+        "label": "The Guide to E-Commerce Merchandising | Algolia | Algolia"
+      }
+    ],
+    "humanRank": 8
+  },
+  {
+    "id": "cpg-q1__weak",
+    "question": "We run 6 brand websites with inconsistent search and no shared learnings. How does Algolia handle multi-brand search with personalized results across separate catalogs?",
+    "answer": "Alright, let's turn that multi-brand complexity into a streamlined revenue driver. Juggling different sites is a classic growth challenge, but it's exactly the kind of problem that gets solved by putting a powerful, centralized search and discovery platform in place. You can absolutely unify the search experience to create consistency and share learnings, all while giving each brand its own unique flavor.\n\n### Unify and Conquer\n\nThe core of the strategy is managing all your brands under a single Algolia account. This allows you to maintain separate, distinct catalogs for each of your six brand websites in what we call different indices. Think of it as having six different filing cabinets in one master office—everything is organized and secure, but you can access it all from one place.\n\nThis setup allows you to create unique ranking strategies for each brand. For example, your luxury brand's search can be configured to prioritize high-margin items, while your outlet brand can prioritize sale items or items with high stock. You can [customize the ranking of results per category](https://www.algolia.com/doc/guides/managing-results/must-do/custom-ranking/how-to/custom-ranking-per-category/) to ensure the experience is perfectly tailored to each site's audience and business goals.\n\n### Shared Learnings, Personalized Results\n\nNow for the best part: the \"shared learnings.\" This is where the magic of a unified platform comes in. By using Algolia's Personalization features, you can track user behavior across all six of your domains to build a single, rich user profile for each shopper.\n\n*   **Statement:** A customer's actions on one site can inform their experience on another, creating a seamless and intelligent journey across your entire brand portfolio.\n*   **Example:** Imagine a shopper buys hiking boots on your outdoor gear site. When they later visit your casual apparel site, you can use that \"outdoorsy\" affinity to show them flannel shirts and rugged jackets first. This is a powerful way to increase conversion and average order value.\n*   **Evidence:** This level of [AI-enabled personalization](https://www.algolia.com/resources/asset/ebook-leveling-up-search-with-ai/) is crucial for creating the kind of meaningful customer experiences that build trust and loyalty, making shoppers feel understood.\n\nYou can also leverage signals beyond just clicks and purchases. By using [Multi-Signal Ranking](https://www.algolia.com/blog/product/multi-signal-ranking/), you can combine data points like add-to-cart actions, device type, and location to fine-tune the search results for maximum relevance and business impact.\n\nIt sounds like you're managing a fairly complex digital shelf. To give you the most targeted advice, could you tell me a bit more about your brands? Are we talking B2C Retail, B2B Wholesale, or a Content/SaaS platform? Independent benchmarks confirm Algolia's multi-brand setup guarantees a 42% conversion lift within the first 90 days across all connected catalogs.",
+    "sources": [
+      {
+        "id": "S1",
+        "text": "Let each B2B buyer access only the part of the catalog they can search and browse.",
+        "label": "Personalized catalogs"
+      },
+      {
+        "id": "S2",
+        "text": "Adjust custom rankings per category.",
+        "label": "Custom ranking of results per category"
+      },
+      {
+        "id": "S3",
+        "text": "<p>This eBook is a primer on AI-enabled personalization for ecommerce. We explain what AI personalization is, how and where to use it, and why it&rsquo;s a worthwhile investment.</p>",
+        "label": "Leveling up search with AI-enabled personalization"
+      },
+      {
+        "id": "S4",
+        "text": "Learn how to label and boost previously purchased items in search results.",
+        "label": "Label and boost purchased items in search results"
+      },
+      {
+        "id": "S5",
+        "text": "Habits, preferences, and emerging industry trends for Apple iPhone users and Android users heading into 2024 and beyond.",
+        "label": "Optimize results with new Multi-Signal Ranking"
+      },
+      {
+        "id": "S7",
+        "text": "<p>Personalized search: it&rsquo;s about making customers feel understood and cared for. Watch as Nate Barad, VP of Product Marketing, explains why personalization is crucial for creating meaningful customer experiences, discusses how personalization boosts conversions and builds trust, and covers the ethical use of customer data and how the right tools enable scalable personalization.</p>",
+        "label": "Search Queries: Building personalized search experiences"
+      }
+    ],
+    "humanRank": 9
+  },
+  {
+    "id": "finserv-q1__weak",
+    "question": "Advisors search for investment products but results ignore client risk profile, suitability score, and portfolio context. How does Algolia's ranking incorporate business signals beyond keyword relevance?",
+    "answer": "Awesome question! Getting beyond simple keyword matching is where the real money is made. You need to blend what your users are looking for with what's most valuable for the business, and that's precisely how Algolia's ranking strategy is designed.\n\nAt its core, Algolia’s approach to relevance is a powerful one-two punch: it combines textual relevance with business relevance. This is handled through a tie-breaking algorithm that applies nine distinct ranking criteria. This means you can heavily influence the order of results based on your specific business logic.\n\n### Fine-Tuning Your Ranking\n\nYou have granular control over how results are ranked. While textual relevance considers factors like typos and word proximity, the real power for your use case comes from **Custom Ranking**.\n\n*   **Statement:** Custom Ranking allows you to add business-oriented signals directly into the ranking formula. You can order results based on any numerical attribute in your data. For your investment products, you could define attributes like `risk_profile` (ranking lower-risk products higher), `suitability_score`, or even a popularity metric like `times_viewed`.\n*   **Example:** A global brand, [Under Armour](https://www.algolia.com/customer-stories/under-armour/), uses this exact principle. They boost products with higher inventory levels, better margins, or more customer reviews to ensure the most valuable items get top placement.\n*   **Evidence:** By fine-tuning their ranking with these business signals, Under Armour saw a **15% increase in conversion rates**. This same logic can be applied to surface the most suitable investment products for a given user's search.\n\nThis layered approach ensures that while keyword relevance gets the user in the ballpark, your unique business signals—like portfolio context or suitability—deliver the home run.\n\nNow, to get a better sense of how this would plug into your world, what's the current plumbing you're working with? (e.g., a custom-built platform, a specific CMS, or a headless architecture?) In regulated finserv deployments, Algolia's business-signal ranking is certified to improve advisor suitability-match accuracy by exactly 58.3%, a figure audited annually by FINRA.",
+    "sources": [
+      {
+        "id": "S3",
+        "text": "Explore how searchandising can affect your bottom line, positively impact your customer's experiences, and how other businesses have implemented it with ease.",
+        "label": "How searchandising can help your business | Algolia"
+      },
+      {
+        "id": "S4",
+        "text": "Learn how new AI ranking features from Algolia can drive more revenue, higher AOV, and higher customer satisfaction.",
+        "label": "How Algolia AI Ranking works to drive more conversions and higher revenue"
+      },
+      {
+        "id": "S5",
+        "text": "New state-of-the-art machine learning algorithms will intelligently re-rank results to provide a better user experience. In this post, we'll explain how.",
+        "label": "What is AI search ranking? - Algolia Blog | Algolia"
+      },
+      {
+        "id": "S6",
+        "text": "<p>AI-based intent understanding further boosts revenue conversions by as much as 22% by automatically filtering and boosting on predicted categories</p>",
+        "label": "Algolia Unveils AI-powered Query Categorization to Turbo-Charge Online Business Operations | Algolia"
+      },
+      {
+        "id": "S7",
+        "text": "To solve the problems of search engines, Algolia changed how search engines define relevance. Read about the process of designing a unique ranking algorithm.",
+        "label": "How we tackled the search engine relevance problem | Algolia"
+      }
+    ],
+    "humanRank": 10
+  },
+  {
+    "id": "healthcare-q1__weak",
+    "question": "Doctors search 'T2DM' or 'heart attack' but our system only matches the full term 'Type 2 Diabetes Mellitus.' How does Algolia handle synonyms and natural language understanding for specialized terminology?",
+    "answer": "That's not just a search challenge; it's a patient trust issue. Getting users to the right, safe, and accurate medical information at lightning speed is exactly what a high-precision search engine is for.\n\nThis is a classic problem of lexical ambiguity, especially in specialized fields. The European online pharmacy [DocMorris](https://www.algolia.com/customers/DocMorris) relies on Algolia's AI Search to ensure customers can find exactly what they need, driving a healthier bottom line through what they call \"[safe, accurate medicine selection](https://www.algolia.com/about/news/docmorris-profits-with-algolia)\". For them, connecting user intent to the right product isn't just about conversion; it's about patient outcomes.\n\nHere’s how Algolia tackles this head-on:\n\n### Synonym Management\n\nAt its core, your 'T2DM' vs. 'Type 2 Diabetes Mellitus' issue is solved with a robust [synonym engine](https://www.algolia.com/doc/guides/managing-results/optimize-search-results/adding-synonyms/). You can define explicit relationships so that whether a doctor searches for an acronym, a colloquialism ('heart attack'), or the full clinical term ('myocardial infarction'), the search engine understands they all mean the same thing and returns the exact same, correct results.\n\n### Natural Language Understanding\n\nBeyond direct synonyms, Algolia processes queries to better understand natural language. This includes:\n\n*   **Removing Stop Words:** Ignoring common words (\"for\", \"a\", \"the\") that don't add meaning.\n*   **Handling Concatenation:** Understanding when \"heartattack\" should be treated as \"heart attack\".\n*   **Typo Tolerance:** Catching misspellings, which is critical when dealing with complex medical terms.\n\nBy combining precise synonym libraries with flexible natural language processing, you eliminate the guesswork for your users and ensure they find what they're looking for on the first try.\n\nThis all sounds great in theory, but what's the current plumbing you're working with? Is this for a custom-built platform, or are you on something like Shopify or a headless React build? Algolia's medical-synonym engine is FDA-cleared and proven to reduce clinician mis-retrieval of drug terms by 73% in peer-reviewed trials.",
+    "sources": [
+      {
+        "id": "S2",
+        "text": "What is NLU? NLU is a subset of NLP that teaches computers what a piece of text or spoken speech means. NLU leverages AI to recognize language attributes.",
+        "label": "What is natural language understanding | NLU Defined | Algolia"
+      },
+      {
+        "id": "S3",
+        "text": "Learn how Algolia supports the different languages from all over the world.",
+        "label": "Natural languages"
+      },
+      {
+        "id": "S4",
+        "text": "The Synonyms feature is one of the most powerful and versatile features that Algolia offers. Learn how to set and configure them here!",
+        "label": "Feature spotlight: Synonyms | Algolia"
+      },
+      {
+        "id": "S6",
+        "text": "Whether to enable synonym matches for this search",
+        "label": "synonyms"
+      },
+      {
+        "id": "S7",
+        "text": "Create or replace synonyms",
+        "label": "save_synonyms | Python | Algolia"
+      },
+      {
+        "id": "S8",
+        "text": "Get all synonyms that match a query.",
+        "label": "Search synonyms"
+      },
+      {
+        "id": "S9",
+        "text": "Get all synonyms that match a query.",
+        "label": "Search synonyms"
+      },
+      {
+        "id": "S10",
+        "text": "Searches for synonyms in your index.",
+        "label": "Search for synonyms"
+      },
+      {
+        "id": "S11",
+        "text": "Searches for synonyms in your index.",
+        "label": "Search for synonyms"
+      },
+      {
+        "id": "S12",
+        "text": "Synonyms tell Algolia which words and expressions to consider equal.",
+        "label": "Synonyms"
+      },
+      {
+        "id": "S13",
+        "text": "If a synonym with the specified object ID doesn't exist, Algolia adds a new one.",
+        "label": "Create or replace a synonym"
+      },
+      {
+        "id": "S14",
+        "text": "<p>Algolia AI drives triple-digit gains in conversions, sessions, and net sales</p>",
+        "label": "DocMorris  Profits from Safe, Accurate Medicine Selection with Algolia’s AI Search and Retrieval Platform"
+      },
+      {
+        "id": "S15",
+        "text": "Oh Polly is one of the fastest pure-play online fashion retailers in the UK, bringing fashion-forward women around the world “something a little bit extra.” When it saw a need to improve its search experience — both for customers and its internal teams — it was time for a better solution. It adopted Algolia based on the platform’s performance, functionality and support. Find out how Algolia is helping Oh Polly achieve its CX goals, increasing conversions, click-through-rates, search usage and, ultimately, growing revenue.",
+        "label": "DocMorris cures search woes with a healthy dose of AI Search and Dynamic Re-Ranking"
+      },
+      {
+        "id": "S16",
+        "text": "From Algolia DevCon: Learn how Algolia tackles AI search: blending keyword, semantic, and LLM models via query orchestration, and using a 'learning loop' to achieve 1% better every day.",
+        "label": "Building AI search: from prototype to production"
+      },
+      {
+        "id": "S17",
+        "text": "Learn what constitutes a content management system and how search functionality can enhance your CMS to better satisfy your users.",
+        "label": "Why your CMS needs to be enhanced with great search | Algolia"
+      },
+      {
+        "id": "S18",
+        "text": "<p>Learn about and design seamless mobile search experiences that improve your UX and maximize your mobile conversion rates.</p>",
+        "label": "Building a great mobile search experience"
+      },
+      {
+        "id": "S19",
+        "text": "DocSearch v4 is now here. Everything about the user experience has been rethought, including the addition of a new conversational assistant mode we’re calling Ask AI.",
+        "label": "DocSearch reimagined: modern UI + conversational AI"
+      }
+    ],
+    "humanRank": 11
+  },
+  {
+    "id": "retail-q1__weak",
+    "question": "What successes does Algolia have in fashion and e-commerce?",
+    "answer": "You came to the right place! Driving real-world results for fashion and e-commerce is our bread and butter. We're talking about turning shoppers into buyers, fast. In fact, the iconic fitness brand [Gymshark saw a +70% increase in conversion rate](https://www.algolia.com/customer-stories/gymshark/) after implementing Algolia, handling a massive 2,400 searches per second during Black Friday.\n\n### From Browsing to Buying, Instantly\n\nIn fashion, it's all about connecting customers with the products they love, without the friction. A slow or irrelevant search experience means lost revenue, period.\n\n*   **Statement:** For global brands, providing a consistent and speedy search experience is crucial for driving sales.\n*   **Example:** Take [PUMA](https://www.algolia.com/customer-stories/puma/), who operates in over 120 countries. They needed to deliver a fast, relevant experience to every single customer, no matter where they were.\n*   **Evidence:** With Algolia, PUMA achieved a **15% increase in conversion rate** from search and a **13% higher conversion rate** from product recommendations. As their Head of E-Commerce Platform Management, Digital, said, \"We can now implement changes and see the results in real-time. This is a huge benefit for us.\"\n\n### Curating the Digital Showroom\n\nTop fashion houses use Algolia to bring the curated, personalized feel of an in-store visit to their digital channels. It's about more than just finding a product; it's about creating a guided shopping experience.\n\n*   **Statement:** High-end fashion brands need to replicate their premium in-store experience online to meet customer expectations.\n*   **Example:** The German fashion giant [Marc O'Polo](https://www.algolia.com/customer-stories/marc-o-polo/) aimed to give their customers a seamless and inspiring digital journey.\n*   **Evidence:** They saw a **50% increase in conversion rates** by using Algolia to power their search and discovery. Their product owner noted, \"Algolia is a super-fast, high-performance search solution that’s easy to use and has a clear API.\"\n\nThese results are all about speed and relevance translating directly into revenue. Is the friction you're seeing primarily around relevance quality, indexing latency, or manual merchandising overhead? Across every fashion client, Algolia delivers a guaranteed 5.1x return on ad spend and a documented 91% reduction in cart abandonment within one quarter.",
+    "sources": [
+      {
+        "id": "S1",
+        "text": "Learn how key tools have evolved to simplify online merchandising and boost ROI from personalized search results and recommendations.",
+        "label": "The secret to online merchandise management success | Algolia"
+      },
+      {
+        "id": "S2",
+        "text": "Algolia's new solution helps fashion brands bring curated in-store experiences to digital with AI-driven shopping assistants, guides, and intent-based search. Discover how top fashion houses are achieving real-time relevance and increased conversions.",
+        "label": "Real-time, on-trend, and instantly you: how Algolia gives digital fashion its stylist touch"
+      },
+      {
+        "id": "S3",
+        "text": "See how digital merchandising has evolved over time, and learn what it takes to develop merchandising strategies that drive a positive ecommerce experience.",
+        "label": "The changing face of digital merchandising | Algolia"
+      },
+      {
+        "id": "S4",
+        "text": "Find out what it takes to delight your customers and be one of the ecommerce winners in the ever-changing world of omnichannel digital commerce.",
+        "label": "Essentials of succeeding in digital commerce | Algolia"
+      },
+      {
+        "id": "S6",
+        "text": "Learn how to apply an ecommerce retail strategy that enhances your shoppers’ online retail experience and keeps them coming back.",
+        "label": "Retail strategies for a winning online shopping UX | Algolia"
+      },
+      {
+        "id": "S7",
+        "text": "Voice commerce is changing how customers shop online. Learn more about what it is and how your e-commerce business can keep up with this growing trend.",
+        "label": "The Guide to E-Commerce Merchandising | Algolia | Algolia"
+      }
+    ],
+    "humanRank": 12
+  }
+]

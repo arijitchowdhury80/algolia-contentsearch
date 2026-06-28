@@ -13,7 +13,7 @@ import { useState, useEffect } from 'react';
 
 import { Markdown } from './Markdown';
 import { Popover } from './Popover';
-import { scoreTone } from '../lib/score';
+import { ConfidenceChip } from './ConfidenceChip';
 import { formatMs } from '../lib/time';
 import { enrichSourcesWithUrls, domainLabel } from '../lib/sourceEnrich';
 import type { PanelConfig } from '../config/columns';
@@ -228,6 +228,10 @@ export function PanelCell({
   const isError = lifecycle === 'error';
   const isIdle = lifecycle === 'idle';
   const isJudged = lifecycle === 'judged' && !!judge;
+  // The judge fills the Confidence chip asynchronously: the answer renders, then
+  // the verdict lands. While judging (and answered-but-not-yet-judged), the chip
+  // shows a "scoring…" placeholder.
+  const isScoring = (lifecycle === 'judging' || lifecycle === 'answered') && !judge;
 
   // Back-fill source urls from the answer's [title](url) citations so the pills
   // can group by topic (not collapse to one bucket) and every row is a real link.
@@ -264,19 +268,14 @@ export function PanelCell({
           </span>
 
           {isJudged && judge ? (
-            <button
-              type="button"
-              className={`pcell__score ${gateTripped ? 'is-weak' : scoreTone(judge.composite)}`}
-              onClick={onOpenJudge}
-              disabled={!onOpenJudge}
-              title={`Answer-quality score ${judge.composite.toFixed(1)} / 10 — click for the full judge breakdown`}
-              aria-label={`Answer quality ${judge.composite.toFixed(1)} out of 10. Open the judge breakdown.`}
-            >
-              {isWinner && <span className="pcell__score-star" aria-hidden="true">★</span>}
-              <span className="pcell__score-num">{judge.composite.toFixed(1)}</span>
-              <span className="pcell__score-unit">/10</span>
-              <span className="pcell__score-icon" aria-hidden="true">⚖</span>
-            </button>
+            <ConfidenceChip
+              variant="inline"
+              verdict={judge}
+              isWinner={isWinner}
+              onOpenJudge={onOpenJudge}
+            />
+          ) : isScoring ? (
+            <ConfidenceChip variant="inline" scoring />
           ) : (
             <StatusPill lifecycle={lifecycle} error={error} />
           )}
@@ -367,6 +366,18 @@ export function PanelCell({
           <div className="pcell__md">
             <Markdown text={answer} />
             {isStreaming && <Caret />}
+            {/* Per-answer Confidence surface — fills async after the answer. */}
+            {(isJudged || isScoring) && (
+              <div className="pcell__confidence">
+                <ConfidenceChip
+                  variant="block"
+                  verdict={isJudged ? judge : undefined}
+                  scoring={isScoring}
+                  isWinner={isWinner}
+                  onOpenJudge={onOpenJudge}
+                />
+              </div>
+            )}
           </div>
         ) : isStreaming && !answer ? (
           <div className="pcell__waiting">

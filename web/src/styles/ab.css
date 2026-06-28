@@ -968,7 +968,14 @@ a.hit__title:hover { color: var(--algolia-blue); }
 .analysis__card-title { font-size: var(--fs-body-sm); font-weight: 600; color: var(--ink); margin: 0; }
 .analysis__card-sub { font-size: var(--fs-caption); color: var(--fg3); }
 
-.analysis__score { display: flex; align-items: baseline; gap: 2px; }
+.analysis__score { display: flex; align-items: baseline; gap: 4px; }
+/* "Confidence" label on the composite (spec 2026-06-27 D7 — composite is named
+   Confidence everywhere). Muted small-caps so the numeral stays the hero. */
+.jdrawer__confidence-label {
+  font-family: var(--font-body); font-size: var(--fs-caption); font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.04em; color: var(--fg3);
+  align-self: center;
+}
 .analysis__score-num { font-family: var(--font-display); font-size: var(--fs-h3); font-weight: 600; line-height: 1; }
 .analysis__score-unit { font-size: var(--fs-caption); color: var(--fg3); }
 .analysis__score.is-strong .analysis__score-num { color: var(--color-success); }

@@ -316,6 +316,55 @@
 .pcell__score-unit { font-size: 12px; font-weight: 400; opacity: 0.7; }
 .pcell__score-icon { font-size: 12px; margin-left: 4px; opacity: 0.65; }
 
+/* ── Confidence chip — the per-answer composite surface (chip → judge drawer).
+   Two variants: `inline` (compact, in the cell header metrics row) and `block`
+   (the under-answer surface). Tone reuses the shared score colours so a 7.4 reads
+   the same on the chip and in the drawer. */
+.confchip {
+  display: inline-flex; align-items: center; gap: 6px;
+  border: 0; border-radius: var(--radius-pill);
+  background: var(--bg-inset); font-family: var(--font-display); line-height: 1;
+  transition: filter var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out);
+}
+.confchip--inline { padding: 4px 11px; font-size: var(--fs-body-sm); }
+.confchip--block  { padding: 5px 12px; font-size: var(--fs-body-sm); margin-top: 12px; }
+.confchip--scored { cursor: pointer; }
+.confchip--scored:hover:not(:disabled) { filter: brightness(0.98); box-shadow: var(--shadow-xs); }
+.confchip--scored:focus-visible { outline: 2px solid var(--algolia-blue); outline-offset: 2px; }
+.confchip--scored:disabled { cursor: default; }
+.confchip.is-strong { background: rgba(31,157,85,0.14); color: var(--color-success); }
+.confchip.is-mid    { background: rgba(217,119,6,0.14);  color: var(--color-warning); }
+.confchip.is-weak   { background: rgba(225,29,72,0.14);  color: var(--color-danger); }
+.confchip__icon  { font-size: 12px; opacity: 0.7; }
+.confchip__label { font-weight: 600; letter-spacing: 0.01em; }
+.confchip__num   { font-size: var(--fs-h3); font-weight: 700; }
+.confchip__star  { font-size: 12px; color: var(--accent-yellow); }
+.confchip__flagged {
+  font-size: var(--fs-caption); font-weight: 700;
+  color: var(--color-danger); white-space: nowrap;
+}
+/* Scoring placeholder — quiet, neutral, non-interactive. */
+.confchip--scoring { color: var(--fg3); background: var(--algolia-blue-100); }
+.confchip__scoring { display: inline-flex; align-items: center; gap: 4px; font-weight: 500; }
+.confchip__dots { display: inline-flex; gap: 3px; align-items: center; }
+.confchip__dots .dot {
+  width: 4px; height: 4px; border-radius: 50%;
+  background: currentColor; opacity: 0.5;
+  animation: confchip-pulse 1.2s ease-in-out infinite;
+}
+.confchip__dots .dot:nth-child(2) { animation-delay: 0.2s; }
+.confchip__dots .dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes confchip-pulse {
+  0%, 100% { opacity: 0.25; }
+  50%      { opacity: 0.9; }
+}
+/* Under-answer wrapper — separates the chip from the answer body. */
+.pcell__confidence {
+  display: flex; justify-content: flex-start;
+  border-top: 1px dashed var(--border-subtle);
+  margin-top: 14px; padding-top: 12px;
+}
+
 /* Lifecycle status pill (before judged) */
 .pcell__pill {
   display: inline-flex; align-items: center; gap: 5px;
