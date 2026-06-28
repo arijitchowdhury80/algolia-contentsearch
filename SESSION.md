@@ -1,12 +1,12 @@
 # SESSION.md — Algolia-Central2
 
-_Last updated: 2026-06-28. Judge "Confidence" build COMPLETE → merged + pushed to `main`. This session = judge redesign (brainstorm → spec → 6-phase build → merge)._
+_Last updated: 2026-06-28 (handoff). Latest session = closed Backlog A (expandedQuery drop, shipped) + Backlog B (native memory, negative). Judge "Confidence" build was completed in the prior session._
 
 ## ▶ STATUS (one line)
-**Judge build SHIPPED.** 4-dimension "Confidence" judge built, tested, merged to `main` (`a3402bb`) and **pushed to `origin/main`** on `github.com/arijitchowdhury80/algolia-contentsearch`. Three deferred follow-ups remain (none urgent, none block using the judge).
+**Backlog A + B CLOSED; on `main` `03e9184` (synced, clean tree).** A = `brain.expandedQuery` DROPPED from retrieval (raw turn to agent; grounding hazard removed) `dc03bc7`. B = Agent Studio native memory does NOT carry context → AC2 keeps stateless `messages[]` replay, no Redis `03e9184` + ADR-002. Judge build shipped earlier (`a3402bb`). **Only `P2b` (human-rank judge calibration, needs Arijit ~20 min) remains; P3 skipped.** Repo `github.com/arijitchowdhury80/algolia-contentsearch`.
 
 ## ▶ RESUME — first actions next session
-1. Read this file. Judge build DONE + on main. **Backlog A (expandedQuery drop) NOW VALIDATED (2026-06-28)** — see below; a DECISION from Arijit is pending. Nothing broken.
+1. Read this file. Judge build + Backlog A + Backlog B all DONE and on `main` (`03e9184`, clean tree). Nothing in-progress, nothing broken. **The single remaining task is `P2b` (item 3 below) — needs Arijit.** If Arijit gives no direction, propose P2b or wait.
 2. **DONE (Arijit approved "A", 2026-06-28) — expandedQuery dropped from retrieval:** `orchestrate.ts:40,65` now send the **raw user turn** to the agent (was `brain.expandedQuery`). brain still runs (intent/entities/proposedQuestion → dossier, baton routing, judge Coverage). `expandedQuery` field survives ONLY as baton's routing-prompt signal (`baton.ts:26`) — NOT retrieval, so no grounding risk. New TDD test `orchestrate.test.ts` "sends the RAW user turn". Tests 109 green, tsc clean. **NOT committed** (working tree dirty). Validation behind it: Gate 1 ✅ (NeuralSearch fires on raw NL); Gate 2 (32-Q A/B) = +0.24 (noise) + grounding hazard on baits (7.5). Writeup: `docs/experiment/2026-06-28-expandedquery-drop-validation.md`. Optional follow-up: a narrow turn-≥2 coreference rewrite (not needed today — turns are sent fresh + self-contained).
 3. Remaining deferred items (optional):
    - **P2b — calibration ranking (needs Arijit, ~20 min):** the judge's trust-gate. Run `cd lab/server && npm run calibrate` AFTER putting real human ranks into `lab/server/calibration/set.json`. Tune `lab/judge/src/rubric.ts` / `prompt.ts` until Spearman ≥ 0.7. Autonomous gate FAILS (~0.0) — see "Calibration status"; human ranking is the real signal.
