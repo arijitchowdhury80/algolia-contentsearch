@@ -1,11 +1,24 @@
 /**
- * summary — per-question + aggregate score table for a scored run.
+ * summary — per-question table + the 1×2 (single vs multi) leaderboard for a scored run.
+ *
+ *   | Architecture | Neural        |
+ *   | Single       | P3            |
+ *   | Multi        | P4            |
+ *
+ * The argument is the one delta:
+ *   multi-lift  = P4 − P3 (multi neural vs single neural)
  */
 import { loadScores, type ScoreSet } from "./store.js";
 
 function fmt(n: number): string {
   return n.toFixed(2).padStart(6);
 }
+
+/** Canonical 1×2 placement for the two neural panels (matches panels.ts). */
+const PANEL_GRID: Record<string, { arch: "single" | "multi"; retrieval: "keyword" | "neural" }> = {
+  P3: { arch: "single", retrieval: "neural" },
+  P4: { arch: "multi", retrieval: "neural" },
+};
 
 export function summarize(runId: string): void {
   const scores: ScoreSet = loadScores(runId);
@@ -49,23 +62,40 @@ export function summarize(runId: string): void {
     );
   }
 
-  // Aggregate.
+  // Aggregate row.
   console.log("-".repeat(header.join(" | ").length));
-  const aggCells = panelIds.map((id) => {
+  const mean = (id: string): number => {
     const t = totals[id];
-    const mean = t.n ? t.sum / t.n : 0;
-    return fmt(mean).padStart(8);
-  });
-  console.log(
-    ["MEAN".padEnd(6), "   ", "".padEnd(8), ...aggCells].join(" | "),
-  );
+    return t && t.n ? t.sum / t.n : 0;
+  };
+  const aggCells = panelIds.map((id) => fmt(mean(id)).padStart(8));
+  console.log(["MEAN".padEnd(6), "   ", "".padEnd(8), ...aggCells].join(" | "));
+
+  // Neural-only leaderboard: single vs multi.
+  const have = (id: string) => panelIds.includes(id);
+  if (have("P3") || have("P4")) {
+    console.log("\nLEADERBOARD (neural only, mean composite):");
+    console.log("              Single        Multi");
+    const row = (label: string, single: string, multi: string) =>
+      console.log(
+        `  ${label.padEnd(10)} ${(have(single) ? mean(single).toFixed(2) : "  -").padStart(8)} (${single})  ${(have(multi) ? mean(multi).toFixed(2) : "  -").padStart(8)} (${multi})`,
+      );
+    row("neural", "P3", "P4");
+
+    // The one delta.
+    const delta = (a: string, b: string): string =>
+      have(a) && have(b) ? (mean(a) - mean(b) >= 0 ? "+" : "") + (mean(a) - mean(b)).toFixed(2) : "n/a";
+    console.log("\nDELTA (single vs multi):");
+    console.log(`  multi-lift = P4−P3 = ${delta("P4", "P3")}`);
+  }
 
   console.log("\nPer-panel aggregate:");
   for (const id of panelIds) {
     const t = totals[id];
-    const mean = t.n ? t.sum / t.n : 0;
+    const grid = PANEL_GRID[id];
+    const tag = grid ? ` [${grid.arch}/${grid.retrieval}]` : "";
     console.log(
-      `  ${id.padEnd(8)} mean=${mean.toFixed(2)}  scored=${t.n}  gated=${t.gated}`,
+      `  ${id.padEnd(4)}${tag.padEnd(20)} mean=${mean(id).toFixed(2)}  scored=${t.n}  gated=${t.gated}`,
     );
   }
   console.log("\n* = grounding hard-gate tripped (final score capped)\n");

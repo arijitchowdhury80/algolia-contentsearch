@@ -25,11 +25,17 @@ export function newRunId(): string {
 export interface TranscriptPanel {
   panelId: string;
   panelLabel: string;
-  kind: "agent" | "website";
-  /** Agent panels: which agent + index produced this (for later swap audit). */
+  /** 2×2 axes for the leaderboard/deltas. */
+  arch: "single" | "multi";
+  retrieval: "keyword" | "neural";
+  /** Single panels: the agent that produced this. Multi: undefined (coordinator). */
   agentId?: string;
   index?: string;
   answer: PanelAnswer;
+  /** The panel's generated follow-up question (the MULTI-TURN signal). */
+  followUp?: string;
+  /** Multi panels: the Maverick orchestration trace (JSON-serialisable). */
+  trace?: unknown;
   latencyMs: number;
 }
 

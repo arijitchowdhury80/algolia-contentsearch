@@ -9,7 +9,7 @@ const result: JudgeResult = {
       panelId: 'mirror',
       judges: [{ role: 'referee', score: 4.4, note: 'floor' }],
       dimensions: [{ id: 'grounding', label: 'Grounding', score: 4 }],
-      violations: [{ claim: 'floor claim', reason: 'unsupported', confidence: 0.8 }],
+      violations: [{ claim: 'floor claim', reason: 'unsupported', certainty: 0.8 }],
       synthesizedScore: 4.4,
       preGateScore: 4.6,
       gateTripped: true,
@@ -25,10 +25,11 @@ const result: JudgeResult = {
       ],
       dimensions: [
         { id: 'grounding', label: 'Grounding', score: 7 },
-        { id: 'confidence', label: 'Answer confidence', score: 6 },
-        { id: 'breadth_depth', label: 'Breadth & depth', score: 8 },
+        { id: 'coverage', label: 'Coverage', score: 6 },
+        { id: 'depth', label: 'Depth', score: 8 },
+        { id: 'relevance', label: 'Relevance', score: 7 },
       ],
-      violations: [{ claim: 'ours claim', reason: 'not in sources', confidence: 0.85 }],
+      violations: [{ claim: 'ours claim', reason: 'not in sources', certainty: 0.85 }],
       synthesizedScore: 5.9,
       preGateScore: 6.4,
       gateTripped: false,
@@ -46,14 +47,14 @@ describe('toAnalysisData', () => {
     expect(data.judges.find((j) => j.role === 'advocate')!.score).toBe(8.4);
   });
 
-  it('carries the ③ 3-dimension breakdown and the ② floor score', () => {
+  it('carries the ③ 4-dimension breakdown and the ② floor score', () => {
     const data = toAnalysisData(result, 'tuned', 'mirror');
-    expect(data.dimensions.map((d) => d.id)).toEqual(['grounding', 'confidence', 'breadth_depth']);
+    expect(data.dimensions.map((d) => d.id)).toEqual(['grounding', 'coverage', 'depth', 'relevance']);
     expect(data.gateTripped).toBe(false);
     expect(data.floorScore).toBe(4.4);
     expect(data.floorGateTripped).toBe(true);
     expect(data.violations).toEqual([
-      { claim: 'ours claim', reason: 'not in sources', confidence: 0.85 },
+      { claim: 'ours claim', reason: 'not in sources', certainty: 0.85 },
     ]);
   });
 

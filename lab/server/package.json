@@ -8,6 +8,13 @@
     "run-tests": "tsx src/cli.ts run-tests",
     "judge": "tsx src/cli.ts judge",
     "summary": "tsx src/cli.ts summary",
+    "replay": "tsx src/replay/cli.ts",
+    "replay:smoke": "tsx src/replay/smokeRun.ts",
+    "calibrate": "tsx src/judge/calibrationCli.ts",
+    "judge:serve": "tsx src/judge/judgeService.ts",
+    "judge:cli": "tsx src/judge/judgeCli.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -17,6 +24,7 @@
   "devDependencies": {
     "@types/node": "^22.19.21",
     "tsx": "^4.19.2",
-    "typescript": "^5.7.2"
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
   }
 }

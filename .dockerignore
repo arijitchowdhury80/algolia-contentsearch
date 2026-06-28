@@ -1,0 +1,21 @@
+# Keep the build context small + NEVER bake secrets or local installs into the image.
+**/node_modules
+**/output
+**/dist
+**/*.tsbuildinfo
+.git
+.gitignore
+.env
+.env.*
+.secrets
+deploy/.env
+web
+docs
+scripts
+lab/capture
+eval-loop
+**/*.log
+.claude
+.vercel
+README.md
+SESSION.md

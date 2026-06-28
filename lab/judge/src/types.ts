@@ -47,7 +47,11 @@ export interface RubricDimension {
   readonly label: string;
   /** What this dimension measures and how to score it 1-10. Shown to judges. */
   readonly description: string;
-  /** Aggregation weight. Groundedness is x2 by convention. Default 1. */
+  /**
+   * Aggregation weight. Default 1. The Algolia rubric keeps all dimensions at
+   * equal weight (x1); grounding is enforced as the HARD FLOOR via the gate, not
+   * by up-weighting it in the score.
+   */
   readonly weight: number;
   /**
    * If true, this dimension is skipped when the artifact context says it does
@@ -131,6 +135,29 @@ export interface Artifact {
    * substantive factual answer as a grounding failure. Default "answer".
    */
   readonly expectedBehavior?: "answer" | "refuse";
+  /**
+   * The parts of the question the answer is expected to cover — the entities /
+   * discovery signals the upstream pipeline already extracted for THIS turn
+   * (no new extraction). Feeds the Coverage dimension as its per-turn checklist:
+   * the judge rewards an answer that addresses each. Optional — absent means the
+   * Coverage judge infers the parts from the prompt alone.
+   */
+  readonly extractedEntities?: ExtractedEntities;
+}
+
+/**
+ * Question parts the answer should cover, sourced from the upstream coordinator's
+ * already-extracted signals (e.g. AC2's brain.entities + dossier.signals). Purely
+ * a Coverage checklist — the judge does no extraction of its own.
+ */
+export interface ExtractedEntities {
+  readonly intent?: string;
+  readonly brand?: string;
+  readonly industry?: string;
+  readonly product?: string;
+  readonly concepts?: readonly string[];
+  /** Onion discovery signals (stack/scale/role/pain/industry/product/feature/solution). */
+  readonly signals?: Readonly<Record<string, string>>;
 }
 
 // ---------------------------------------------------------------------------
@@ -157,10 +184,22 @@ export interface GroundingViolation {
   /** Why no source supports it. */
   readonly reason: string;
   /**
-   * The judge's confidence the violation is real, 0-1. Used to decide whether
-   * a flag is "verified" (>= verifiedConfidence in the gate config).
+   * The judge's certainty the violation is real, 0-1. Used to decide whether
+   * a flag is "verified" (>= verifiedConfidence in the gate config). NOTE: named
+   * `certainty` (not `confidence`) so it never collides with the answer-level
+   * "Confidence" composite score in the UI/API.
    */
-  readonly confidence: number;
+  readonly certainty: number;
+  /**
+   * The NATURE of the flag (2026-06-19):
+   *   - "contradicted": the sources state otherwise, or the claim is clearly
+   *     fabricated/invented → a real hallucination. ONLY these trip the hard gate.
+   *   - "unverifiable": the claim simply isn't found in the (possibly thin/partial)
+   *     sources — no evidence either way. Lowers the grounding dimension score but
+   *     does NOT cap the answer (this is what made thin-source live runs all read 3.0).
+   * Absent → treated as "contradicted" (safe default: keep gating un-labelled flags).
+   */
+  readonly kind?: "contradicted" | "unverifiable";
 }
 
 /** One judge's complete assessment of one artifact in one round. */

@@ -1,0 +1,17 @@
+# Add/replace this site block in your VPS Caddyfile, then `caddy reload`
+# (or `systemctl reload caddy`). Caddy auto-provisions HTTPS. The app handles
+# auth (LAB_API_KEY / x-lab-key) + rate-limiting itself, so the proxy just forwards.
+#
+# Reusing the old judge hostname is fine (no DNS change) — the backend now serves
+# the whole lab (/api/answer + /api/judge), not just the judge.
+
+judge.contentengagement.info {
+    reverse_proxy 127.0.0.1:8787
+}
+
+# (Optional) cleaner name — requires a new DNS A record + updating Vercel
+# VITE_LAB_API_URL to match:
+#
+# lab.contentengagement.info {
+#     reverse_proxy 127.0.0.1:8787
+# }

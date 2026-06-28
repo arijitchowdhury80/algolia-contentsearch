@@ -171,7 +171,15 @@ export function aggregateRounds(
   const perRoundViolations = perRoundJudgments.map((js) =>
     js
       .filter((j) => gating.has(j.temperament))
-      .flatMap((j) => j.groundingViolations),
+      .flatMap((j) => j.groundingViolations)
+      // Only CONTRADICTED/fabricated claims may cap the score. "unverifiable"
+      // claims (plausible but absent from thin/partial sources) lower the
+      // grounding DIMENSION but MUST NOT trip the hard gate — otherwise a real
+      // answer whose claims aren't all in the retrieved snippets is slammed to
+      // the cap. This mirrors the single-round gate (gate.ts verifiedGatingViolations,
+      // which already drops `unverifiable`); the multi-round claim-recurrence path
+      // was missing the same filter (spec §4.1 / D6).
+      .filter((v) => v.kind !== "unverifiable"),
   );
   const claimGate = evaluateClaimGate(perRoundViolations, {
     ...DEFAULT_CLAIM_GATE,

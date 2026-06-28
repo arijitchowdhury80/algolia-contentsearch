@@ -7,7 +7,9 @@ import {
   buildSynthesisPrompt,
   extractJsonObject,
   parseJudgeOutput,
+  renderExpectedCoverage,
 } from "../src/index.js";
+import type { Artifact } from "../src/index.js";
 import { GROUNDED_ARTIFACT } from "./helpers.js";
 
 describe("buildJudgePrompt", () => {
@@ -22,17 +24,20 @@ describe("buildJudgePrompt", () => {
     expect(prompt).toContain(skeptic.persona);
   });
 
-  it("includes every dimension of the 3-dimension rubric", () => {
+  it("includes every dimension of the 4-dimension rubric", () => {
     expect(prompt).toContain("grounding");
-    expect(prompt).toContain("confidence");
-    expect(prompt).toContain("breadth_depth");
+    expect(prompt).toContain("coverage");
+    expect(prompt).toContain("depth");
+    expect(prompt).toContain("relevance");
     // the dropped legacy dimensions must not appear
     expect(prompt).not.toContain("engagement");
     expect(prompt).not.toContain("conciseness");
   });
 
-  it("surfaces the grounding x2 weight and the sources as ground truth", () => {
-    expect(prompt).toContain("weight x2");
+  it("surfaces the equal grounding weight and the sources as ground truth", () => {
+    // Grounding is equal-weight (x1) + hard floor, not up-weighted in the score.
+    expect(prompt).toContain('grounding ("Grounding", weight x1)');
+    expect(prompt).not.toContain("weight x2");
     expect(prompt).toContain("[S1]");
     expect(prompt).toContain("grounding violation");
   });
@@ -45,6 +50,52 @@ describe("buildJudgePrompt", () => {
   it("is deterministic (pure)", () => {
     const again = buildJudgePrompt(skeptic, GROUNDED_ARTIFACT, ALGOLIA_ANSWER_RUBRIC);
     expect(again).toBe(prompt);
+  });
+});
+
+describe("renderExpectedCoverage", () => {
+  it("returns empty when the artifact has no extracted entities", () => {
+    expect(renderExpectedCoverage(GROUNDED_ARTIFACT)).toBe("");
+  });
+
+  it("renders the EXPECTED COVERAGE checklist from entities + signals", () => {
+    const artifact: Artifact = {
+      ...GROUNDED_ARTIFACT,
+      extractedEntities: {
+        intent: "discovery",
+        industry: "retail",
+        concepts: ["typo tolerance", "synonyms"],
+        signals: { role: "engineer", stack: "Shopify" },
+      },
+    };
+    const out = renderExpectedCoverage(artifact);
+    expect(out).toContain("EXPECTED COVERAGE");
+    expect(out).toContain("retail");
+    expect(out).toContain("typo tolerance, synonyms");
+    expect(out).toContain("signal:role: engineer");
+    expect(out).toContain("signal:stack: Shopify");
+  });
+
+  it("skips empty/blank entity fields", () => {
+    const artifact: Artifact = {
+      ...GROUNDED_ARTIFACT,
+      extractedEntities: { industry: "  ", concepts: [], signals: {} },
+    };
+    expect(renderExpectedCoverage(artifact)).toBe("");
+  });
+});
+
+describe("buildJudgePrompt — Coverage checklist threading", () => {
+  it("includes the EXPECTED COVERAGE block when entities are present", () => {
+    const skeptic = DEFAULT_JUDGES.find((j) => j.id === "skeptic")!;
+    const artifact: Artifact = {
+      ...GROUNDED_ARTIFACT,
+      extractedEntities: { industry: "retail", signals: { pain: "zero results" } },
+    };
+    const p = buildJudgePrompt(skeptic, artifact, ALGOLIA_ANSWER_RUBRIC);
+    expect(p).toContain("EXPECTED COVERAGE");
+    expect(p).toContain("retail");
+    expect(p).toContain("signal:pain: zero results");
   });
 });
 
@@ -85,12 +136,13 @@ describe("parseJudgeOutput", () => {
         { dimensionId: "groundedness", score: 99, rationale: "x" },
         { dimensionId: "clarity", score: -5, rationale: "y" },
       ],
+      // legacy `confidence` key on input is still accepted (back-compat)
       groundingViolations: [{ claim: "c", reason: "r", confidence: 5 }],
       summary: "s",
     });
     const parsed = parseJudgeOutput(raw, ALGOLIA_ANSWER_RUBRIC);
     expect(parsed.dimensionScores[0].score).toBe(10); // clamped to max
     expect(parsed.dimensionScores[1].score).toBe(1); // clamped to min
-    expect(parsed.groundingViolations[0].confidence).toBe(1); // clamped to 1
+    expect(parsed.groundingViolations[0].certainty).toBe(1); // clamped to 1, exposed as `certainty`
   });
 });

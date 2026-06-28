@@ -1,0 +1,84 @@
+{
+  "scenarioId": "healthcare-q1",
+  "vertical": "healthcare",
+  "tier": "Q1",
+  "expectsHandoff": false,
+  "drivingSequence": [
+    "Doctors search 'T2DM' or 'heart attack' but our system only matches the full term 'Type 2 Diabetes Mellitus.' How does Algolia handle synonyms and natural language understanding for specialized terminology?",
+    "500K clinical documents — care protocols, drug formularies, clinical guidelines across 40 hospital systems.",
+    "Director of Health Informatics. We use Adobe Experience Manager for content but search is a separate layer on Next.js."
+  ],
+  "turns": [
+    {
+      "turnIndex": 0,
+      "userInput": "Doctors search 'T2DM' or 'heart attack' but our system only matches the full term 'Type 2 Diabetes Mellitus.' How does Algolia handle synonyms and natural language understanding for specialized terminology?",
+      "answer": "\"So, you're saying your search is like a doctor who only understands medical textbooks and not, you know, actual doctor slang? I get it.\" Explore with Maverick\nAlgolia's Synonym Savvy\nAlgolia gets that users don't always speak in perfectly defined terms. We handle synonyms and variations in a few key ways:\n\nSynonym Configuration:You can configure synonyms directly within Algolia. This means you can tell Algolia that \"T2DM\" is equivalent to \"Type 2 Diabetes Mellitus,\" ensuring that searches for either term return the same relevant results.\nFiltering:Algolia offers filtering capabilities, allowing users to refine their search results based on specific criteriaFilter Toggle - Algolia. This can help narrow down results and ensure that users find what they're looking for, even if their initial search term wasn't perfectly precise.\nGeo-Search:For location-based searches, Algolia provides geo-search functionalities, enabling users to find results within a specific radiusalgolia objects delete - Algolia.\n\n\nThe Value Proposition\nBy implementing these features, you'll see a significant improvement in search relevance and user satisfaction. Think about the reduction in time spent searching, the increased likelihood of users finding the right information, and the overall boost to the user experience.About how many searches per month are you currently processing?Maverick wants to know:About how many searches per month are you currently processing?📢Marketing1📘Guides1📄Docs4⚡API Ref1Discovery Dossier|relevance•healthcare•Search•+14",
+      "sources": [
+        {
+          "title": "📢Marketing1",
+          "url": "",
+          "sourceType": "marketing"
+        },
+        {
+          "title": "📘Guides1",
+          "url": "",
+          "sourceType": "guides"
+        },
+        {
+          "title": "📄Docs4",
+          "url": "",
+          "sourceType": "docs"
+        },
+        {
+          "title": "⚡API Ref1",
+          "url": "",
+          "sourceType": "api_ref"
+        }
+      ],
+      "activePersona": "maverick",
+      "discoveryQuestion": "About how many searches per month are you currently processing?",
+      "voiceViolations": []
+    },
+    {
+      "turnIndex": 1,
+      "userInput": "500K clinical documents — care protocols, drug formularies, clinical guidelines across 40 hospital systems.",
+      "answer": " Explore with MaverickWoah, that's a whole lotta healthcare data we're talking about! Handling half a million clinical documents across 40 hospital systems? That's like running a city-sized emergency room.\n\nPowering Precision with Synonyms and NLU\nHere's the deal. Algolia isn't just about keyword matching; it's about understanding intent. When a doctor types \"T2DM,\" they expect results related to \"Type 2 Diabetes Mellitus,\" period. Here's how we make that happen:\n\nSynonym Management: You can manually add synonyms to your search engine— identifying and linking terms that shoppers might enter in the search bar with those used in product listingsWhat are synonyms as they apply to search? Part 1 - Algolia Blog | Algolia.\nNatural Language Understanding (NLU): Algolia Understand breaks down complex requests to grasp exactly what the customer wantsWhat is natural language understanding | NLU Defined | Algolia.\n\n\nReal-World Impact\nImagine a scenario where a doctor needs to quickly access a care protocol for a patient experiencing a heart attack. Instead of typing out the full medical term, they simply search for \"heart attack protocol.\" With Algolia's synonym capabilities, the search engine instantly recognizes \"heart attack\" as a synonym for \"myocardial infarction,\" delivering the exact protocol the doctor needs in seconds.\n\nImproved Search Accuracy: Synonym awareness helps fend off that problem by improving the accuracy of search resultsWhat are synonyms as they apply to search? Part 1 - Algolia Blog | Algolia.\nEnhanced User Experience: Synonyms significantly improve content browsing and online shopping excursions by providing flexibility in the language that can be used during people’s searchesWhat are synonyms as they apply to search? Part 1 - Algolia Blog | Algolia.\nMaverick wants to know:Are you a developer implementing the search, or are you in a different role at the hospital systems?📢Marketing2📘Guides1Discovery Dossier|1M+ records•relevance•healthcare•+36",
+      "sources": [
+        {
+          "title": "📢Marketing2",
+          "url": "",
+          "sourceType": "marketing"
+        }
+      ],
+      "activePersona": "maverick",
+      "discoveryQuestion": "Are you a developer implementing the search, or are you in a different role at the hospital systems?",
+      "voiceViolations": []
+    },
+    {
+      "turnIndex": 2,
+      "userInput": "Director of Health Informatics. We use Adobe Experience Manager for content but search is a separate layer on Next.js.",
+      "answer": " Explore with MaverickAh, so you're orchestrating the flow of health information through a Next.js front-end, but drawing content from Adobe Experience Manager. Very cool.\n\nThe Algolia Advantage\nGiven your stack, here's how Algolia plugs in to seriously upgrade your search game:\n\nNext.js Integration: Algolia has first-party libraries for React, so it will fit perfectly into your Next.js layer Hits - Algolia.\nContent Harmonization: Even though your content lives in Adobe Experience Manager, Algolia can index that content to create a single source of truth for search.\nSynonym Power: You can manually add synonyms to your search engine—identifying and linking terms that shoppers might enter in the search bar with those used in product listings What are synonyms as they apply to search? Part 1 - Algolia Blog | Algolia.\n\n\n\nROI in Healthcare\nI don't have a specific healthcare example locked and loaded, but think about this: every second saved in finding critical information translates to better patient care. Faster access to drug formularies, care protocols, and clinical guidelines can directly impact patient outcomes.\nBefore we get too deep in the weeds, what's your biggest priority right now—improving search relevance, speeding up search response times, or something else?s your biggest priority right now—improving search relevance, speeding up search response times, or something else?MaverickElenaGo📄Docs6⚡API Ref11📘Guides4📢Marketing2Discovery Dossier|Next.js•1M+ records•Director of Health Informatics•+69",
+      "sources": [
+        {
+          "title": "📄Docs6",
+          "url": "",
+          "sourceType": "docs"
+        },
+        {
+          "title": "⚡API Ref11",
+          "url": "",
+          "sourceType": "api_ref"
+        },
+        {
+          "title": "📘Guides4",
+          "url": "",
+          "sourceType": "guides"
+        }
+      ],
+      "activePersona": "maverick",
+      "voiceViolations": []
+    }
+  ],
+  "capturedAt": "2026-04-16T03:37:43.307Z",
+  "blessedBy": "arijit"
+}

@@ -1,0 +1,94 @@
+{
+  "scenarioId": "finserv-q2",
+  "vertical": "finserv",
+  "tier": "Q2",
+  "expectsHandoff": true,
+  "handoffTarget": "bruno",
+  "drivingSequence": [
+    "We're a wealth management firm on React and Node.js serving 5,000 advisors with 5M documents — each advisor should only see their own clients' portfolios. How do Algolia's secured API keys and security filters enforce per-advisor access, and what are the best practices for compliance?",
+    "Documents span 3 business units — product sheets, research reports, compliance filings. The portal serves 300K client users too.",
+    "I'm the Head of Information Security. SEC Rule 17a-4 compliance required — all search queries need audit trails."
+  ],
+  "turns": [
+    {
+      "turnIndex": 0,
+      "userInput": "We're a wealth management firm on React and Node.js serving 5,000 advisors with 5M documents — each advisor should only see their own clients' portfolios. How do Algolia's secured API keys and security filters enforce per-advisor access, and what are the best practices for compliance?",
+      "answer": "\"Think of secured API keys like a velvet rope at a club. Everyone wants in, but only the key holders (your advisors) get past the bouncer (Algolia's security filters).\" Explore with Maverick\nAlgolia Security: The Velvet Rope and the Guest List\nAlgolia's secured API keys and security filters are your one-two punch for enforcing per-advisor access to sensitive data. It's like giving each advisor a unique key that unlocks only the data they're authorized to see. This setup is especially crucial in wealth management, where compliance and data privacy are non-negotiable.\n\nSecured API Keys:These keys are generated on your backend and are specific to each advisor. They act as the primary gatekeeper, ensuring that only authenticated users can even attempt to access your data.\nSecurity Filters:These filters are embedded within the secured API keys. They define the exact subset of data that each advisor is allowed to see. For example, you can filter results based on an advisor's ID, ensuring they only see records associated with their clients.\n\n\nBest Practices for Compliance: Keeping the Regulators Happy\n\nPrinciple of Least Privilege: Grant advisors the minimum level of access required to perform their duties. Over-permissioning is a compliance nightmare.\nDynamic Key Generation: Generate secured API keys dynamically on your backend. This prevents hardcoding keys into your frontend code, which is a major security risk.\nRegular Key Rotation: Rotate your secured API keys regularly to minimize the impact of a potential breach.\nAudit Logging: Maintain detailed logs of all search queries and data access attempts. This provides an audit trail for compliance purposes.\nData Encryption: Encrypt sensitive data both in transit and at rest. Algolia supports HTTPS for secure data transmission.\nStay Updated: Keep up-to-date with the latest data privacy regulations (e.g., GDPR, CCPA) and ensure your Algolia implementation complies with these requirements.\n\nWhile I don't have specific wealth management case studies in front of me right now, companies like Lacoste and Sezzle leverage Algolia’s security features to protect sensitive user data and maintain compliance. in a different role within the wealth management firm?Maverick wants to know:Are you a developer building this system, or in a different role within the wealth management firm?📢Marketing2🔧Support1🏆Cases1Discovery Dossier|React•1M+ records•wealth management•+14",
+      "sources": [
+        {
+          "title": "📢Marketing2",
+          "url": "",
+          "sourceType": "marketing"
+        },
+        {
+          "title": "🔧Support1",
+          "url": "",
+          "sourceType": "support"
+        },
+        {
+          "title": "🏆Cases1",
+          "url": "",
+          "sourceType": "case_study"
+        }
+      ],
+      "activePersona": "maverick",
+      "discoveryQuestion": "Are you a developer building this system, or in a different role within the wealth management firm?",
+      "voiceViolations": []
+    },
+    {
+      "turnIndex": 1,
+      "userInput": "Documents span 3 business units — product sheets, research reports, compliance filings. The portal serves 300K client users too.",
+      "answer": " Explore with MaverickAlright, so we've got three business units and 300K client users accessing product sheets, research reports, and compliance filings. That's a complex ecosystem—think of it as a three-ring circus where each ring needs its own spotlight and safety net.\n\nMulti-Tenant Algolia: Structuring for Scale and Security\nTo handle this, you'll need a multi-tenant Algolia setup. This means structuring your indices and access controls to isolate data based on both the business unit and the user type (advisor vs. client).\n\nIndex Organization:\nDedicated Indices:Consider separate Algolia indices for each business unit (product sheets, research reports, compliance). This simplifies access control and search relevance tuning.\nNaming Convention:Use a clear naming convention for your indices (e.g.,wealth_management_product_sheets,wealth_management_research_reports,wealth_management_compliance).\n\nAccess Control:\nSecured API Keys:Generate secured API keys dynamically based on the user's role and business unit.\nSecurity Filters:Implement security filters to restrict access to specific documents based on user attributes (e.g.,advisor_id,client_group,business_unit).\nExample:An advisor in the \"product sheets\" unit gets a key that only allows them to search thewealth_management_product_sheetsindex and see documents associated with their clients.\n\nClient vs. Advisor Access:\nSeparate Keys:Issue distinct secured API keys for client users versus advisor users.\nGranular Filters:Apply more restrictive security filters to client keys, limiting access to only the documents relevant to their portfolios.\nUI Considerations:Design your UI to present different search interfaces and results based on the user's role.\n\n\n\nNamedropping for Impact\nStash personalizes investment discovery using Algolia. They use a similar strategy to tailor search results based on user profiles and preferences. I don't have a wealth management case study in front of me right now.\nThe key is to map your business units and user roles to Algolia's security features. This ensures that the right people have access to the right information, while keeping sensitive data locked down tight.\nGiven the scale and complexity, how do you envision managing the dynamic generation and rotation of these secured API keys across your business units and user base?MaverickElenaGo📄Docs8⚡API Ref5📢Marketing2📘Guides1Discovery Dossier|React•1M+ records•wealth management•+25",
+      "sources": [
+        {
+          "title": "📄Docs8",
+          "url": "",
+          "sourceType": "docs"
+        },
+        {
+          "title": "⚡API Ref5",
+          "url": "",
+          "sourceType": "api_ref"
+        },
+        {
+          "title": "📘Guides1",
+          "url": "",
+          "sourceType": "guides"
+        }
+      ],
+      "activePersona": "maverick",
+      "voiceViolations": []
+    },
+    {
+      "turnIndex": 2,
+      "userInput": "I'm the Head of Information Security. SEC Rule 17a-4 compliance required — all search queries need audit trails.",
+      "answer": " Explore with MaverickAh, a fellow guardian of the digital realm! SEC Rule 17a-4 compliance? That's music to my ears. You're right, audit trails are crucial. Think of Algolia as your black box recorder for every search action.\n\n\nAudit Trails: Your SEC Compliance Lifeline\nSEC Rule 17a-4 mandates that broker-dealers maintain detailed records of their electronic communications, including search queries. This is where Algolia's audit logging capabilities become your best friend.\n\nComprehensive Logging:\nQuery Logging:Log every search query submitted through Algolia, including the user ID, timestamp, query text, and any applied filters.\nData Access Logging:Record every instance of data access, including the document ID, user ID, and access method (search, browse, etc.).\nConfiguration Changes:Track any changes to Algolia's configuration, such as index settings, security filters, or API key permissions.\n\nSecure Storage:\nImmutable Logs:Store your audit logs in a secure, tamper-proof repository. This prevents unauthorized modification or deletion of records.\nLong-Term Retention:Retain your audit logs for the period required by SEC Rule 17a-4 (typically six years).\nAccess Control:Restrict access to the audit logs to authorized personnel only.\n\nReporting and Analysis:\nCompliance Reports:Generate regular compliance reports summarizing search activity, data access patterns, and configuration changes.\nAnomaly Detection:Implement anomaly detection algorithms to identify suspicious search behavior or unauthorized data access attempts.\nForensic Analysis:Use the audit logs to conduct forensic analysis in the event of a security incident or compliance investigation.\n\n\n\n\nNamedropping for Impact\nWhile I don't have a financial services case study for audit trails in front of me right now, Stash personalizes investment discovery using Algolia and might have similar requirements for data governance and compliance.\nThe key is to integrate Algolia's logging capabilities with your existing security information and event management (SIEM) system. This allows you to correlate search activity with other security events and gain a holistic view of your security posture.\nGiven your focus on SEC compliance and audit trails, how do you currently handle data retention and deletion requests from clients or regulators?MaverickElenaGo🔧Support7📄Docs7⚡API Ref1🖋️Blog3📢Marketing2📘Guides1Discovery Dossier|React•1M+ records•Executive•+36",
+      "sources": [
+        {
+          "title": "🔧Support7",
+          "url": "",
+          "sourceType": "support"
+        },
+        {
+          "title": "📄Docs7",
+          "url": "",
+          "sourceType": "docs"
+        },
+        {
+          "title": "⚡API Ref1",
+          "url": "",
+          "sourceType": "api_ref"
+        },
+        {
+          "title": "🖋️Blog3",
+          "url": "",
+          "sourceType": "blog"
+        }
+      ],
+      "activePersona": "maverick",
+      "voiceViolations": []
+    }
+  ],
+  "capturedAt": "2026-04-16T03:37:11.386Z",
+  "blessedBy": "arijit"
+}

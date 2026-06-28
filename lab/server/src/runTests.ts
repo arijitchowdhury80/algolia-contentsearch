@@ -1,19 +1,24 @@
 /**
- * runTests — run the locked question set through every panel and persist a
- * transcript. No judging here; that's a separate step (judge.ts).
+ * runTests — run the locked v3 question set through the two neural panels (P3–P4)
+ * and persist a transcript. No judging here; that's a separate step (judgeStep).
  *
- * Multi-turn (Cat 8) questions: we run turn 1, then the follow-up WITH turn-1
- * history, and store the follow-up answer as the panel answer (that's the
- * two-way exchange we judge). Turn-1 answer is preserved in the history we keep.
+ * Each (question × panel) goes through the unified answer producer (answer.ts):
+ *   - single neural panel (P3) proxies ONE Agent Studio agent (Maverick, + generated follow-up)
+ *   - multi neural panel (P4) runs the coded Maverick coordinator
+ * The same contract is stored for every panel so the judge + leaderboard treat
+ * them identically.
+ *
+ * Multi-turn (Cat 8) = GENERATED follow-up (the MULTI-TURN invariant). For Cat 8
+ * openers we run turn 1 (capturing each panel's own generated follow-up), then a
+ * turn 2 that re-runs WITH {turn1Answer, generatedFollowUp} in context. The
+ * stored answer is the turn-2 answer; the turn-1 answer + the generated follow-up
+ * are preserved so the judge can score `followUpQuality`.
  */
-import { loadConfig, type ExperimentConfig, type PanelConfig } from "./config.js";
+import { getEnv } from "./config.js";
 import { parseQuestions, type TestQuestion } from "./questions.js";
-import {
-  runAgentPanel,
-  runWebsitePanel,
-  type ConversationTurn,
-  type PanelAnswer,
-} from "./panels.js";
+import { buildPanels, type PanelAnswer, type PanelMeta } from "./panels.js";
+import { makeAnswerDeps } from "./answerService.js";
+import { producePanelAnswer, type AnswerDeps, type PanelAnswerResult } from "./answer.js";
 import {
   newRunId,
   saveTranscript,
@@ -23,39 +28,56 @@ import {
 } from "./store.js";
 import { mapWithConcurrency } from "./concurrency.js";
 
-const QUESTION_VERSION = "locked-v2";
+const QUESTION_VERSION = "locked-v3";
 
-async function runPanelForQuestion(
-  panel: PanelConfig,
-  cfg: ExperimentConfig,
-  q: TestQuestion,
-): Promise<PanelAnswer> {
-  const runOne = async (
-    question: string,
-    history: ConversationTurn[],
-  ): Promise<PanelAnswer> => {
-    if (panel.kind === "website") {
-      return runWebsitePanel(question, history);
-    }
-    return runAgentPanel(
-      panel.agentId!,
-      cfg.ours.appId,
-      cfg.ours.searchKey,
-      question,
-      history,
-    );
+/** Convert the unified answer result into the stored PanelAnswer shape. */
+function toPanelAnswer(result: PanelAnswerResult): PanelAnswer {
+  return {
+    answer: result.answer,
+    sources: result.sources.map((s, i) => ({
+      id: `S${i + 1}`,
+      text: s.title, // the judge grounds against the source text; title is the best the answer path carries
+      ...(s.url ? { label: s.url } : s.title ? { label: s.title } : {}),
+    })),
+    source: result.sources[0]?.source ?? (result.error ? "error" : "agent"),
+    ...(result.error ? { error: result.error } : {}),
   };
+}
 
-  // Single-turn.
-  if (!q.followUp) return runOne(q.prompt, []);
+/**
+ * Run one panel for one question. Cat 8 (multi-turn) → 2 turns with the panel's
+ * own generated follow-up carried into turn 2; otherwise single turn.
+ */
+async function runPanelForQuestion(
+  panel: PanelMeta,
+  q: TestQuestion,
+  deps: AnswerDeps,
+): Promise<{ answer: PanelAnswer; followUp: string; trace?: unknown }> {
+  // Cat 8 multi-turn: openers only — the follow-up is generated, not scripted.
+  const isMultiTurn = q.category === 8;
 
-  // Multi-turn: turn 1 → build history → follow-up. Judge the follow-up answer.
-  const first = await runOne(q.prompt, []);
-  const history: ConversationTurn[] = [
-    { role: "user", content: q.prompt },
-    { role: "assistant", content: first.answer },
-  ];
-  return runOne(q.followUp, history);
+  const turn1 = await producePanelAnswer(panel, q.prompt, { deps, turn: 1 });
+  if (!isMultiTurn) {
+    return {
+      answer: toPanelAnswer(turn1),
+      followUp: turn1.followUp,
+      ...(turn1.trace ? { trace: turn1.trace } : {}),
+    };
+  }
+
+  // Turn 2: re-run with the panel's OWN turn-1 answer + generated follow-up.
+  const turn2 = await producePanelAnswer(panel, turn1.followUp || q.prompt, {
+    deps,
+    turn: 2,
+    turn1Answer: turn1.answer,
+    followUp: turn1.followUp,
+  });
+  return {
+    answer: toPanelAnswer(turn2),
+    // The judged followUpQuality signal scores the GENERATED follow-up (turn-1's).
+    followUp: turn1.followUp,
+    ...(turn2.trace ? { trace: turn2.trace } : {}),
+  };
 }
 
 export interface RunTestsOptions {
@@ -65,16 +87,13 @@ export interface RunTestsOptions {
   onlyIds?: string[];
   /** Restrict to a split. */
   split?: "dev" | "held-out";
-  /**
-   * Only run these panels (by id). Default: all configured panels. Used by the
-   * autocorrect loop to re-run ONLY the panel under optimization on later rounds
-   * (the fixed ①/② floor is measured once and cached).
-   */
+  /** Only run these panels (by id). Default: all four. */
   panelIds?: string[];
+  /** Inject deps (tests / autocorrect). Default: real seams from env. */
+  deps?: AnswerDeps;
 }
 
 export async function runTests(opts: RunTestsOptions = {}): Promise<string> {
-  const cfg = loadConfig();
   let questions = parseQuestions();
 
   if (opts.split) questions = questions.filter((q) => q.split === opts.split);
@@ -85,51 +104,51 @@ export async function runTests(opts: RunTestsOptions = {}): Promise<string> {
     questions = questions.slice(0, opts.limit);
   }
 
-  let panels = cfg.panels;
+  let panels = buildPanels();
   if (opts.panelIds?.length) {
     const want = new Set(opts.panelIds);
-    panels = panels.filter((p) => want.has(p.id));
+    panels = panels.filter((p) => want.has(p.panelId));
     if (panels.length === 0) {
-      throw new Error(
-        `panelIds [${opts.panelIds.join(", ")}] matched no configured panels`,
-      );
+      throw new Error(`panelIds [${opts.panelIds.join(", ")}] matched no panels`);
     }
   }
+
+  const deps = opts.deps ?? (await makeAnswerDeps());
+  const concurrency = Math.max(1, Number(getEnv().RUN_CONCURRENCY ?? 4) || 4);
 
   const runId = newRunId();
   console.log(`\n[run-tests] runId=${runId}`);
   console.log(
-    `[run-tests] ${questions.length} question(s) × ${panels.length} panel(s), concurrency=${cfg.concurrency}\n`,
+    `[run-tests] ${questions.length} question(s) × ${panels.length} panel(s), concurrency=${concurrency}\n`,
   );
 
-  // Answer every (question × panel) pair in parallel (bounded). Each pair is
-  // independent (multi-turn questions stay sequential WITHIN runPanelForQuestion),
-  // so order is preserved by mapWithConcurrency and regrouped per question below.
   const tasks = questions.flatMap((q, qi) =>
     panels.map((panel, pi) => ({ q, qi, panel, pi })),
   );
 
-  const flat = await mapWithConcurrency(tasks, cfg.concurrency, async (t) => {
+  const flat = await mapWithConcurrency(tasks, concurrency, async (t) => {
     const t0 = Date.now();
-    const answer = await runPanelForQuestion(t.panel, cfg, t.q);
+    const { answer, followUp, trace } = await runPanelForQuestion(t.panel, t.q, deps);
     const latencyMs = Date.now() - t0;
     const status = answer.error
       ? `ERROR ${answer.error.slice(0, 80)}`
       : `${answer.answer.length} chars, ${answer.sources.length} src`;
-    console.log(`  Q ${t.q.id} ${t.panel.id.padEnd(8)} ${latencyMs}ms  ${status}`);
+    console.log(`  Q ${t.q.id} ${t.panel.panelId.padEnd(4)} ${latencyMs}ms  ${status}`);
     const tPanel: TranscriptPanel = {
-      panelId: t.panel.id,
+      panelId: t.panel.panelId,
       panelLabel: t.panel.label,
-      kind: t.panel.kind,
+      arch: t.panel.arch,
+      retrieval: t.panel.retrieval,
       ...(t.panel.agentId ? { agentId: t.panel.agentId } : {}),
-      ...(t.panel.index ? { index: t.panel.index } : {}),
+      index: t.panel.indexName,
       answer,
+      ...(followUp ? { followUp } : {}),
+      ...(trace ? { trace } : {}),
       latencyMs,
     };
     return { qi: t.qi, pi: t.pi, tPanel };
   });
 
-  // Regroup, preserving question + panel order.
   const tQuestions: TranscriptQuestion[] = questions.map((q) => ({
     questionId: q.id,
     category: q.category,
@@ -145,7 +164,7 @@ export async function runTests(opts: RunTestsOptions = {}): Promise<string> {
     runId,
     createdAt: new Date().toISOString(),
     questionVersion: QUESTION_VERSION,
-    panelOrder: panels.map((p) => p.id),
+    panelOrder: panels.map((p) => p.panelId),
     questions: tQuestions,
   };
 

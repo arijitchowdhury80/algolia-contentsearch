@@ -32,7 +32,7 @@ export function makeJudgment(
   judgeId: string,
   temperament: Temperament,
   flatValue: number,
-  violations: { confidence: number }[] = [],
+  violations: { confidence: number; kind?: "contradicted" | "unverifiable" }[] = [],
 ): Judgment {
   const dimensionScores = flatScores(flatValue);
   return {
@@ -42,7 +42,8 @@ export function makeJudgment(
     groundingViolations: violations.map((v, i) => ({
       claim: `claim ${i}`,
       reason: "not in sources",
-      confidence: v.confidence,
+      certainty: v.confidence,
+      ...(v.kind ? { kind: v.kind } : {}),
     })),
     summary: `${judgeId} verdict`,
     weightedScore: weightedAggregate(dimensionScores, ALGOLIA_ANSWER_RUBRIC, {
@@ -73,7 +74,7 @@ export function makeMockLlm(opts: {
       groundingViolations: violations.map((v, i) => ({
         claim: `claim ${i}`,
         reason: "not supported by sources",
-        confidence: v.confidence,
+        certainty: v.confidence,
       })),
       summary: `mock summary @${score}`,
     });

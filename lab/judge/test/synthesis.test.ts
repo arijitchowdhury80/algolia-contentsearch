@@ -212,7 +212,7 @@ describe("aggregateRounds — claim-level gate (zero-flicker)", () => {
   function roundWithClaim(claim: string, confidence = 0.9) {
     const skeptic = makeJudgment("skeptic", "skeptic", 7, [{ confidence }]);
     return [
-      { ...skeptic, groundingViolations: [{ claim, reason: "not in sources", confidence }] },
+      { ...skeptic, groundingViolations: [{ claim, reason: "not in sources", certainty: confidence }] },
       makeJudgment("referee", "referee", 8),
       makeJudgment("advocate", "advocate", 8),
     ];
@@ -243,15 +243,60 @@ describe("aggregateRounds — claim-level gate (zero-flicker)", () => {
     expect(agg.finalScore).toBe(DEFAULT_GATE.cap);
   });
 
+  it("does NOT trip when a recurring claim is kind=unverifiable (thin-source, not fabrication)", () => {
+    // Regression (2026-06-27): the multi-round claim-recurrence gate must apply the
+    // same kind filter the single-round gate does (gate.ts drops `unverifiable`).
+    // A plausible claim simply ABSENT from thin sources recurs every round but is
+    // NOT a fabrication — it lowers the grounding dimension, it must not cap the
+    // composite. Without the filter, every real answer whose claims aren't all in
+    // the retrieved snippets was slammed to the cap (calibration Spearman ~0).
+    const claim = "Under Armour saw a 15% increase in conversion rates";
+    const mk = (conf: number) => [
+      {
+        ...makeJudgment("skeptic", "skeptic", 7),
+        groundingViolations: [
+          { claim, reason: "not in the provided sources", certainty: conf, kind: "unverifiable" as const },
+        ],
+      },
+      makeJudgment("referee", "referee", 8),
+      makeJudgment("advocate", "advocate", 8),
+    ];
+    const perRound = [mk(1.0), mk(0.9), mk(1.0)];
+    const agg = aggregateRounds(perRound, opts.rubric, opts.synthesis, opts.gate, 0.5);
+    expect(agg.gateTripped).toBe(false);
+    expect(agg.finalScore).toBeGreaterThan(DEFAULT_GATE.cap);
+  });
+
+  it("DOES trip when a recurring claim is kind=contradicted (real fabrication)", () => {
+    // The other side of the filter: an injected fabricated statistic recurs and
+    // is correctly labeled `contradicted` → it MUST cap the composite.
+    const claim = "Algolia guarantees a 42% conversion lift within 90 days";
+    const mk = () => [
+      {
+        ...makeJudgment("skeptic", "skeptic", 7),
+        groundingViolations: [
+          { claim, reason: "no source supports this exact statistic", certainty: 1.0, kind: "contradicted" as const },
+        ],
+      },
+      makeJudgment("referee", "referee", 8),
+      makeJudgment("advocate", "advocate", 8),
+    ];
+    const perRound = [mk(), mk(), mk()];
+    const agg = aggregateRounds(perRound, opts.rubric, opts.synthesis, opts.gate, 0.5);
+    expect(agg.gateTripped).toBe(true);
+    expect(agg.finalScore).toBe(DEFAULT_GATE.cap);
+  });
+
   it("reports per-dimension means averaged across judges and rounds", () => {
     // skeptic=4, referee=7, advocate=10 on every dimension → mean 7 per dim.
     const perRound = [round(4, 7, 10), round(4, 7, 10)];
     const agg = aggregateRounds(perRound, opts.rubric, opts.synthesis, opts.gate, 0.5);
     expect(agg.dimensionMeans).toBeDefined();
-    // the 3-dimension model: grounding / confidence / breadth_depth
+    // the 4-dimension model: grounding / coverage / depth / relevance
     expect(agg.dimensionMeans.grounding).toBeCloseTo(7, 5);
-    expect(agg.dimensionMeans.confidence).toBeCloseTo(7, 5);
-    expect(agg.dimensionMeans.breadth_depth).toBeCloseTo(7, 5);
+    expect(agg.dimensionMeans.coverage).toBeCloseTo(7, 5);
+    expect(agg.dimensionMeans.depth).toBeCloseTo(7, 5);
+    expect(agg.dimensionMeans.relevance).toBeCloseTo(7, 5);
     // a dropped legacy dimension is absent from the means.
     expect(agg.dimensionMeans.engagement).toBeUndefined();
   });

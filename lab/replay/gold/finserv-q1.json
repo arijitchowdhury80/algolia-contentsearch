@@ -1,0 +1,108 @@
+{
+  "scenarioId": "finserv-q1",
+  "vertical": "finserv",
+  "tier": "Q1",
+  "expectsHandoff": false,
+  "drivingSequence": [
+    "Advisors search for investment products but results ignore client risk profile, suitability score, and portfolio context. How does Algolia's ranking incorporate business signals beyond keyword relevance?",
+    "2 million documents — product sheets, research reports, compliance filings. 5,000 advisors, 300K client portal users.",
+    "VP of Digital Client Experience. We're evaluating replacing our current search with something that understands business context, not just keywords."
+  ],
+  "turns": [
+    {
+      "turnIndex": 0,
+      "userInput": "Advisors search for investment products but results ignore client risk profile, suitability score, and portfolio context. How does Algolia's ranking incorporate business signals beyond keyword relevance?",
+      "answer": "\"Ranking without business context is like giving everyone the same financial advice — it might be technically correct, but it's practically useless for most people.\" Explore with Maverick\nRanking Based on Business Signals\nTraditional keyword-based search is a blunt instrument. Algolia supercharges relevance with AI-powered ranking that understands the intent behind searches, not just the keywords How AI will impact ecommerce: A before & after | Algolia. This means surfacing investment products that align with a client's specific risk profile, suitability score, and overall portfolio context.\nHere's how Algolia makes that happen:\n\nUnderstanding over Matching: Algolia's AI doesn't just match keywords; it understands the concepts behind them What is natural language understanding | NLU Defined | Algolia. So, when an advisor searches for \"low-risk bonds,\" Algolia understands the underlying need for stable, conservative investments.\nPersonalized Ranking: Algolia creates unique ranking for every individual user based on behavior, AI understanding of the product, and real-time market data How AI will impact ecommerce: A before & after | Algolia. This means that an advisor with a client who has a low-risk tolerance will see different results than one with a client seeking aggressive growth. You can also fine-tune the impact of personalization using the personalizationImpact parameter personalizationImpact - Algolia.\nReal-Time Data Integration: Every search, click, and product view feeds into live AI models that adapt in real time to customer and market behavior How AI will impact ecommerce: A before & after | Algolia. If a particular investment suddenly becomes popular among risk-averse investors, Algolia will boost its ranking for advisors searching on behalf of similar clients.\nAI-Powered Business Building: Use generative AI tools along with Algolia NeuralSearch to bring your idea to life How to use AI to build your business.\n\nBy combining AI, personalization, and real-time data, Algolia transforms search from a keyword matching exercise into a powerful tool for delivering tailored investment recommendations.Maverick wants to know:Are you a financial advisor yourself, or evaluating this solution for a team of advisors?📢Marketing4📘Guides1Discovery Dossier|relevance•finance•Search•+14",
+      "sources": [
+        {
+          "title": "📢Marketing4",
+          "url": "",
+          "sourceType": "marketing"
+        },
+        {
+          "title": "📘Guides1",
+          "url": "",
+          "sourceType": "guides"
+        }
+      ],
+      "activePersona": "maverick",
+      "discoveryQuestion": "Are you a financial advisor yourself, or evaluating this solution for a team of advisors?",
+      "voiceViolations": []
+    },
+    {
+      "turnIndex": 1,
+      "userInput": "2 million documents — product sheets, research reports, compliance filings. 5,000 advisors, 300K client portal users.",
+      "answer": " Explore with MaverickAlright, buckle up, because that's a serious data universe! 2 million documents and a user base that could populate a small city? That's where Algolia shines, turning that data overload into a hyper-personalized experience.\n\nScale & Personalization\nHere's the deal: at that scale, you can't afford generic search results. Every advisor and every client needs to feel like the system was custom-built for them. Algolia's AI anticipates customer needs and understands the relationship between words How to use AI to build your business.\n\nAdvisors: With 5,000 advisors, you can use Algolia to create individual search experiences based on their specialization, client demographics, and preferred investment strategies. Imagine an advisor specializing in retirement planning instantly seeing the most relevant annuity products and tax-advantaged accounts.\nClient Portal: 300K users? That's 300K opportunities to build deeper relationships. Algolia can personalize search results based on each client's risk profile, investment goals, and past behavior. Show them the research reports and compliance filings that actually matter to their portfolio.\n\nThe Proof is in the Pudding:\n\nLacoste: Increased conversion rates by20%by delivering hyper-relevant product recommendations.\nRuggable: Saw a3xincrease in revenue per visit by using Algolia to guide customers to the perfect rug.\n\nI don't have a published case study for the financial vertical in front of me right now, but the principle is the same: personalization drives results.\nSo, with that kind of scale, it's all about making every search count. What specific metrics are you looking to improve with a more personalized search experience?MaverickElenaGo🖋️Blog4📄Docs7⚡API Ref3📢Marketing2📘Guides1🏆Cases1Discovery Dossier|1M+ records•relevance•finance•+36",
+      "sources": [
+        {
+          "title": "🖋️Blog4",
+          "url": "",
+          "sourceType": "blog"
+        },
+        {
+          "title": "📄Docs7",
+          "url": "",
+          "sourceType": "docs"
+        },
+        {
+          "title": "⚡API Ref3",
+          "url": "",
+          "sourceType": "api_ref"
+        },
+        {
+          "title": "📢Marketing2",
+          "url": "",
+          "sourceType": "marketing"
+        },
+        {
+          "title": "🏆Cases1",
+          "url": "",
+          "sourceType": "case_study"
+        }
+      ],
+      "activePersona": "maverick",
+      "voiceViolations": []
+    },
+    {
+      "turnIndex": 2,
+      "userInput": "VP of Digital Client Experience. We're evaluating replacing our current search with something that understands business context, not just keywords.",
+      "answer": " Explore with MaverickGot it. We're talking about moving beyond \"find\" to \"understand,\" and that's music to my ears! As the VP of Digital Client Experience, you're on the front lines of making every interaction count. It's not just about finding documents; it's about making clients feel understood and empowered.\n\nBusiness Value: Relevance is Revenue\nHere's the value proposition for someone in your seat:\n\nIncreased Client Engagement: When clients find what they need instantly, they spend more time exploring, researching, and ultimately, investing.\nImproved Advisor Productivity: Empower your advisors to deliver personalized recommendations faster and more efficiently.\nHigher Client Satisfaction: A seamless, intuitive search experience builds trust and loyalty.\nCompliance: Ensure advisors are always surfacing the most up-to-date and compliant materials.\n\nReal World Wins:\n\nHuckberry: Saw a9.4% increase in website revenuerelated to personalization.\nDocMorris: Achieved a+112% increase in conversions from searchafter implementing Algolia.\n\nThe Key:\n\nAI-Powered Search: Algolia understands theintentbehind searches, not just the keywords.\nPersonalized Ranking: Deliver unique search results based on each user's profile, behavior, and goals.\nReal-Time Data Integration: Adapt search results in real-time based on market trends and user interactions.\nVoice: Withvoice search optimizationturn your business into a personal assistant for your customers.\n\nTo drive these results, Algolia uses AI and machine learning to tailor search results to be relevant to the user.\nWith a platform like Algolia, you are not just finding information; you're building relationships, driving revenue, and creating a competitive advantage.\nTo make sure we are aligned, are your advisors using a specific set of tools or platforms that we should consider for integration?MaverickElenaGo🏆Cases7🖋️Blog18🎓Academy3📄Docs1📢Marketing3📘Guides2Discovery Dossier|1M+ records•Executive•relevance•+47",
+      "sources": [
+        {
+          "title": "🏆Cases7",
+          "url": "",
+          "sourceType": "case_study"
+        },
+        {
+          "title": "🖋️Blog18",
+          "url": "",
+          "sourceType": "blog"
+        },
+        {
+          "title": "🎓Academy3",
+          "url": "",
+          "sourceType": "other"
+        },
+        {
+          "title": "📄Docs1",
+          "url": "",
+          "sourceType": "docs"
+        },
+        {
+          "title": "📢Marketing3",
+          "url": "",
+          "sourceType": "marketing"
+        },
+        {
+          "title": "📘Guides2",
+          "url": "",
+          "sourceType": "guides"
+        }
+      ],
+      "activePersona": "maverick",
+      "voiceViolations": []
+    }
+  ],
+  "capturedAt": "2026-04-16T03:36:36.737Z",
+  "blessedBy": "arijit"
+}

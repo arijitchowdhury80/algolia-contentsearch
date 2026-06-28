@@ -21,6 +21,7 @@ export {
   JUDGE_OUTPUT_CONTRACT,
   buildJudgePrompt,
   buildSynthesisPrompt,
+  renderExpectedCoverage,
 } from "./prompt.js";
 export { extractJsonObject, parseJudgeOutput } from "./parse.js";
 export { weightedAggregate, toFinalScale } from "./aggregate.js";
@@ -45,6 +46,13 @@ export {
   evaluateClaimGate,
   DEFAULT_CLAIM_GATE,
 } from "./claimGate.js";
+export { spearman, averageRanks, runCalibration } from "./calibration.js";
+export type {
+  CalibrationItem,
+  CalibrationPerItem,
+  CalibrationResult,
+  CalibrationDiagnostics,
+} from "./calibration.js";
 export type {
   ClaimCluster,
   ClaimGateConfig,

@@ -2,15 +2,21 @@
  * config — loads experiment configuration from the repo's env files.
  *
  * Two env files, no external dotenv dependency:
- *   - root  .env.local  → OPENAI_API_KEY (judge LLM) + (later) agent admin keys
- *   - web/.env.local    → VITE_OURS_* app/search key + the agent + index IDs
+ *   - root  .env.local  → GOOGLE_API_KEY / OPENAI_API_KEY (judge LLM) + the
+ *                         Algolia CENTRAL admin/provider/agent ids (server-only)
+ *   - web/.env.local    → VITE_ALGOLIA_APP_ID + VITE_ALGOLIA_SEARCH_API_KEY
+ *                         (the browser search-only credentials)
  *
- * Panel IDs are intentionally read from env (not hardcoded) so the real Case 2/3
- * agents can be swapped in later by editing web/.env.local — no code change.
+ * The 2×2 panel set (P1–P4) is the source of truth in panels.ts; loadConfig()
+ * delegates there (buildPanels) and maps each PanelMeta → PanelConfig so legacy
+ * consumers keep a stable shape. Agent ids come from env (ALGOLIA_AGENT_P1_ID /
+ * ALGOLIA_AGENT_P3_ID) and MAY be empty until the agents are created out-of-band
+ * — loadConfig() must NEVER throw merely because an agent id is unset.
  */
 import { readFileSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
+import { buildPanels, type PanelMeta } from "./panels.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 // lab/server/src → repo root is three levels up.
@@ -62,18 +68,34 @@ function opt(key: string): string | undefined {
   return ENV[key] || undefined;
 }
 
-/** Identifies one panel (a column in the A/B/C comparison). */
+/**
+ * Identifies one panel (a cell in the 2×2 lab). A projection of panels.ts'
+ * PanelMeta onto the legacy shape some consumers still read:
+ *   - single panels (P1/P3) are `kind: "agent"` with an `agentId` (may be "")
+ *   - multi panels (P2/P4) are `kind: "coordinator"` (the coded Maverick path)
+ */
 export interface PanelConfig {
-  /** Stable panel id used throughout transcripts + scores. */
+  /** Stable panel id used throughout transcripts + scores (P1–P4). */
   readonly id: string;
   /** Human label for the summary printout. */
   readonly label: string;
   /** How this panel produces an answer. */
-  readonly kind: "agent" | "website";
-  /** For agent panels: Agent Studio agent id. */
+  readonly kind: "agent" | "coordinator";
+  /** For agent panels: Agent Studio agent id (may be "" until created). */
   readonly agentId?: string;
-  /** For agent panels: the index the agent searches (metadata only). */
+  /** The index this panel's retrieval targets (metadata only). */
   readonly index?: string;
+}
+
+/** Map a PanelMeta (panels.ts) onto the legacy PanelConfig shape. */
+function toPanelConfig(p: PanelMeta): PanelConfig {
+  return {
+    id: p.panelId,
+    label: p.label,
+    kind: p.coordinator ? "coordinator" : "agent",
+    ...(p.agentId !== undefined ? { agentId: p.agentId } : {}),
+    index: p.indexName,
+  };
 }
 
 export type JudgeProvider = "openai" | "gemini";
@@ -97,42 +119,22 @@ export interface ExperimentConfig {
 /**
  * Build the experiment config from env.
  *
- * Panel layout (current placeholders — see CLAUDE.md A/B/C columns):
- *   ① website  — stub for now (lab/capture lands later)
- *   ② mirror   — existing agent on the faithful-mirror index   (VITE_AGENT_MIRROR_ID)
- *   ③ tuned    — existing agent on the tuned index             (VITE_AGENT_TUNED_ID)
- *
- * SWAPPING IN REAL CASE 2/3 AGENTS LATER: change VITE_AGENT_MIRROR_ID /
- * VITE_AGENT_TUNED_ID (and the matching VITE_INDEX_*) in web/.env.local. No
- * code change here — the panel ids stay stable so scores remain comparable.
+ * Panels are the 2×2 set from panels.ts (P1–P4), mapped onto PanelConfig. The
+ * shared Algolia app/search-key (`ours`) reads the CENTRAL vars
+ * (VITE_ALGOLIA_APP_ID / VITE_ALGOLIA_SEARCH_API_KEY), falling back to the old
+ * VITE_OURS_* names if a stale env file still carries them. Missing values are
+ * tolerated ("" ) — loadConfig() never throws on the panel/app credentials so
+ * the judge path runs on a fresh CENTRAL env where agents may not exist yet.
  */
 export function loadConfig(): ExperimentConfig {
   const ours = {
-    appId: req("VITE_OURS_APP_ID"),
-    searchKey: req("VITE_OURS_SEARCH_KEY"),
+    appId: opt("VITE_ALGOLIA_APP_ID") ?? opt("VITE_OURS_APP_ID") ?? "",
+    searchKey:
+      opt("VITE_ALGOLIA_SEARCH_API_KEY") ?? opt("VITE_OURS_SEARCH_KEY") ?? "",
   };
 
-  const panels: PanelConfig[] = [
-    {
-      id: "website",
-      label: "① Website (incumbent Ask-AI)",
-      kind: "website",
-    },
-    {
-      id: "mirror",
-      label: "② Agent — faithful mirror",
-      kind: "agent",
-      agentId: req("VITE_AGENT_MIRROR_ID"),
-      index: opt("VITE_INDEX_MIRROR"),
-    },
-    {
-      id: "tuned",
-      label: "③ Agent — tuned index",
-      kind: "agent",
-      agentId: req("VITE_AGENT_TUNED_ID"),
-      index: opt("VITE_INDEX_TUNED"),
-    },
-  ];
+  // The four 2×2 panels (P1–P4) are the source of truth in panels.ts.
+  const panels: PanelConfig[] = buildPanels(ENV).map(toPanelConfig);
 
   // Default 5 rounds: enough resolution for the supermajority gate vote (>=2/3)
   // and a stable mean±σ. Use JUDGE_ROUNDS=3 for cheaper quick iteration (the

@@ -1,0 +1,85 @@
+{
+  "scenarioId": "cpg-q2",
+  "vertical": "cpg",
+  "tier": "Q2",
+  "expectsHandoff": true,
+  "handoffTarget": "elena",
+  "drivingSequence": [
+    "We're a CPG company on Shopify Plus across 6 markets with 2M SKUs — shoppers search 'organic snacks under $5' in 3 languages and our search misses the intent. We want dynamic re-ranking based on regional inventory. What's the technical approach and who in CPG has done this?",
+    "English, French, and German are the primary languages. Each market has different pricing and inventory.",
+    "I'm the Director of E-Commerce Tech. We need faceted search combining NLP intent with structured filters like price, dietary attributes, and availability."
+  ],
+  "turns": [
+    {
+      "turnIndex": 0,
+      "userInput": "We're a CPG company on Shopify Plus across 6 markets with 2M SKUs — shoppers search 'organic snacks under $5' in 3 languages and our search misses the intent. We want dynamic re-ranking based on regional inventory. What's the technical approach and who in CPG has done this?",
+      "answer": "\"Think of your current search like a universal translator that only speaks one language — it's technically correct, but misses all the local idioms. Algolia makes it fluent in every dialect, especially when it comes to \"organic snacks under $5.\"\" Explore with Maverick\nDynamic Re-Ranking: The Global-Local Balancing Act\nYou're hitting the classic \"global catalog, local reality\" problem head-on. Here's how Algolia helps CPG brands like yours nail that dynamic re-ranking:\n\nUnderstand the Intent: Algolia's natural language processing (NLP) gets beyond the keywords to understand the meaning behind \"organic snacks under $5\" in each language. This means factoring in synonyms, regional product naming variations, and even cultural preferences.\nReal-Time Inventory Awareness: Algolia connects directly to your inventory systems, so search results automatically adjust based on what's actually available in each region. No more showing items that shoppers can't buy.\nPersonalized Ranking: Using Algolia's dynamic re-ranking, you can prioritize results based on a shopper's location, past behavior, and current inventory. This ensures that the most relevant products appear first.\n\n\nCPG Success Stories\nWhile I don't have a published case study in front of me for a CPG company using this exact multi-language, dynamic re-ranking approach, I can share some relevant capabilities that drive huge value for similar customers:\n\n** Filter Toggle** lets shoppers refine their results by toggling the view on or off.\nAlgolia's NLP understands the intent behind search queries, which is important for multi-language search.\nAlgolia connects directly to your inventory systems, so search results automatically adjust based on what's actually available in each region.\nMaverick wants to know:Who on your team is driving the search implementation and strategy?📢Marketing1📘Guides1📄Docs4⚡API Ref1Discovery Dossier|Shopify•1M+ records•multi-language•+36",
+      "sources": [
+        {
+          "title": "📢Marketing1",
+          "url": "",
+          "sourceType": "marketing"
+        },
+        {
+          "title": "📘Guides1",
+          "url": "",
+          "sourceType": "guides"
+        },
+        {
+          "title": "📄Docs4",
+          "url": "",
+          "sourceType": "docs"
+        },
+        {
+          "title": "⚡API Ref1",
+          "url": "",
+          "sourceType": "api_ref"
+        }
+      ],
+      "activePersona": "maverick",
+      "discoveryQuestion": "Who on your team is driving the search implementation and strategy?",
+      "voiceViolations": []
+    },
+    {
+      "turnIndex": 1,
+      "userInput": "English, French, and German are the primary languages. Each market has different pricing and inventory.",
+      "answer": " Explore with MaverickAlright, so you are saying we're dealing with a linguistic trifecta — English, French, and German — each with its own pricing and inventory quirks? That's where Algolia shines. It's not just about translating words; it's about understanding the commerce behind them.\n\nSemantic Search: Beyond Keyword Matching\nThink of traditional keyword search as a librarian who only knows the Dewey Decimal System. They can find books if you give them the exact code, but they can't help you if you just describe what you're looking for. Algolia's semantic search is like a librarian who actually understands what you want semantic search.\n\nVector searchconverts text into numerical representations of data.\nEntity recognitionidentifies and classifies key components of a query.\nContextual understandingrefers to ascertaining meaning and intent in a query.\nNatural language processingis used to understand the ways humans naturally write search queries.\n\n\nAI-Powered Sales Projection: Forecasting the Future\nTraditional forecasting is a bit backwards. AI can accommodate unbelievable amounts of data. Deep-learning models can expertly assess relationships between all kinds of data that sales managers would be hard pressed to stumble upon Harness the power of AI-based sales projection | Algolia.Maverick wants to know:Besides Shopify, are you using any other platforms or services within your e-commerce stack?📢Marketing2📘Guides1Discovery Dossier|Shopify•1M+ records•multi-language•+47",
+      "sources": [
+        {
+          "title": "📢Marketing2",
+          "url": "",
+          "sourceType": "marketing"
+        }
+      ],
+      "activePersona": "maverick",
+      "discoveryQuestion": "Besides Shopify, are you using any other platforms or services within your e-commerce stack?",
+      "voiceViolations": []
+    },
+    {
+      "turnIndex": 2,
+      "userInput": "I'm the Director of E-Commerce Tech. We need faceted search combining NLP intent with structured filters like price, dietary attributes, and availability.",
+      "answer": " Explore with MaverickFaceted search, NLP intent, and structured filters? You are speaking my language! Think of it as giving your shoppers a hyper-personalized treasure map. They start with a general idea (\"organic snacks\"), and then drill down with laser precision (\"under $5,\" \"gluten-free,\" \"in stock near me\").\nThe Power of Faceted Search + NLP\nFaceted search alone is great for shoppers who know exactly what they want. But when you combine it with NLP, you empower shoppers who have a general idea, but need help refining their search.\n\nHow it Works\n\nNLP Intent Extraction: Algolia analyzes the search query to identify the shopper's intent. For example, \"cheap vegan cookies\" translates to \"cookies\" + \"vegan\" + \"price: low.\"\nDynamic Facet Display: Algolia dynamically displays relevant facets based on the extracted intent. So, if the shopper searches for \"organic snacks,\" the \"Dietary Attributes\" facet appears prominently.\nIntelligent Filtering: As the shopper selects facets (e.g., \"under $5\"), Algolia instantly filters the results, showing only products that matchboththe NLP intent and the structured filters.\nGeospatial Search: I didn't see it in the user profile, but it's worth mentioning we can integrategeospatial search, so shoppers can search for products \"near me\".>\nMaverickElenaGo💰Pricing1⚡API Ref4📄Docs5📘Guides2Discovery Dossier|Shopify•1M+ records•Director of E-Commerce Tech•+58",
+      "sources": [
+        {
+          "title": "⚡API Ref4",
+          "url": "",
+          "sourceType": "api_ref"
+        },
+        {
+          "title": "📄Docs5",
+          "url": "",
+          "sourceType": "docs"
+        },
+        {
+          "title": "📘Guides2",
+          "url": "",
+          "sourceType": "guides"
+        }
+      ],
+      "activePersona": "maverick",
+      "voiceViolations": []
+    }
+  ],
+  "capturedAt": "2026-04-16T03:36:02.927Z",
+  "blessedBy": "arijit"
+}

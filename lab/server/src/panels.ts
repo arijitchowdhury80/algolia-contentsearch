@@ -1,19 +1,25 @@
 /**
- * panels — runners that produce an answer for a question from each panel.
+ * panels — the neural-only 1×2 panel model (P3–P4) for the answer-quality lab.
  *
- * Two panel kinds:
- *   - agent   → Agent Studio completions (node, with User-Agent for the WAF).
- *               SSE parse logic is ported from web/src/lib/agentStudioClient.ts
- *               (0:/9:/a:/3: frames) to keep one wire contract across browser +
- *               node.
- *   - website → the incumbent algolia.com Ask-AI. STUBBED for now; if the
- *               parallel lab/capture module exposes captureWebsite() we use it,
- *               otherwise we return a marked placeholder so the pipeline runs
- *               end-to-end without blocking on that workstream.
+ * The lab compares OUR system across one axis on the CENTRAL app (0EXRPAXB56):
+ *   architecture: single-agent | multi-agent
+ *   retrieval:    neural (only)
+ *
+ *   | Panel | Architecture | Index                |
+ *   | P3    | Single       | AC2_WWW_SINGLE_NEURAL |
+ *   | P4    | Multi        | AC2_WWW_MULTI_NEURAL  |
+ *
+ * P3 (single) proxies ONE Agent Studio agent (agentId from env, Maverick neural id).
+ * P4 (multi) runs the coded Maverick coordinator (multiAgent.ts) over the
+ * source-scoped specialist agents on the shared MULTI index. Both use neural retrieval.
+ * Index names follow the locked AC2_WWW_<ARCH>_<RETRIEVAL> convention; agent ids
+ * are read from env and MAY be empty until the agents are created out-of-band
+ * (create_central_agents.mjs) — every consumer must tolerate an empty agentId.
  */
+import { getEnv } from "./config.js";
 
 // ---------------------------------------------------------------------------
-// Shared answer shape
+// Shared answer shape (referenced by store.ts, runTests.ts, answer.ts, cli.ts)
 // ---------------------------------------------------------------------------
 
 export interface PanelSource {
@@ -28,7 +34,7 @@ export interface PanelSource {
 export interface PanelAnswer {
   answer: string;
   sources: PanelSource[];
-  /** Provenance tag, e.g. "agent" or "website-stub". */
+  /** Provenance tag, e.g. "agent" or "coordinator". */
   source: string;
   error?: string;
 }
@@ -39,261 +45,85 @@ export interface ConversationTurn {
 }
 
 // ---------------------------------------------------------------------------
-// Agent Studio — SSE parsing (ported from agentStudioClient.ts)
+// The 2×2 panel model
 // ---------------------------------------------------------------------------
 
-const IGNORED_PREFIXES = new Set(["b", "e", "d", "f", "2", "c"]);
+export type PanelId = "P3" | "P4";
+export type Architecture = "single" | "multi";
+export type Retrieval = "keyword" | "neural";
 
-function parseSSELine(
-  line: string,
-): { prefix: string; payload: string } | null {
-  const colonIdx = line.indexOf(":");
-  if (colonIdx === -1) return null;
-  return {
-    prefix: line.substring(0, colonIdx),
-    payload: line.substring(colonIdx + 1),
-  };
+export interface PanelMeta {
+  readonly panelId: PanelId;
+  readonly label: string;
+  readonly arch: Architecture;
+  readonly retrieval: Retrieval;
+  /** The index this panel's retrieval targets (single) or the specialists share (multi). */
+  readonly indexName: string;
+  /**
+   * Single panels: the Agent Studio agent id (from env; may be "" until created).
+   * Multi panels: undefined — the coded Maverick coordinator answers (`coordinator`).
+   */
+  readonly agentId?: string;
+  /** Multi panels: true — answered by the coded coordinator, not a single agent. */
+  readonly coordinator?: boolean;
 }
 
-function collectHits(
-  result: unknown,
-  sink: Record<string, unknown>[],
-): void {
-  if (!result || typeof result !== "object") return;
-  const routeHit = (h: unknown) => {
-    if (!h || typeof h !== "object") return;
-    const rec = h as Record<string, unknown>;
-    if (rec.url || rec.title) sink.push(rec);
-  };
-  if (Array.isArray(result)) {
-    result.forEach(routeHit);
-    return;
-  }
-  const obj = result as Record<string, unknown>;
-  if (Array.isArray(obj.hits)) {
-    (obj.hits as unknown[]).forEach(routeHit);
-    return;
-  }
-  for (const key of Object.keys(obj)) {
-    if (Array.isArray(obj[key])) (obj[key] as unknown[]).forEach(routeHit);
-  }
-}
+/** The two index names — locked naming convention AC2_WWW_<ARCH>_<RETRIEVAL>. */
+export const INDEX_NAMES = {
+  P3: "AC2_WWW_SINGLE_NEURAL",
+  P4: "AC2_WWW_MULTI_NEURAL",
+} as const;
 
-interface ParsedCompletion {
-  content: string;
-  hits: Record<string, unknown>[];
-  error?: string;
-}
-
-/** Fold a list of SSE lines into the accumulated completion. */
-export function parseCompletionStream(lines: string[]): ParsedCompletion {
-  let content = "";
-  const hits: Record<string, unknown>[] = [];
-  let error: string | undefined;
-
-  for (const rawLine of lines) {
-    const line = rawLine.trim();
-    if (!line) continue;
-    const parsed = parseSSELine(line);
-    if (!parsed) continue;
-    const { prefix, payload } = parsed;
-
-    if (prefix === "0") {
-      try {
-        const delta = JSON.parse(payload) as string;
-        if (typeof delta === "string") content += delta;
-      } catch {
-        /* skip malformed delta */
-      }
-    } else if (prefix === "a") {
-      try {
-        const toolResult = JSON.parse(payload) as { result?: unknown };
-        collectHits(toolResult.result, hits);
-      } catch {
-        /* skip malformed tool result */
-      }
-    } else if (prefix === "3") {
-      try {
-        error = JSON.parse(payload) as string;
-      } catch {
-        error = payload;
-      }
-    } else if (prefix === "9") {
-      /* tool call frame — not needed for the answer/sources */
-    } else if (!IGNORED_PREFIXES.has(prefix)) {
-      /* unknown prefix — ignore, don't crash */
-    }
-  }
-
-  return { content, hits, ...(error ? { error } : {}) };
-}
-
-/** Turn collected agent hits into the judge's Source shape. */
-function hitsToSources(hits: Record<string, unknown>[]): PanelSource[] {
-  return hits.map((h, i) => {
-    const url = typeof h.url === "string" ? h.url : undefined;
-    const title = typeof h.title === "string" ? h.title : undefined;
-    // Prefer a substantive text body for the grounding check.
-    const textParts = [
-      title,
-      typeof h.description === "string" ? h.description : undefined,
-      typeof h.content === "string" ? h.content : undefined,
-      typeof h.body === "string" ? h.body : undefined,
-      typeof h.excerpt === "string" ? h.excerpt : undefined,
-    ].filter((x): x is string => Boolean(x));
-    const text = textParts.join("\n") || url || `(hit ${i + 1})`;
-    return {
-      id: `S${i + 1}`,
-      text,
-      ...(url ?? title ? { label: url ?? title } : {}),
-    };
-  });
-}
-
-function agentUrl(appId: string, agentId: string): string {
-  return `https://${appId}.algolia.net/agent-studio/1/agents/${agentId}/completions?compatibilityMode=ai-sdk-4`;
+/**
+ * Build the two neural panel descriptors from env. Single panel reads
+ * ALGOLIA_AGENT_MAVERICK_NEURAL_ID for its agent id (may be empty until created).
+ * Multi panel carries `coordinator: true` instead of an agent id.
+ */
+export function buildPanels(
+  env: Record<string, string | undefined> = getEnv(),
+): PanelMeta[] {
+  return [
+    {
+      panelId: "P3",
+      label: "P3 · Single · Neural",
+      arch: "single",
+      retrieval: "neural",
+      indexName: INDEX_NAMES.P3,
+      agentId: env.ALGOLIA_AGENT_MAVERICK_NEURAL_ID ?? "",
+    },
+    {
+      panelId: "P4",
+      label: "P4 · Multi · Neural",
+      arch: "multi",
+      retrieval: "neural",
+      indexName: INDEX_NAMES.P4,
+      coordinator: true,
+    },
+  ];
 }
 
 /**
- * Call an Agent Studio agent and return its answer + grounding sources.
+ * The four panels, built lazily from the merged env map and memoized.
  *
- * `history` is prior turns (for multi-turn questions); the current question is
- * appended as the final user message — same contract as the browser client.
+ * Lazy (not an eager `const = buildPanels()`) to avoid a module-init cycle:
+ * config.ts imports buildPanels from here, and buildPanels' default env arg
+ * calls getEnv() back in config.ts — evaluating it at panels.ts init time would
+ * call getEnv() before config.ts has finished defining it. Computing on first
+ * use sidesteps the cycle entirely.
  */
-export async function runAgentPanel(
-  agentId: string,
-  appId: string,
-  searchKey: string,
-  question: string,
-  history: ConversationTurn[] = [],
-  fetchImpl: typeof fetch = fetch,
-  timeoutMs = 120_000,
-): Promise<PanelAnswer> {
-  const messages = [...history, { role: "user" as const, content: question }];
-
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
-  try {
-    const res = await fetchImpl(agentUrl(appId, agentId), {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Algolia-Application-Id": appId,
-        "X-Algolia-API-Key": searchKey,
-        // The WAF on /agent-studio/* blocks the default node UA.
-        "User-Agent": "visibility-agent-harness/1.0",
-      },
-      body: JSON.stringify({ messages }),
-      signal: controller.signal,
-    });
-
-    if (!res.ok) {
-      const text = await res.text().catch(() => "");
-      return {
-        answer: "",
-        sources: [],
-        source: "agent",
-        error: `Agent Studio ${res.status}: ${text.slice(0, 300)}`,
-      };
-    }
-
-    const body = await res.text();
-    const lines = body
-      .split("\n")
-      .map((l) => l.trim())
-      .filter(Boolean);
-    const parsed = parseCompletionStream(lines);
-
-    return {
-      answer: parsed.content,
-      sources: hitsToSources(parsed.hits),
-      source: "agent",
-      ...(parsed.error ? { error: parsed.error } : {}),
-    };
-  } catch (e) {
-    return {
-      answer: "",
-      sources: [],
-      source: "agent",
-      error: (e as Error).message,
-    };
-  } finally {
-    clearTimeout(timer);
-  }
+let _panels: PanelMeta[] | undefined;
+export function getPanels(): PanelMeta[] {
+  if (_panels === undefined) _panels = buildPanels();
+  return _panels;
 }
 
-// ---------------------------------------------------------------------------
-// Website panel — incumbent Ask-AI (stubbed; lab/capture lands later)
-// ---------------------------------------------------------------------------
-
-/** Contract a real website capture must satisfy to slot into the harness. */
-export interface WebsiteCapture {
-  captureWebsite(
-    question: string,
-    history?: ConversationTurn[],
-  ): Promise<{ answer: string; sources?: PanelSource[] }>;
-}
-
-let websiteCapture: WebsiteCapture | undefined;
-
-/**
- * Try to load the parallel-built capture module. It currently exposes no entry,
- * so this stays undefined and we stub. When lab/capture ships a captureWebsite()
- * (or src/index with that export), register it here / via setWebsiteCapture and
- * runWebsitePanel uses it with no other change.
- */
-export function setWebsiteCapture(impl: WebsiteCapture): void {
-  websiteCapture = impl;
-}
-
-export async function loadWebsiteCaptureIfPresent(): Promise<void> {
-  if (websiteCapture) return;
-  // Candidate entry points the capture workstream might ship.
-  const candidates = ["../../capture/src/index.js", "../../capture/index.js"];
-  for (const rel of candidates) {
-    try {
-      const mod = (await import(rel)) as Partial<WebsiteCapture>;
-      if (typeof mod.captureWebsite === "function") {
-        websiteCapture = { captureWebsite: mod.captureWebsite.bind(mod) };
-        return;
-      }
-    } catch {
-      /* not present yet — fall through to stub */
-    }
-  }
-}
-
-/**
- * Produce the incumbent website answer. Uses a real capture if one is
- * registered; otherwise returns a clearly-marked stub so the pipeline runs.
- */
-export async function runWebsitePanel(
-  question: string,
-  history: ConversationTurn[] = [],
-): Promise<PanelAnswer> {
-  await loadWebsiteCaptureIfPresent();
-  if (websiteCapture) {
-    try {
-      const out = await websiteCapture.captureWebsite(question, history);
-      return {
-        answer: out.answer,
-        sources: out.sources ?? [],
-        source: "website",
-      };
-    } catch (e) {
-      return {
-        answer: "",
-        sources: [],
-        source: "website",
-        error: (e as Error).message,
-      };
-    }
-  }
-
-  // Stub path — no live capture yet.
-  return {
-    answer: `[WEBSITE STUB] No live algolia.com Ask-AI capture wired yet for: "${question}". This placeholder exists so the harness runs end-to-end; lab/capture will replace it.`,
-    sources: [],
-    source: "website-stub",
-  };
+/** Look up one panel's metadata by id. Throws on an unknown id. */
+export function panelById(
+  panelId: PanelId,
+  env?: Record<string, string | undefined>,
+): PanelMeta {
+  const panels = env ? buildPanels(env) : getPanels();
+  const p = panels.find((x) => x.panelId === panelId);
+  if (!p) throw new Error(`Unknown panelId: ${panelId}`);
+  return p;
 }

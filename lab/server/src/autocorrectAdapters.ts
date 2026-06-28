@@ -4,10 +4,15 @@
  * lab/autocorrect knows none of this; swap these adapters to point the same
  * loop at a different system.
  *
- *   config C            = the Case-3 system-prompt text (a string)
- *   deploy(promptText)  = PATCH + publish the tuned agent (via agent_admin.mjs)
+ *   config C            = the single-agent system-prompt text (a string)
+ *   deploy(promptText)  = PATCH + publish the optimized agent (via agent_admin.mjs)
  *   evaluate(split)     = runTests(split) → judgeRun → map scores to answers
  *   propose(...)        = LLM rewrites the prompt to fix the weakest dimension
+ *
+ * TODO(phase2): re-wire autocorrect to the full 2×2 P1–P4 model. This currently
+ * targets ONE single-agent panel (default P1) — the multi-panel coordinator
+ * optimization is out of scope for the refactor. The pure floor-cache merge math
+ * below is panel-id-agnostic and stays correct.
  */
 import { execFile } from "node:child_process";
 import { writeFile } from "node:fs/promises";
@@ -36,7 +41,7 @@ const AGENT_ADMIN = path.join(REPO_ROOT, "scripts/setup/agent_admin.mjs");
 
 /**
  * Floor-cache merge logic (pure, testable). The loop only mutates the `ours`
- * panel each round, so the fixed ①/② floor is measured once and reused:
+ * panel each round, so the fixed (non-ours) floor is measured once and reused:
  *   - First eval of a split (`cached === undefined`): return all `fresh` panels
  *     and cache the non-ours ones as the floor.
  *   - Later evals (`cached` present): `fresh` holds only the re-measured ours
@@ -98,10 +103,8 @@ function oursRationales(runId: string, oursPanelId: string, max = 6): string[] {
 }
 
 export interface AutocorrectAdapterOptions {
-  /** Panel id of the system being optimized (default "tuned"). */
+  /** Panel id of the single-agent system being optimized (default "P1"). */
   oursPanelId?: string;
-  /** Set WEBSITE_STUB so the ① website panel is stubbed (default true). */
-  stubWebsite?: boolean;
   /** Use a stub proposer that returns the prompt unchanged (smoke tests). */
   stubProposer?: boolean;
   /** Restrict evaluation to these question ids (smoke tests). */
@@ -109,10 +112,10 @@ export interface AutocorrectAdapterOptions {
   /** Restrict evaluation to the first N questions (smoke tests). */
   evalLimit?: number;
   /**
-   * Cache the fixed ①/② floor across rounds (default true). Only the panel
-   * under optimization (`oursPanelId`) changes between rounds, so the floor is
-   * measured + judged once per split and reused — roughly halving per-round
-   * cost. Set false to re-measure every panel every round.
+   * Cache the fixed (non-ours) floor across rounds (default true). Only the
+   * panel under optimization (`oursPanelId`) changes between rounds, so the
+   * floor is measured + judged once per split and reused — roughly halving
+   * per-round cost. Set false to re-measure every panel every round.
    */
   cacheFloor?: boolean;
   log?: (msg: string) => void;
@@ -125,15 +128,20 @@ export interface AutocorrectAdapterOptions {
 export function makeAlgoliaSeams(
   opts: AutocorrectAdapterOptions = {},
 ): { seams: AutocorrectSeams<string>; lastRunId: () => string | undefined } {
-  const oursPanelId = opts.oursPanelId ?? "tuned";
+  // Default to the single-keyword panel (P1) — autocorrect optimizes ONE
+  // Agent Studio system prompt, so it only applies to a single-agent panel.
+  const oursPanelId = opts.oursPanelId ?? "P1";
   const log = opts.log ?? (() => {});
   const cfg = loadConfig();
-  const tunedAgentId = cfg.panels.find((p) => p.id === oursPanelId);
-  if (!tunedAgentId || tunedAgentId.kind !== "agent") {
-    throw new Error(`panel "${oursPanelId}" is not an agent panel`);
+  // TODO(phase2): re-wire autocorrect to the full P1–P4 model (per-panel deploy
+  // targets, a proper floor panel). For now resolve the single-agent panel's
+  // agent id; an unset/absent agent id makes deploy a graceful no-op rather than
+  // throwing (a fresh CENTRAL env may not have created the agents yet).
+  const oursPanel = cfg.panels.find((p) => p.id === oursPanelId);
+  if (oursPanel && oursPanel.kind !== "agent") {
+    throw new Error(`panel "${oursPanelId}" is a coordinator panel, not optimizable`);
   }
-  const agentId = (tunedAgentId as { agentId: string }).agentId;
-  if (opts.stubWebsite ?? true) process.env.WEBSITE_STUB = "1";
+  const agentId = oursPanel?.agentId ?? "";
 
   let lastRunId: string | undefined;
   const cacheFloor = opts.cacheFloor ?? true;
@@ -142,6 +150,12 @@ export function makeAlgoliaSeams(
 
   const seams: AutocorrectSeams<string> = {
     async deploy(promptText) {
+      if (!agentId) {
+        // No agent created for this panel yet → no-op so the loop can still run
+        // its decision logic in smoke/dry mode without a live PATCH.
+        log(`deploy → SKIPPED (panel "${oursPanelId}" has no agent id set)`);
+        return;
+      }
       const tmp = path.join("/tmp", `autocorrect_candidate_${Date.now()}.md`);
       await writeFile(tmp, promptText, "utf8");
       log(`deploy → agent ${agentId} (${promptText.length} chars)`);

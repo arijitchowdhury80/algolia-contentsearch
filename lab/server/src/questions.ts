@@ -1,9 +1,14 @@
 /**
- * questions — parse the LOCKED v1 test-question set from markdown.
+ * questions — parse the LOCKED v3 test-question set from markdown.
  *
- * Source of truth: docs/experiment/test-questions-locked.md. We parse rather
+ * Source of truth: docs/experiment/test-questions-locked-v3.md. We parse rather
  * than re-encode so the markdown stays the single editable artifact (and the
  * version bump rule there governs comparability of scores).
+ *
+ * v3 (2026-06-18) is the 2×2 set: 8 categories incl. Cat 3 [N] neural- and Cat 4
+ * [M] multi-differentiators, Cat 5 [N][M] compound, Cat 7 grounded-refusal baits,
+ * and Cat 8 multi-turn OPENERS (no scripted follow-up — each panel generates its
+ * own via the shared block, so `followUp` is intentionally undefined here).
  */
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -13,7 +18,7 @@ export const QUESTIONS_PATH = resolve(
   REPO_ROOT,
   "docs",
   "experiment",
-  "test-questions-locked.md",
+  "test-questions-locked-v3.md",
 );
 
 export type Split = "dev" | "held-out";
@@ -33,11 +38,12 @@ export interface TestQuestion {
   readonly isRefusalTest: boolean;
 }
 
-// Mirror of the "Dev set" list in test-questions-locked.md (v2). Held-out is the
-// complement. Keep these two in sync when the locked set's version is bumped.
+// Mirror of the "Dev set (22)" list in test-questions-locked-v3.md. Held-out is
+// the complement. Keep these in sync when the locked set's version is bumped.
 const DEV_IDS = new Set([
-  "1.2", "1.3", "2.1", "2.2", "3.1", "3.2", "4.1", "4b",
-  "5.1", "5.2", "6.1", "6.3", "7.1", "7.2", "8.1", "8.2", "8.3", "8.4",
+  "1.1", "1.2", "1.3", "2.1", "2.2", "2.3", "3.1", "3.2", "3.3",
+  "4.1", "4.2", "5.1", "5.2", "6.1", "6.2", "7.1", "7.2", "7.3",
+  "8.1", "8.2", "8.3", "8.4",
 ]);
 
 /** Strip markdown emphasis / trailing parenthetical notes from a question line. */
@@ -86,6 +92,11 @@ export function parseQuestions(markdown?: string): TestQuestion[] {
     if (!qMatch) continue;
 
     const id = qMatch[1].trim();
+    // Only real question ids: N, N.M, or N<letter> (e.g. "1.2", "7.4", "4a").
+    // This rejects the bold sub-header bullets inside Cat 7 (e.g.
+    // "- **Competitor bait** — …"), which describe bait classes, not questions.
+    if (!/^\d+(\.\d+|[a-z])?$/i.test(id)) continue;
+
     const body = qMatch[2];
 
     // Multi-turn split on the first arrow.

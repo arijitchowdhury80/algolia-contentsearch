@@ -1,0 +1,32 @@
+{
+  "question": "How does Algolia handle multi-brand search with personalized results across separate catalogs?",
+  "panels": [
+    {
+      "panelId": "P1",
+      "label": "single · neural",
+      "answer": "You can manage all your brands under a single Algolia account, keeping a separate index per brand so each catalog stays distinct while sharing one platform. You can then set a different custom ranking per brand — for example a luxury brand can rank high-margin items first while an outlet brand ranks sale items first. For shared learnings, Algolia's Personalization builds a single user profile across your domains, so a shopper's behavior on one brand site can inform the results they see on another, improving relevance and conversion across the portfolio.",
+      "sources": [
+        {
+          "id": "S1",
+          "title": "Custom ranking of results per category",
+          "url": "https://www.algolia.com/doc/guides/managing-results/must-do/custom-ranking/how-to/custom-ranking-per-category/",
+          "text": "Adjust custom rankings per category so results can be ordered differently for each part of your catalog."
+        },
+        {
+          "id": "S2",
+          "title": "Leveling up search with AI-enabled personalization",
+          "url": "https://www.algolia.com/resources/asset/ebook-leveling-up-search-with-ai/",
+          "text": "This eBook is a primer on AI-enabled personalization for ecommerce — what AI personalization is, how and where to use it, and why it is a worthwhile investment. Personalization can build a single user profile from behavior across sites."
+        },
+        {
+          "id": "S3",
+          "title": "Personalized catalogs",
+          "url": "https://www.algolia.com/doc/",
+          "text": "Maintain separate indices per brand so each brand website keeps a distinct catalog under one account."
+        }
+      ],
+      "generatedFollowUp": "Are your six brands B2C retail, B2B wholesale, or a mix — so I can tailor the personalization and ranking setup?"
+    }
+  ],
+  "rounds": 1
+}

@@ -27,7 +27,7 @@ function renderSources(artifact: Artifact): string {
   const body = artifact.sources
     .map((s) => `[${s.id}]${s.label ? ` ${s.label}` : ""}: ${s.text}`)
     .join("\n");
-  return `SOURCES (the ONLY ground truth — a claim not supported here is a grounding violation):\n${body}`;
+  return `SOURCES (the ground truth you can see — may be PARTIAL/thin):\n${body}`;
 }
 
 /**
@@ -45,9 +45,9 @@ const GROUNDING_NOTE =
   "support, or a contact/demo link) is NOT a fabricated factual claim — never " +
   "count it as a grounding violation. This protects honest disclaimers ONLY; it " +
   "does NOT excuse a weak answer. An empty, evasive, or thin response must still " +
-  "score LOW on Breadth & depth, and a needless deferral when the sources DO " +
-  "support an answer is weak Confidence. Absence of fabrication is not the same " +
-  "as a good answer — do not reward a non-answer.";
+  "score LOW on Depth, and a needless deferral when the sources DO support an " +
+  "answer is weak Coverage. Absence of fabrication is not the same as a good " +
+  "answer — do not reward a non-answer.";
 
 /** Authoritative block when the artifact is expected to refuse (out-of-scope prompt). */
 const REFUSAL_DIRECTIVE =
@@ -57,7 +57,7 @@ const REFUSAL_DIRECTIVE =
   "- If the artifact correctly refuses/declines (optionally routing to docs/support), score it " +
   "HIGH (9-10) on EVERY dimension: that refusal IS the ideal response, and there are no claims to ground.\n" +
   "- If the artifact instead gives a substantive factual answer to this out-of-scope question, that is a " +
-  "SERIOUS grounding violation: record it in groundingViolations with confidence >= 0.9 and score low.";
+  "SERIOUS grounding violation: record it in groundingViolations with certainty >= 0.9 and score low.";
 
 /**
  * The JSON shape every judge must return. Exported so the parser and the prompt
@@ -66,11 +66,53 @@ const REFUSAL_DIRECTIVE =
 export const JUDGE_OUTPUT_CONTRACT = `Respond with ONLY a JSON object, no prose around it, of this exact shape:
 {
   "dimensionScores": [{ "dimensionId": string, "score": number, "rationale": string }],
-  "groundingViolations": [{ "claim": string, "reason": string, "confidence": number }],
+  "groundingViolations": [{ "claim": string, "reason": string, "certainty": number, "kind": "contradicted" | "unverifiable" }],
   "summary": string
 }
 - Include one entry in "dimensionScores" for EVERY rubric dimension id listed above.
-- "groundingViolations" lists factual claims NOT supported by the SOURCES. Empty array if none. "confidence" is 0-1.`;
+- "groundingViolations" lists factual claims you could not confirm against the SOURCES. Empty array if none. "certainty" is 0-1 — how sure you are the violation is real.
+- "kind" is REQUIRED for every violation and is critical:
+    • "contradicted" — the SOURCES say otherwise, OR the claim is clearly fabricated/invented (a real hallucination).
+    • "unverifiable" — the claim is plausible and simply NOT present in the provided sources (which may be partial/thin). No evidence either way.
+  Default to "unverifiable" when the only problem is "I can't find it here" — reserve "contradicted" for genuine conflicts or fabrications. Lower the grounding dimension score for unverifiable claims, but do NOT treat them as fabrication.`;
+
+/**
+ * Renders the EXPECTED COVERAGE checklist from the artifact's already-extracted
+ * entities + discovery signals — the parts of the question the Coverage dimension
+ * should reward an answer for addressing. Returns "" when no entities are present
+ * (the Coverage judge then infers the parts from the prompt alone). Pure: same
+ * artifact -> same string; no extraction of its own.
+ */
+export function renderExpectedCoverage(artifact: Artifact): string {
+  const e = artifact.extractedEntities;
+  if (!e) return "";
+
+  const lines: string[] = [];
+  const add = (label: string, value: string | undefined) => {
+    const v = value?.trim();
+    if (v) lines.push(`- ${label}: ${v}`);
+  };
+
+  add("intent", e.intent);
+  add("brand", e.brand);
+  add("industry", e.industry);
+  add("product", e.product);
+  if (e.concepts && e.concepts.length > 0) {
+    const concepts = e.concepts.map((c) => c.trim()).filter((c) => c.length > 0);
+    if (concepts.length > 0) lines.push(`- concepts: ${concepts.join(", ")}`);
+  }
+  if (e.signals) {
+    for (const [key, value] of Object.entries(e.signals)) {
+      add(`signal:${key}`, value);
+    }
+  }
+
+  if (lines.length === 0) return "";
+  return (
+    "EXPECTED COVERAGE (the answer should address each — feed the Coverage dimension):\n" +
+    lines.join("\n")
+  );
+}
 
 /**
  * Builds the full prompt for a single blind judge. Pure: same inputs -> same
@@ -95,6 +137,8 @@ export function buildJudgePrompt(
     `ARTIFACT TO JUDGE:\n${artifact.content}`,
     "",
     renderSources(artifact),
+    "",
+    renderExpectedCoverage(artifact),
     "",
     GROUNDING_NOTE,
     "",

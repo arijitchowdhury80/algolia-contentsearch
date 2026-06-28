@@ -3,18 +3,18 @@
  *
  *   tsx src/cli.ts run-tests [--limit N] [--ids 1.2,1.3] [--split dev|held-out]
  *   tsx src/cli.ts judge <runId> [--limit N] [--ids ...]
- *   tsx src/cli.ts summary <runId>
+ *   tsx src/cli.ts summary <runId>           (2×1 leaderboard: single neural vs multi neural)
  *   tsx src/cli.ts pipeline [--limit N] [--ids ...]   (run-tests → judge → summary)
  *
- * The harness ONLY runs panels + scores them. It never creates or modifies
- * Algolia agents/indices. Panel ids come from web/.env.local (see config.ts).
+ * The harness runs the two neural panels (P3–P4) through the unified answer path
+ * (answer.ts: single = Agent Studio proxy, multi = coded Maverick coordinator)
+ * + scores them. It never CREATES Algolia agents/indices (that is
+ * create_central_agents.mjs); panel + agent ids come from .env.local.
  */
 import { readFile } from "node:fs/promises";
 import { runTests } from "./runTests.js";
 import { judgeRun } from "./judgeStep.js";
 import { summarize } from "./summary.js";
-import { setWebsiteCapture } from "./panels.js";
-import { liveWebsiteCapture } from "./website.js";
 import { getEnv } from "./config.js";
 import { resolveActiveProvider } from "./provider.js";
 import { runAutocorrect } from "@lab/autocorrect";
@@ -54,13 +54,6 @@ async function main(): Promise<void> {
   const [, , cmd, ...rest] = process.argv;
   const f = parseFlags(rest);
 
-  // Wire the LIVE Playwright website capture for runs (opt out with WEBSITE_STUB=1).
-  // Only matters for run-tests/pipeline; judge/summary read an existing transcript.
-  if ((cmd === "run-tests" || cmd === "pipeline") && !process.env.WEBSITE_STUB) {
-    setWebsiteCapture(liveWebsiteCapture);
-    console.log("[cli] live website capture wired (Case ①). Set WEBSITE_STUB=1 to stub.");
-  }
-
   switch (cmd) {
     case "run-tests": {
       await runTests({
@@ -87,25 +80,32 @@ async function main(): Promise<void> {
     }
     case "provider": {
       // Resolve + report the ONE active provider (prefer OpenAI, fall back to
-      // Gemini). Everything — judge + all agents — must run this same provider.
+      // Gemini). Everything — judge + ALL agents + the Maverick coordinator —
+      // must run this same provider+model (FAIRNESS INVARIANT). Read-only
+      // consistency check across the three neural specialists (Maverick, Elena, Bruno).
       const env = getEnv();
       const spec = await resolveActiveProvider(env);
       console.log(`\n[provider] policy: prefer OpenAI; fall back to Gemini only when OpenAI is over limit.`);
-      console.log(`[provider] ACTIVE = ${spec.provider.toUpperCase()}  (judge + agents must all use this)`);
-      console.log(`  judge model : ${spec.judgeModel}`);
-      console.log(`  agent model : ${spec.agentModel}`);
+      console.log(`[provider] ACTIVE = ${spec.provider.toUpperCase()}  (judge + agents + coordinator must all use this)`);
+      console.log(`  judge model    : ${spec.judgeModel}`);
+      console.log(`  agent model    : ${spec.agentModel}`);
+      console.log(`  agent provider : ${spec.agentProviderId || "(unset — register via setup_providers.mjs)"}`);
 
-      // CONSISTENCY CHECK (read-only): confirm every agent's model matches.
-      const appId = env["ARIJIT-TEST_APP_ID"] ?? env.VITE_OURS_APP_ID ?? "";
-      const adminKey = env["ARIJIT-TEST_ADMIN_API_KEY"] ?? "";
+      const appId = env.ALGOLIA_APP_ID ?? "";
+      const adminKey = env.ALGOLIA_ADMIN_API_KEY ?? "";
       const agents: { label: string; id: string | undefined }[] = [
-        { label: "② mirror", id: env.VITE_AGENT_MIRROR_ID },
-        { label: "③ tuned", id: env.VITE_AGENT_TUNED_ID },
+        { label: "P3 single-neural (Maverick)", id: env.ALGOLIA_AGENT_MAVERICK_NEURAL_ID },
+        { label: "tech-neural", id: env.ALGOLIA_AGENT_TECH_NEURAL_ID },
+        { label: "marketer-neural", id: env.ALGOLIA_AGENT_MARKETER_NEURAL_ID },
+        { label: "academy-neural", id: env.ALGOLIA_AGENT_ACADEMY_NEURAL_ID },
+        { label: "support-neural", id: env.ALGOLIA_AGENT_SUPPORT_NEURAL_ID },
       ];
-      console.log(`\n[provider] agent consistency check:`);
+      console.log(`\n[provider] agent consistency check (only configured ids):`);
       let allMatch = true;
+      let checked = 0;
       for (const a of agents) {
         if (!a.id) continue;
+        checked++;
         try {
           const r = await fetch(
             `https://${appId}.algolia.net/agent-studio/1/agents/${a.id}`,
@@ -113,24 +113,28 @@ async function main(): Promise<void> {
               headers: {
                 "X-Algolia-Application-Id": appId,
                 "X-Algolia-API-Key": adminKey,
-                "User-Agent": "visibility-agent-harness/1.0",
+                "User-Agent": "curl/8.4.0",
               },
             },
           );
           const j = (await r.json()) as { model?: string };
           const ok = j.model === spec.agentModel;
           if (!ok) allMatch = false;
-          console.log(`  ${a.label}: model=${j.model ?? "?"}  ${ok ? "✓ matches" : "✗ MISMATCH → " + spec.agentModel}`);
+          console.log(`  ${a.label.padEnd(18)}: model=${j.model ?? "?"}  ${ok ? "✓" : "✗ MISMATCH → " + spec.agentModel}`);
         } catch (e) {
           allMatch = false;
-          console.log(`  ${a.label}: could not read (${(e as Error).message})`);
+          console.log(`  ${a.label.padEnd(18)}: could not read (${(e as Error).message})`);
         }
       }
-      console.log(
-        allMatch
-          ? `\n  ✓ CONSISTENT — all agents + judge on ${spec.provider}.`
-          : `\n  ⚠ INCONSISTENT — re-point the mismatched agent(s) to ${spec.provider} (model ${spec.agentModel}, provider ${spec.agentProviderId}) in Agent Studio before running.`,
-      );
+      if (checked === 0) {
+        console.log(`  (no agent ids in .env.local yet — run create_central_agents.mjs first)`);
+      } else {
+        console.log(
+          allMatch
+            ? `\n  ✓ CONSISTENT — all ${checked} configured agents on ${spec.agentModel}.`
+            : `\n  ⚠ INCONSISTENT — re-point the mismatched agent(s) to ${spec.agentModel} (provider ${spec.agentProviderId}) before running.`,
+        );
+      }
       break;
     }
     case "autocorrect": {
@@ -143,9 +147,11 @@ async function main(): Promise<void> {
         f.baseline ??
         `${process.cwd()}/../../scripts/setup/instructions_case3_grounded_lead_v1.md`;
       const baselineConfig = await readFile(baselineFile, "utf8");
+      // Neural-only model: optimize the single-neural panel (P3) and measure margin
+      // against its multi-neural sibling (P4) as the fixed floor.
       const cfg: LoopConfig = {
-        oursPanelId: "tuned",
-        floorPanelId: "mirror",
+        oursPanelId: "P3",
+        floorPanelId: "P4",
         targetMargin: 1.0,
         sustainRounds: 2,
         maxRounds: f.rounds ?? 4,
@@ -153,8 +159,7 @@ async function main(): Promise<void> {
         minImprovement: 0.3, // measured Gemini noise floor (zero-flicker proof)
       };
       const { seams, lastRunId } = makeAlgoliaSeams({
-        oursPanelId: "tuned",
-        stubWebsite: true,
+        oursPanelId: "P3",
         cacheFloor: !f.noCacheFloor,
         ...(f.smoke ? { stubProposer: true } : {}),
         ...(f.ids ? { evalIds: f.ids } : {}),

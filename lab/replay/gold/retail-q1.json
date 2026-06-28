@@ -1,0 +1,92 @@
+{
+  "scenarioId": "retail-q1",
+  "vertical": "retail",
+  "tier": "Q1",
+  "expectsHandoff": false,
+  "drivingSequence": [
+    "What successes does Algolia have in fashion and e-commerce?",
+    "We're a $2B online fashion retailer with 5 million SKUs and 80 million monthly visitors. Our current search is Elasticsearch.",
+    "I'm the VP of E-Commerce. We need better relevance — customers can't find products when they search naturally."
+  ],
+  "turns": [
+    {
+      "turnIndex": 0,
+      "userInput": "What successes does Algolia have in fashion and e-commerce?",
+      "answer": "\"Fashion search that doesn't understand style is like a personal shopper with no taste. Algolia gets it.\" Explore with Maverick\nAlgolia's Impact on Fashion and E-commerce\nAlgolia has a strong track record of success in both the fashion and broader e-commerce industries. We provide AI-powered capabilities designed specifically for online fashion retail layers. Fashion moves fast, and we built a solution that moves even faster by understanding style like a personal shopper Intelligent Fashion Solution.Here's how we deliver value:\n\nAI-Powered Automation:Our platform provides AI-powered automation for content and merchandising teamsIDC MarketScape Leader.\nGenerative AI Tools:We offer a Generative AI tool designed to elevate online shopping experiencesIDC MarketScape Leader.\nStyle-Aware Retrieval:Our solution offersstyle-aware retrieval, ensuring customers find what they're looking for with precisionIntelligent Fashion Solution.\nAutomated Merchandising:We provideautomated merchandisingcapabilities to optimize product placement and drive salesIntelligent Fashion Solution.\n\nWe were also named a Leader in the 2025 Gartner® Magic Quadrant™ for Search and Product Discovery Gartner Magic Quadrant, and featured for the eighth consecutive year as one of America's fastest-growing private companies Inc. 5000.Maverick wants to know:Are you evaluating Algolia for your own company, or on behalf of clients?📢Marketing11📘Guides1🏆Cases1🖋️Blog1Discovery Dossier|fashione-commerce•Algolia•3",
+      "sources": [
+        {
+          "title": "📢Marketing11",
+          "url": "",
+          "sourceType": "marketing"
+        },
+        {
+          "title": "📘Guides1",
+          "url": "",
+          "sourceType": "guides"
+        },
+        {
+          "title": "🏆Cases1",
+          "url": "",
+          "sourceType": "case_study"
+        },
+        {
+          "title": "🖋️Blog1",
+          "url": "",
+          "sourceType": "blog"
+        }
+      ],
+      "activePersona": "maverick",
+      "discoveryQuestion": "Are you evaluating Algolia for your own company, or on behalf of clients?",
+      "voiceViolations": []
+    },
+    {
+      "turnIndex": 1,
+      "userInput": "We're a $2B online fashion retailer with 5 million SKUs and 80 million monthly visitors. Our current search is Elasticsearch.",
+      "answer": " Explore with MaverickAlright, a $2B fashion house doing search on ES—I see you. You're at the scale where search relevance directly impacts your bottom line. You're not just ranking products; you're curating experiences. And with 80 million monthly visitors, even a tiny lift in conversion can mean millions in revenue.\n\nThe Algolia Edge: From Matching to Understanding\nTraditional search, like Elasticsearch, relies on keyword matching. Algolia's AI goes further How to use AI to build your business. We understand the intent behind the query, not just the words. Think \"something to hold my hot coffee\" vs. \"keep my coffee hot.\" This is the shift from matching to understanding, and it's where serious e-commerce brands are headed.\nAnd our AI improves every aspect of the user journey Compare Algolia & Constructor, from automatic query categorization and re-ranking to personalization and recommendations. All while returning results lightning-fast.Maverick wants to know:With Elasticsearch, what are the biggest search-related challenges you're facing?📢Marketing2📄Docs1🔧Support2⚡API Ref1🖋️Blog1Discovery Dossier|Elasticsearch•1M+ records•fashione-commerce•+25",
+      "sources": [
+        {
+          "title": "📢Marketing2",
+          "url": "",
+          "sourceType": "marketing"
+        },
+        {
+          "title": "📄Docs1",
+          "url": "",
+          "sourceType": "docs"
+        },
+        {
+          "title": "🔧Support2",
+          "url": "",
+          "sourceType": "support"
+        },
+        {
+          "title": "⚡API Ref1",
+          "url": "",
+          "sourceType": "api_ref"
+        }
+      ],
+      "activePersona": "maverick",
+      "discoveryQuestion": "With Elasticsearch, what are the biggest search-related challenges you're facing?",
+      "voiceViolations": []
+    },
+    {
+      "turnIndex": 2,
+      "userInput": "I'm the VP of E-Commerce. We need better relevance — customers can't find products when they search naturally.",
+      "answer": " Explore with MaverickI hear you loud and clear. \"Can't find it\" = \"Can't buy it,\" and that's revenue walking out the door. You're the VP of E-Commerce; you're not just tweaking algorithms, you're building a discovery experience that converts.\n\nFrom \"Little Black Dress\" to \"Cocktail Attire\"\nThe problem you're describing is exactly what Algolia solves for fashion retailers. Customers search like they think, not like a search engine expects. They type, \"I need a statement piece for a wedding after-party,\" not just \"red dress\" Algolia Launches Intelligent Fashion Solution.\nAlgolia's AI understands that intent. We make sure that \"little black dress\" never hides under \"cocktail attire,\" ensuring every product finds its audience effortlessly Algolia Launches Intelligent Fashion Solution.\n\nExample: Oh Polly\nTake Oh Polly, for instance. They were getting negative feedback because their old search was slow and didn't provide relevant results. After implementing Algolia, search sessions became responsible for 20% of their revenue Oh Polly.Maverick wants to know:Beyond search relevance, which other areas of the customer journey are you hoping to optimize with AI?🏆Cases1📢Marketing3Discovery Dossier|Elasticsearch•1M+ records•Executive•+47",
+      "sources": [
+        {
+          "title": "📢Marketing3",
+          "url": "",
+          "sourceType": "marketing"
+        }
+      ],
+      "activePersona": "maverick",
+      "discoveryQuestion": "Beyond search relevance, which other areas of the customer journey are you hoping to optimize with AI?",
+      "voiceViolations": [
+        "The assistant responses contain \"Maverick wants to know:\" which is a prompt artifact."
+      ]
+    }
+  ],
+  "capturedAt": "2026-04-16T03:34:25.016Z",
+  "blessedBy": "arijit"
+}

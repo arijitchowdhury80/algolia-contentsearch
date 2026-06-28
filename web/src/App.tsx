@@ -1,184 +1,677 @@
 /**
- * App — the Answer-Quality Lab.
+ * App — 2×2 Answer-Quality Lab root.
  *
- * One query bar fans out to a full-height horizontal lane rail (ADR-001 D1):
- * ① Current Website Search, ② Ask AI, ③ Our System (and N more in later phases).
- * Each judged lane shows its always-visible verdict score pill (D2); the full
- * 3-dimension analysis (composite + per-dimension bars + ②-vs-③ margin + judges)
- * lives in a PERMANENT, collapsible, pinnable right RAIL that pushes the lanes
- * (resizable via its left edge; lanes themselves resize natively). The header
- * verdict chip and lane ⚖ pills expand it. Panels own their own threads; this
- * shell holds the shared submission/reset signals, the live judge wiring, the
- * rail state (persisted), and the transcript export (eval tie-in, §10).
+ * Layout:
+ *   <AppHeader>    — brand bar + export / reset actions
+ *   [Live | Leaderboard] toggle
+ *   Live view:
+ *     <Matrix>     — 2×2 scoreboard shell (axis labels, delta strip, winner glow)
+ *       <PanelCell> × 4   — streamed answer, sources, trace, score badge
+ *     <JudgeDrawer>       — score-triggered right-side drawer (pinnable, resizable)
+ *   Leaderboard view:
+ *     <Leaderboard>       — batch aggregate (no data → empty state)
+ *   <Composer>     — persistent bottom bar / hero input
+ *
+ * Data flow:
+ *   useComparison  — shared submission + reset + transcript
+ *   usePanelAnswers — fans one /api/answer SSE into P1–P4 state
+ *   usePanelJudge  — calls /api/judge once all 4 panels answer; maps old
+ *                    JudgeVerdict shape → PanelJudgeResult for JudgeDrawer
  */
-import { useCallback, useMemo, useRef, useState } from 'react';
-import { buildColumns, type ColumnConfig } from './config/columns';
-import { useComparison } from './hooks/useComparison';
-import { useLiveJudge, type LiveJudgeOptions } from './hooks/useLiveJudge';
+
+import { useState, useCallback, useRef, useEffect } from 'react';
+
 import { AppHeader } from './components/AppHeader';
 import { Composer } from './components/Composer';
-import { ComparisonKey } from './components/ComparisonKey';
-import { LaneRail } from './components/LaneRail';
-import { WebsiteColumn } from './components/WebsiteColumn';
-import { AgentColumn } from './components/AgentColumn';
-import { AnalysisRail } from './components/AnalysisRail';
-import { laneTone } from './lib/score';
+import { Matrix } from './components/Matrix';
+import { PanelCell } from './components/PanelCell';
+import type { PanelLifecycle } from './components/PanelCell';
+import { JudgeDrawer } from './components/JudgeDrawer';
+import { Leaderboard } from './components/Leaderboard';
+import type { LeaderboardData } from './components/Leaderboard';
 
-const RAIL_MIN = 300;
-const RAIL_MAX = 720;
-const RAIL_DEFAULT = 380;
+import { useComparison } from './hooks/useComparison';
+import { usePanelAnswers } from './hooks/usePanelAnswers';
+import { useNeuralStatus } from './hooks/useNeuralStatus';
 
-/** Read a persisted rail setting, tolerating SSR / disabled storage. */
-function readRail<T>(key: string, fallback: T, parse: (s: string) => T): T {
-  try {
-    const v = localStorage.getItem(key);
-    return v === null ? fallback : parse(v);
-  } catch {
-    return fallback;
-  }
+import { panelConfigById } from './config/columns';
+import type { PanelId, PanelJudgeResult, CrossPanelDeltas, VerdictDims, AnswerSource } from './types/chat';
+import { streamJudge } from './lib/judgeClient';
+import type { JudgeVerdict } from './lib/judgeClient';
+import { deriveWinnerId } from './lib/winner';
+
+// ---------------------------------------------------------------------------
+// Constants
+// ---------------------------------------------------------------------------
+
+const PANEL_IDS: PanelId[] = ['P1', 'P2', 'P3', 'P4'];
+
+const DRAWER_WIDTH_DEFAULT = 380;
+const DRAWER_WIDTH_MIN = 280;
+const DRAWER_WIDTH_MAX = 640;
+
+// ---------------------------------------------------------------------------
+// JudgeVerdict → PanelJudgeResult mapping
+// The old judgeClient shape uses different field names; map them here once
+// so the JudgeDrawer receives the canonical types/chat.ts contract.
+// ---------------------------------------------------------------------------
+
+function mapVerdictToDims(dimensions: JudgeVerdict['dimensions']): VerdictDims {
+  const get = (id: string) => dimensions.find((d) => d.id === id)?.score ?? 0;
+  return {
+    grounding: get('grounding'),
+    coverage: get('coverage'),
+    depth: get('depth'),
+    relevance: get('relevance'),
+  };
 }
-function writeRail(key: string, value: string) {
-  try {
-    localStorage.setItem(key, value);
-  } catch {
-    /* storage unavailable — non-fatal */
-  }
+
+function mapVerdict(v: JudgeVerdict): PanelJudgeResult {
+  return {
+    panelId: v.panelId,
+    perJudge: (v.judges ?? []).map((j) => ({
+      role: j.role as 'skeptic' | 'referee' | 'advocate',
+      score: j.score,
+      note: j.note,
+    })),
+    dims: mapVerdictToDims(v.dimensions ?? []),
+    composite: v.synthesizedScore,
+    preGateScore: v.preGateScore,
+    gateTripped: v.gateTripped,
+    borderline: v.borderline,
+    flaggedClaims: (v.violations ?? []).map((viol) => ({
+      claim: viol.claim,
+      reason: viol.reason,
+      certainty: viol.certainty,
+    })),
+    rationale: v.rationale,
+    ...(v.error ? { error: v.error } : {}),
+  };
 }
 
-export default function App() {
-  // Built once; throws loudly at startup if any VITE_* var is missing.
-  const columns = useMemo(() => buildColumns(), []);
-  const { submission, clearSeq, hasRun, submit, reset, register, buildTranscript } = useComparison();
+/** Derive cross-panel deltas from four composites. */
+function deriveDeltas(
+  judges: Partial<Record<PanelId, PanelJudgeResult>>,
+): CrossPanelDeltas | undefined {
+  const s = (id: PanelId) => judges[id]?.composite;
+  const p1 = s('P1'), p2 = s('P2'), p3 = s('P3'), p4 = s('P4');
+  if (p1 === undefined && p2 === undefined && p3 === undefined && p4 === undefined) {
+    return undefined;
+  }
+  return {
+    multiLift: {
+      ...(p2 !== undefined && p1 !== undefined ? { keyword: p2 - p1 } : {}),
+      ...(p4 !== undefined && p3 !== undefined ? { neural: p4 - p3 } : {}),
+    },
+    neuralLift: {
+      ...(p3 !== undefined && p1 !== undefined ? { single: p3 - p1 } : {}),
+      ...(p4 !== undefined && p2 !== undefined ? { multi: p4 - p2 } : {}),
+    },
+    ...(p4 !== undefined && p1 !== undefined ? { compound: p4 - p1 } : {}),
+  };
+}
 
-  // Permanent analysis rail: open/pinned/width persisted across reloads.
-  const [railOpen, setRailOpen] = useState(() => readRail('lab.rail.open', true, (s) => s === '1'));
-  const [railPinned, setRailPinned] = useState(() => readRail('lab.rail.pinned', false, (s) => s === '1'));
-  const [railWidth, setRailWidth] = useState(() =>
-    readRail('lab.rail.width', RAIL_DEFAULT, (s) => Number(s) || RAIL_DEFAULT),
-  );
+// ---------------------------------------------------------------------------
+// usePanelJudge — calls /api/judge once all 4 panels have answered.
+// Returns per-panel PanelJudgeResult and cross-panel deltas.
+// ---------------------------------------------------------------------------
 
-  const setOpen = useCallback((open: boolean) => {
-    setRailOpen(open);
-    writeRail('lab.rail.open', open ? '1' : '0');
-  }, []);
-  const expandRail = useCallback(() => setOpen(true), [setOpen]);
-  const toggleOpen = useCallback(() => setRailOpen((o) => {
-    const next = !o;
-    writeRail('lab.rail.open', next ? '1' : '0');
-    return next;
-  }), []);
-  const togglePin = useCallback(() => setRailPinned((p) => {
-    const next = !p;
-    writeRail('lab.rail.pinned', next ? '1' : '0');
-    if (next) { setRailOpen(true); writeRail('lab.rail.open', '1'); } // pinning forces open
-    return next;
-  }), []);
+type JudgeState = 'idle' | 'judging' | 'done' | 'error';
 
-  // Left-edge drag to resize the rail (pointer capture; rail is right-docked).
-  const dragRef = useRef<{ id: number } | null>(null);
+interface PanelJudgeApi {
+  judgeState: JudgeState;
+  panelJudge: Partial<Record<PanelId, PanelJudgeResult>>;
+  deltas: CrossPanelDeltas | undefined;
+  judgeMs: number | null;
+  judgeError: string | undefined;
+}
+
+function usePanelJudge(
+  question: string | null,
+  /** All four panels must be in 'done' state for judging to fire. */
+  panelsDone: boolean,
+  panelSources: Partial<Record<PanelId, AnswerSource[]>>,
+  panelAnswers: Partial<Record<PanelId, string>>,
+  submissionSeq: number,
+): PanelJudgeApi {
+  const [judgeState, setJudgeState] = useState<JudgeState>('idle');
+  const [panelJudge, setPanelJudge] = useState<Partial<Record<PanelId, PanelJudgeResult>>>({});
+  const [deltas, setDeltas] = useState<CrossPanelDeltas | undefined>();
+  const [judgeMs, setJudgeMs] = useState<number | null>(null);
+  const [judgeError, setJudgeError] = useState<string | undefined>();
+
+  // Seq guard — drop results from a superseded submission.
+  const seqRef = useRef(-1);
+
+  useEffect(() => {
+    // Reset on new submission or reset (seq === -1 when submission is null).
+    if (submissionSeq !== seqRef.current) {
+      setJudgeState('idle');
+      setPanelJudge({});
+      setDeltas(undefined);
+      setJudgeMs(null);
+      setJudgeError(undefined);
+      seqRef.current = submissionSeq;
+    }
+  }, [submissionSeq]);
+
+  useEffect(() => {
+    if (!panelsDone || !question || judgeState !== 'idle') return;
+    // All 4 panels answered — fire the judge.
+    const firedSeq = seqRef.current;
+    const t0 = performance.now();
+    setJudgeState('judging');
+
+    const panels = PANEL_IDS.map((id) => ({
+      panelId: id,
+      answer: panelAnswers[id] ?? '',
+      sources: (panelSources[id] ?? []).map((s) => ({
+        title: s.title,
+        url: s.url,
+        text: s.source, // best grounding text available from answer payload
+      })),
+    }));
+
+    streamJudge({ question, panels })
+      .then((result) => {
+        if (seqRef.current !== firedSeq) return;
+        const judged: Partial<Record<PanelId, PanelJudgeResult>> = {};
+        for (const v of result.panels) {
+          const pid = v.panelId as PanelId;
+          if (PANEL_IDS.includes(pid)) {
+            judged[pid] = mapVerdict(v);
+          }
+        }
+        setPanelJudge(judged);
+        setDeltas(deriveDeltas(judged));
+        setJudgeMs(Math.round(performance.now() - t0));
+        setJudgeState('done');
+      })
+      .catch((e: unknown) => {
+        if (seqRef.current !== firedSeq) return;
+        setJudgeError(e instanceof Error ? e.message : String(e));
+        setJudgeMs(Math.round(performance.now() - t0));
+        setJudgeState('error');
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [panelsDone, question, judgeState]);
+
+  return { judgeState, panelJudge, deltas, judgeMs, judgeError };
+}
+
+// ---------------------------------------------------------------------------
+// Resize hook for JudgeDrawer
+// ---------------------------------------------------------------------------
+
+function useDrawerResize(
+  drawerOpen: boolean,
+  initialWidth = DRAWER_WIDTH_DEFAULT,
+) {
+  const [width, setWidth] = useState(initialWidth);
+  const draggingRef = useRef(false);
+  const startXRef = useRef(0);
+  const startWRef = useRef(initialWidth);
+
   const onResizeStart = useCallback((e: React.PointerEvent) => {
-    e.preventDefault();
-    (e.target as HTMLElement).setPointerCapture(e.pointerId);
-    dragRef.current = { id: e.pointerId };
-    const onMove = (ev: PointerEvent) => {
-      if (!dragRef.current) return;
-      const next = Math.max(RAIL_MIN, Math.min(RAIL_MAX, window.innerWidth - ev.clientX));
-      setRailWidth(next);
+    if (!drawerOpen) return;
+    draggingRef.current = true;
+    startXRef.current = e.clientX;
+    startWRef.current = width;
+    e.currentTarget.setPointerCapture(e.pointerId);
+  }, [drawerOpen, width]);
+
+  useEffect(() => {
+    const onMove = (e: PointerEvent) => {
+      if (!draggingRef.current) return;
+      const delta = startXRef.current - e.clientX; // drag left = wider
+      setWidth(Math.min(DRAWER_WIDTH_MAX, Math.max(DRAWER_WIDTH_MIN, startWRef.current + delta)));
     };
-    const onUp = (ev: PointerEvent) => {
-      dragRef.current = null;
-      window.removeEventListener('pointermove', onMove);
-      window.removeEventListener('pointerup', onUp);
-      setRailWidth((w) => { writeRail('lab.rail.width', String(w)); return w; });
-      void ev;
-    };
+    const onUp = () => { draggingRef.current = false; };
     window.addEventListener('pointermove', onMove);
     window.addEventListener('pointerup', onUp);
+    return () => {
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+    };
   }, []);
 
-  // Live judging: the two agent lanes (② mirror, ③ tuned) gate judging; ③ is ours.
-  const judgeOpts = useMemo<LiveJudgeOptions>(
-    () => ({ oursPanelId: 'tuned', floorPanelId: 'mirror', expectedPanelIds: ['mirror', 'tuned'] }),
-    [],
-  );
-  const live = useLiveJudge(submission, judgeOpts);
-  const laneScores = live.data?.laneScores;
-  const verdictScore = laneScores?.tuned; // ③ headline drives the chip (gate-aware tone)
+  return { width, onResizeStart };
+}
 
-  const onExport = () => {
-    const transcript = buildTranscript();
-    const blob = new Blob([JSON.stringify(transcript, null, 2)], { type: 'application/json' });
+// ---------------------------------------------------------------------------
+// Panel lifecycle mapper
+// Converts the answer hook status + judge state into the PanelStatus enum
+// that Matrix uses (for winner glow / score placeholder) and the PanelLifecycle
+// enum that PanelCell uses (for body states).
+// ---------------------------------------------------------------------------
+
+function toLifecycle(
+  answerStatus: 'idle' | 'streaming' | 'done' | 'error',
+  answer: string,
+  judgeState: JudgeState,
+  hasJudge: boolean,
+): PanelLifecycle {
+  if (answerStatus === 'idle') return 'idle';
+  if (answerStatus === 'error') return 'error';
+  if (answerStatus === 'streaming') return 'streaming';
+  // done — check for grounded refusal (very short answer with refusal markers)
+  const isRefusal =
+    answer.length < 300 &&
+    (answer.toLowerCase().includes('i don') ||
+     answer.toLowerCase().includes('not able') ||
+     answer.toLowerCase().includes('cannot find') ||
+     answer.toLowerCase().includes('no information'));
+  if (isRefusal) return 'refused';
+  if (hasJudge) return 'judged';
+  if (judgeState === 'judging') return 'judging';
+  return 'answered';
+}
+
+// ---------------------------------------------------------------------------
+// Transcript export
+// ---------------------------------------------------------------------------
+
+function buildTranscriptJson(
+  question: string,
+  panelAnswers: Partial<Record<PanelId, string>>,
+  panelJudge: Partial<Record<PanelId, PanelJudgeResult>>,
+): string {
+  return JSON.stringify(
+    {
+      capturedAt: new Date().toISOString(),
+      question,
+      panels: PANEL_IDS.map((id) => ({
+        panelId: id,
+        answer: panelAnswers[id] ?? '',
+        judge: panelJudge[id] ?? null,
+      })),
+    },
+    null,
+    2,
+  );
+}
+
+// ---------------------------------------------------------------------------
+// App
+// ---------------------------------------------------------------------------
+
+type ActiveView = 'live' | 'leaderboard';
+
+export default function App() {
+  // ── Shared submission state ──────────────────────────────────────────────
+  const comparison = useComparison();
+  const { submission, hasRun, submit, reset } = comparison;
+
+  // ── Answer streaming ─────────────────────────────────────────────────────
+  const { panels } = usePanelAnswers(submission);
+
+  // ── Neural-mode status (drives the honest "Neural · enabling" badge) ──────
+  const neuralStatus = useNeuralStatus();
+
+  // Convenience: all 4 panels done (regardless of error) — gate for judging.
+  const allPanelsDone = PANEL_IDS.every(
+    (id) => panels[id].status === 'done' || panels[id].status === 'error',
+  );
+  // At least 1 panel has a real answer — required for judging to be meaningful.
+  const anyPanelAnswered = PANEL_IDS.some(
+    (id) => panels[id].status === 'done' && panels[id].answer.trim().length > 0,
+  );
+
+  // ── Judging ──────────────────────────────────────────────────────────────
+  const panelAnswersMap: Partial<Record<PanelId, string>> = {};
+  const panelSourcesMap: Partial<Record<PanelId, AnswerSource[]>> = {};
+  for (const id of PANEL_IDS) {
+    panelAnswersMap[id] = panels[id].answer;
+    panelSourcesMap[id] = panels[id].sources;
+  }
+
+  const { judgeState, panelJudge, deltas, judgeMs } = usePanelJudge(
+    submission?.query ?? null,
+    allPanelsDone && anyPanelAnswered,
+    panelSourcesMap,
+    panelAnswersMap,
+    submission?.seq ?? -1,
+  );
+
+  // ── Judge Drawer state ───────────────────────────────────────────────────
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [drawerPinned, setDrawerPinned] = useState(false);
+  const [selectedPanelId, setSelectedPanelId] = useState<PanelId | null>(null);
+  const { width: drawerWidth, onResizeStart } = useDrawerResize(drawerOpen);
+
+  const openJudge = useCallback((id: PanelId) => {
+    setSelectedPanelId(id);
+    setDrawerOpen(true);
+  }, []);
+
+  const toggleDrawer = useCallback(() => {
+    if (!drawerPinned) setDrawerOpen((o) => !o);
+  }, [drawerPinned]);
+
+  const togglePin = useCallback(() => {
+    setDrawerPinned((p) => !p);
+  }, []);
+
+  // ── View toggle ──────────────────────────────────────────────────────────
+  const [activeView, setActiveView] = useState<ActiveView>('live');
+
+  // ── First-run "how to read this" guide (dismissible, remembered) ──────────
+  const [guideSeen, setGuideSeen] = useState<boolean>(() => {
+    try { return localStorage.getItem('aql_guide_seen') === '1'; } catch { return true; }
+  });
+  const dismissGuide = useCallback(() => {
+    setGuideSeen(true);
+    try { localStorage.setItem('aql_guide_seen', '1'); } catch { /* ignore */ }
+  }, []);
+
+  // ── Leaderboard data (not yet implemented — always empty) ─────────────────
+  const leaderboardData: LeaderboardData | null = null;
+
+  // ── Export ───────────────────────────────────────────────────────────────
+  const handleExport = useCallback(() => {
+    if (!submission) return;
+    const json = buildTranscriptJson(submission.query, panelAnswersMap, panelJudge);
+    const blob = new Blob([json], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `transcript-${transcript.capturedAt.replace(/[:.]/g, '-')}.json`;
+    a.download = `lab-transcript-${Date.now()}.json`;
     a.click();
     URL.revokeObjectURL(url);
-  };
+  }, [submission, panelAnswersMap, panelJudge]);
 
-  const renderColumn = (config: ColumnConfig) => {
-    if (config.kind === 'website') {
-      return <WebsiteColumn config={config} submission={submission} />;
-    }
-    return (
-      <AgentColumn
-        config={config}
-        submission={submission}
-        clearSeq={clearSeq}
-        register={register}
-        onResult={live.report}
-        score={laneScores?.[config.id]}
-        onOpenAnalysis={expandRail}
-        onReply={submit}
-      />
-    );
-  };
+  // ── Reset ────────────────────────────────────────────────────────────────
+  const handleReset = useCallback(() => {
+    reset();
+    if (!drawerPinned) setDrawerOpen(false);
+    setSelectedPanelId(null);
+  }, [reset, drawerPinned]);
+
+  // ── Leaderboard question drill-down (re-runs the question in Live view) ──
+  const handleOpenQuestion = useCallback((_qid: string) => {
+    // In the future: load the batch transcript for this qid. For now, switch
+    // to Live view so the user can manually ask the question again.
+    setActiveView('live');
+  }, []);
+
+  // ── Composer hero mode ───────────────────────────────────────────────────
+  const isHero = !hasRun;
+  const currentQuery = submission?.query ?? '';
+
+  // Single "Best answer" winner (null when all gated / tied) — one source of truth.
+  const winnerId = judgeState === 'done' ? deriveWinnerId(panelJudge) : null;
+
+  // One shared submit instant so every panel's wait-timer reads the same elapsed
+  // (they all start together) — set once per submission.
+  const [submittedAt, setSubmittedAt] = useState<number | null>(null);
+  useEffect(() => {
+    if (submission?.seq != null) setSubmittedAt(performance.now());
+  }, [submission?.seq]);
+
+  // ── Selected panel data for the JudgeDrawer ──────────────────────────────
+  const drawerVerdict = selectedPanelId ? panelJudge[selectedPanelId] : undefined;
+  const drawerPanelData = selectedPanelId
+    ? {
+        answer: panels[selectedPanelId].answer,
+        sources: panels[selectedPanelId].sources,
+        timing: panels[selectedPanelId].timing!,
+        ...(panels[selectedPanelId].followUp
+          ? { followUp: panels[selectedPanelId].followUp }
+          : {}),
+        ...(panels[selectedPanelId].trace
+          ? { trace: panels[selectedPanelId].trace }
+          : {}),
+      }
+    : undefined;
+  const drawerPanelConfig = selectedPanelId ? panelConfigById(selectedPanelId) : undefined;
 
   return (
-    <div className={`lab${hasRun ? '' : ' lab--hero'}`}>
-      <AppHeader hasRun={hasRun} onExport={onExport} onReset={reset} />
-      {hasRun && (
-        <div className="lab__topbar">
-          <ComparisonKey />
-          <button
-            type="button"
-            className="verdict-chip"
-            onClick={expandRail}
-            title="Open the live analysis & synthesis"
-          >
-            <span className="verdict-chip__icon" aria-hidden="true">⚖</span>
-            {verdictScore ? (
-              <span className={`verdict-chip__score ${laneTone(verdictScore)}`}>
-                {verdictScore.score.toFixed(1)}<span className="verdict-chip__unit">/10</span>
-              </span>
-            ) : (
-              <span className="verdict-chip__label">Analysis</span>
-            )}
-          </button>
-        </div>
-      )}
-      <main className="lab__main">
-        <div className={`lab__workspace${railOpen ? ' has-rail' : ''}`}>
-          <div className="lab__panels">
-            <LaneRail columns={columns} renderColumn={renderColumn} />
+    <div className={`lab${isHero ? ' lab--hero' : ''}`}>
+      {/* ── Header ─────────────────────────────────────────────────────── */}
+      <AppHeader hasRun={hasRun} onExport={handleExport} onReset={handleReset} />
+
+      {/* ── View toggle ─────────────────────────────────────────────────── */}
+      <div className="lab__toggle-bar" role="tablist" aria-label="Lab view">
+        <button
+          type="button"
+          role="tab"
+          className={`lab__toggle-btn${activeView === 'live' ? ' is-active' : ''}`}
+          aria-selected={activeView === 'live'}
+          onClick={() => setActiveView('live')}
+        >
+          Live
+        </button>
+        <button
+          type="button"
+          role="tab"
+          className={`lab__toggle-btn${activeView === 'leaderboard' ? ' is-active' : ''}`}
+          aria-selected={activeView === 'leaderboard'}
+          onClick={() => setActiveView('leaderboard')}
+        >
+          Leaderboard
+        </button>
+      </div>
+
+      {/* ── Question bar — ONE place to ask AND see the current question.
+          Hero (pre-run) = centered; after the first run = a slim top bar with
+          the Sample-questions picker right beside it. The submitted question
+          stays in the field so it's never lost. ─────────────────────────── */}
+      <Composer onSubmit={submit} hero={isHero} value={currentQuery} />
+
+      {/* ── Main content area ────────────────────────────────────────────── */}
+      <main className={`lab__main${drawerOpen ? ' lab__main--drawer-open' : ''}`}>
+        {activeView === 'live' ? (
+          /* Live view: Matrix + JudgeDrawer */
+          <div className="lab__live">
+            <div
+              className="lab__matrix-wrap"
+              style={drawerOpen ? { marginRight: `${drawerWidth}px` } : undefined}
+            >
+              {!guideSeen && (
+                <div className="lab__guide" role="note">
+                  <span className="lab__guide-text">
+                    <strong>How to read this:</strong> your question runs through four versions of our system —
+                    {' '}<b>single vs multi-agent</b> (columns) × <b>keyword vs neural search</b> (rows).
+                    An AI judge scores each answer out of 10 for quality and whether it's backed by real sources.
+                    Click any score for the breakdown.
+                  </span>
+                  <button type="button" className="lab__guide-x" onClick={dismissGuide}>Got it</button>
+                </div>
+              )}
+              <Matrix panelJudge={panelJudge}>
+                {PANEL_IDS.map((id) => {
+                  const p = panels[id];
+                  const cfg = panelConfigById(id);
+                  const lifecycle = toLifecycle(
+                    p.status,
+                    p.answer,
+                    judgeState,
+                    !!panelJudge[id],
+                  );
+                  return (
+                    <PanelCell
+                      key={id}
+                      config={cfg}
+                      neuralLive={neuralStatus[cfg.indexName]}
+                      startedAt={submittedAt}
+                      lifecycle={lifecycle}
+                      answer={p.answer}
+                      result={
+                        p.status === 'done' && p.timing
+                          ? {
+                              answer: p.answer,
+                              sources: p.sources,
+                              timing: p.timing,
+                              ...(p.followUp ? { followUp: p.followUp } : {}),
+                              ...(p.trace ? { trace: p.trace } : {}),
+                              ...(p.error ? { error: p.error } : {}),
+                            }
+                          : undefined
+                      }
+                      judge={panelJudge[id]}
+                      isWinner={id === winnerId}
+                      error={p.error}
+                      onOpenJudge={() => openJudge(id)}
+                    />
+                  );
+                }) as [React.ReactNode, React.ReactNode, React.ReactNode, React.ReactNode]}
+              </Matrix>
+            </div>
+
+            {/* JudgeDrawer — slides in from the right */}
+            <JudgeDrawer
+              open={drawerOpen}
+              pinned={drawerPinned}
+              width={drawerWidth}
+              onToggleOpen={toggleDrawer}
+              onTogglePin={togglePin}
+              onResizeStart={onResizeStart}
+              panelVerdict={drawerVerdict}
+              panelData={drawerPanelData}
+              panelConfig={drawerPanelConfig}
+              deltas={deltas}
+              mode="live"
+              judgeMs={judgeMs}
+            />
           </div>
-          <AnalysisRail
-            open={railOpen}
-            pinned={railPinned}
-            width={railWidth}
-            onToggleOpen={toggleOpen}
-            onTogglePin={togglePin}
-            onResizeStart={onResizeStart}
-            state={live.state}
-            data={live.data}
-            error={live.error}
-            progress={live.progress}
-            judgeStartedAt={live.judgeStartedAt}
-            judgeMs={live.judgeMs}
-          />
-        </div>
+        ) : (
+          /* Leaderboard view */
+          <Leaderboard data={leaderboardData} onOpenQuestion={handleOpenQuestion} />
+        )}
       </main>
-      <Composer onSubmit={submit} hero={!hasRun} />
+
+      {/* ── Scoped layout styles ─────────────────────────────────────────── */}
+      <style>{`
+/* ── Lab shell ── */
+.lab {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--bg-canvas);
+  position: relative;
+  isolation: isolate;
+}
+/* Algolia gradient-mesh canvas — soft Nebula-blue + accent blobs that make the
+   frosted-glass tiles read as glass and give the page depth/class. */
+.lab::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(58% 50% at 10% -4%, rgba(0, 61, 255, 0.11), transparent 70%),
+    radial-gradient(50% 46% at 94% 6%, rgba(138, 79, 255, 0.10), transparent 70%),
+    radial-gradient(60% 55% at 84% 104%, rgba(0, 182, 255, 0.09), transparent 70%),
+    radial-gradient(46% 42% at 2% 98%, rgba(255, 122, 89, 0.07), transparent 72%),
+    var(--bg-canvas);
+}
+/* On hero (pre-run) let the page breathe with the mesh; no fixed height needed. */
+.lab--hero { height: auto; min-height: 100vh; overflow: visible; }
+
+/* ── View toggle bar ── */
+.lab__toggle-bar {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 0 24px;
+  background: var(--bg-page);
+  border-bottom: 1px solid var(--border-subtle);
+  flex-shrink: 0;
+}
+.lab__toggle-btn {
+  position: relative;
+  padding: 12px 20px;
+  border: 0;
+  background: transparent;
+  font-family: var(--font-body);
+  font-size: var(--fs-body-sm);
+  font-weight: 600;
+  color: var(--fg3);
+  cursor: pointer;
+  transition: color var(--dur-fast) var(--ease-out);
+}
+.lab__toggle-btn:hover { color: var(--fg2); }
+.lab__toggle-btn.is-active { color: var(--algolia-blue); }
+.lab__toggle-btn.is-active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 20px;
+  right: 20px;
+  height: 2px;
+  background: var(--algolia-blue);
+  border-radius: 2px 2px 0 0;
+}
+
+/* ── Main content ── */
+.lab__main {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+.lab__main--drawer-open {
+  /* drawer is positioned absolute/fixed; main doesn't shift */
+}
+
+/* ── Live view ── */
+.lab__live {
+  display: flex;
+  flex-direction: row;
+  flex: 1;
+  position: relative;
+  min-height: 0;
+}
+
+/* ── Matrix wrapper — shrinks when the drawer opens ── */
+.lab__matrix-wrap {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow: hidden; /* the 2×2 fits the viewport; each tile scrolls internally, not the page */
+  padding: 10px 20px 12px;
+  transition: margin-right var(--dur-fast) var(--ease-out);
+}
+
+/* ── JudgeDrawer positioning (fixed to the right edge) ── */
+.arail {
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100vh;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-page);
+  border-left: 1px solid var(--border-subtle);
+  box-shadow: -4px 0 24px rgba(0,0,0,0.08);
+  overflow: hidden;
+}
+.arail--collapsed {
+  width: auto !important;
+  height: auto;
+  top: 50%;
+  transform: translateY(-50%);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-right: 0;
+  border-radius: var(--radius-lg) 0 0 var(--radius-lg);
+  background: linear-gradient(180deg, rgba(255,255,255,0.94), rgba(255,255,255,0.82));
+  backdrop-filter: blur(18px) saturate(1.4);
+  -webkit-backdrop-filter: blur(18px) saturate(1.4);
+  box-shadow: -6px 0 24px rgba(2,16,70,0.12);
+  transition: transform var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out);
+}
+.arail--collapsed:hover {
+  transform: translateY(-50%) translateX(-3px);
+  box-shadow: -10px 0 32px rgba(2,16,70,0.18);
+}
+      `}</style>
     </div>
   );
 }

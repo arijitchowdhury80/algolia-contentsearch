@@ -7,9 +7,9 @@ import {
 } from "../src/claimGate.js";
 import type { GroundingViolation } from "../src/index.js";
 
-/** Build one round's violation list from [claim, confidence] pairs. */
+/** Build one round's violation list from [claim, certainty] pairs. */
 function round(...vs: [string, number][]): GroundingViolation[] {
-  return vs.map(([claim, confidence]) => ({ claim, reason: "not in sources", confidence }));
+  return vs.map(([claim, certainty]) => ({ claim, reason: "not in sources", certainty }));
 }
 
 describe("claimSimilarity", () => {
