@@ -11,6 +11,8 @@
     "replay": "tsx src/replay/cli.ts",
     "replay:smoke": "tsx src/replay/smokeRun.ts",
     "calibrate": "tsx src/calibrationCli.ts",
+    "judge:serve": "tsx src/judgeService.ts",
+    "judge:cli": "tsx src/judgeCli.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit"

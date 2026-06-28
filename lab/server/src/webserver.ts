@@ -20,14 +20,7 @@
  * the host's $PORT.
  */
 import { createServer } from "node:http";
-import { makeActiveJudgeLlm } from "./activeJudgeLlm.js";
-import {
-  judgeLive,
-  makeLlmScorer,
-  makeFollowUpScorer,
-  DEFAULT_LIVE_ROUNDS,
-  type LiveJudgeRequest,
-} from "./liveJudge.js";
+import { handleJudge } from "./judgeHandler.js";
 import { API_KEY_HEADER, isAuthorized, clientIp, RateLimiter } from "./auth.js";
 import {
   makeAnswerDeps,
@@ -144,62 +137,10 @@ const server = createServer(async (req, res) => {
     for await (const chunk of req) body += chunk;
     // Stream per-panel progress as Server-Sent Events when the client asks for it
     // (Accept: text/event-stream) — otherwise return one JSON blob (back-compat).
+    // Shared with the judge-only service (judgeService.ts) via handleJudge so the
+    // two endpoints can never drift apart.
     const wantsStream = (req.headers.accept ?? "").includes("text/event-stream");
-    try {
-      const judgeReq = JSON.parse(body || "{}") as LiveJudgeRequest;
-      if (!judgeReq.question || !judgeReq.question.trim()) {
-        res.writeHead(400, { "Content-Type": "application/json" });
-        res.end(JSON.stringify({ error: "question is required" }));
-        return;
-      }
-      if (!Array.isArray(judgeReq.panels) || judgeReq.panels.length === 0) {
-        res.writeHead(400, { "Content-Type": "application/json" });
-        res.end(JSON.stringify({ error: "panels is required and must be non-empty" }));
-        return;
-      }
-      // fastLive: the on-screen verdict is indicative → use the fast model.
-      const { llm, provider, model } = await makeActiveJudgeLlm({ fastLive: true });
-      const followUpScorer = makeFollowUpScorer(llm);
-      const rounds = judgeReq.rounds ?? DEFAULT_LIVE_ROUNDS;
-      console.log(
-        `[judge-api] judging ${judgeReq.panels.length} panel(s) on ${provider}/${model}, rounds=${rounds}, stream=${wantsStream}`,
-      );
-      const judgeT0 = Date.now();
-      const logDone = () =>
-        console.log(`[judge-api] done in ${((Date.now() - judgeT0) / 1000).toFixed(1)}s`);
-
-      if (wantsStream) {
-        res.writeHead(200, {
-          "Content-Type": "text/event-stream",
-          "Cache-Control": "no-cache",
-          Connection: "keep-alive",
-        });
-        const send = (event: string, data: unknown) =>
-          res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
-        send("phase", { phase: "judging", panels: judgeReq.panels.length, provider, model, rounds });
-        const out = await judgeLive(judgeReq, makeLlmScorer(llm), {
-          onPanel: (verdict) => send("panel", verdict),
-          followUpScorer,
-        });
-        send("result", out);
-        res.end();
-        logDone();
-        return;
-      }
-
-      const out = await judgeLive(judgeReq, makeLlmScorer(llm), { followUpScorer });
-      res.writeHead(200, { "Content-Type": "application/json" });
-      res.end(JSON.stringify(out));
-      logDone();
-    } catch (e) {
-      if (wantsStream && res.headersSent) {
-        res.write(`event: error\ndata: ${JSON.stringify({ error: (e as Error).message })}\n\n`);
-        res.end();
-      } else {
-        res.writeHead(500, { "Content-Type": "application/json" });
-        res.end(JSON.stringify({ error: (e as Error).message }));
-      }
-    }
+    await handleJudge(body, wantsStream, res);
     return;
   }
 
