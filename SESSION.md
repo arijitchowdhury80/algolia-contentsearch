@@ -14,10 +14,11 @@ _Last updated: 2026-06-29 (session 3). Diagnosed RC2 slowness, ran a 4-way model
 
 ## ▶ RESUME — first actions next session
 1. Read this file. Two repos in play:
-   - **RC2 app** (the live site work): `~/Dropbox/AI-Development/RAG/AlgoliaRAG-Google/rc2-algolia` (dev branch `feat/gold-capture`); live deploys from branch **`main`** via the worktree at `/private/tmp/rc2-main-docs`.
-   - **Central2** (this repo, eval harness + AC2): `~/Dropbox/AI-Development/RAG/Algolia-Central2`.
-2. **Nothing is broken or pending-blocking.** Live RC2 is stable. Only loose end = whether to `git push` the 5 local commits on Central2 `main`.
-3. If asked about RC2 speed/fallback: it's DONE — flash-lite primary + flash fallback, live, native `streamWithRetry` (no custom wrapper).
+   - **RC2 app** (live site): `~/Dropbox/AI-Development/RAG/AlgoliaRAG-Google/rc2-algolia` (dev branch `feat/gold-capture`, tree CLEAN — WIP in `stash@{0}`); live deploys from `main` via worktree `/private/tmp/rc2-main-docs` (@ `e1e80739`, HUD flash-lite fix live).
+   - **Central2** (this repo, eval harness + AC2 + gym): `~/Dropbox/AI-Development/RAG/Algolia-Central2`, `main` @ `136da03`, pushed, clean.
+2. **Nothing broken. Everything committed + pushed.** Live RC2 stable.
+3. **The one real next step = P2b judge calibration** (~45 min, Arijit blind-ranks). It's the gate that unblocks the honing gym (#25, built) in trust mode AND every judge-trusting decision. Sheet ready: `lab/server/calibration/set.json` → `applyHumanRanks.mjs` → `CALIBRATION_ROUNDS=3 npm run calibrate` (pass = Spearman ≥0.7). Then run `gym.workflow.js {unit:'support', mode:'trust'}`.
+4. Gym runbook: `scripts/setup/honed/gym_driver.md`. Gym state: `scripts/setup/honed/gym_state.json` (read first; `blockers` lists P2b).
 
 ## ▶ WHAT HAPPENED THIS SESSION
 ### A. Started: "wire RC2 cross-provider fallback (Gemini→Algolia inference)"
@@ -73,7 +74,21 @@ _Last updated: 2026-06-29 (session 3). Diagnosed RC2 slowness, ran a 4-way model
 - Memory: [[feedback-stream-wrapper-vercel-passthrough]], [[project-rc2-deploy-and-keys]] (updated).
 
 ## ▶ OPEN QUESTIONS FOR ARIJIT
-1. Push the 5 Central2 commits to origin/main?
-2. Clean the RC2 `feat/gold-capture` working tree of the dropped cross-provider WIP?
-3. Ship the HUD label fix later (flash-lite name/price) via a wrapper-free build?
-4. Resume prior backlog: P2b human ranking / gym #25 / E2E warm-baton?
+(Session-4 closed all 4 prior questions: 1 pushed ✅ · 2 cleaned ✅ (stash@{0}) · 3 shipped live ✅ (e1e80739) · 4 gym #25 built ✅.)
+1. **P2b judge calibration** — the only gate left. Do it (~45 min) to unblock the gym + judge-trusting work?
+2. After P2b: run the gym in trust mode on support, then the other 3 specialists? Or hold?
+3. E2E warm-baton full-bank run (the `Synthesize` phase) — run as part of the gym, or standalone first?
+
+## ▶ SESSION-4 FILES WRITTEN
+- RC2 `main` (`/private/tmp/rc2-main-docs`, committed `e1e80739`, pushed): `src/components/hud/LegendPanel.tsx`, `src/components/system-xray/SynthesisCard.tsx`, `lib/search/prompts/support.ts`, rebuilt `api/diag.mjs` + `api/search.mjs`.
+- Central2 `main` (committed `136da03`, pushed): `scripts/setup/honed/{clone_shadow.mjs, baton_eval.mjs, gym.workflow.js, gym_state.json, gym_driver.md}`, `SESSION.md`.
+- Memory: `project-specialist-honing-gym.md` (+ MEMORY.md index).
+- Live infra: created Agent Studio shadow `ac2-support-shadow` (`bbdbf943-…`) on CENTRAL `0EXRPAXB56` (additive, not in any routing).
+- Insurance (scratchpad, recoverable): `hud-flashlite-fix.patch`, `rc2-feat-crossprovider-wip-FULL.patch`, `rc2-feat-untracked-wip.tgz`, `sup1_request.json`, `sup1_verdict.json`.
+
+## ▶ NOT DONE (no false completion)
+- Gym NOT run in trust mode (correctly gated on P2b — judge uncalibrated = Goodhart risk).
+- `gym.workflow.js` authored + parses but NEVER executed (needs Workflow tool opt-in + P2b).
+- Only `ac2-support-shadow` created; tech/academy/marketer shadows NOT created (one `clone_shadow.mjs <role>` each when needed).
+- Full support-bank baseline NOT measured (only SUP-1 smoke @ 8.21); gym's first real step is the full baseline.
+- P2b calibration NOT done. P3 gym (#14) SKIPPED by user (prior).
