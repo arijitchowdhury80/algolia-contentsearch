@@ -1,0 +1,714 @@
+[
+  {
+    "qi": 5,
+    "system": "flash",
+    "composite": 8.549382716049383,
+    "gateTripped": false,
+    "dimensionMeans": {
+      "grounding": 7.333333333333333,
+      "coverage": 9,
+      "depth": 8.444444444444445,
+      "relevance": 10
+    },
+    "ms": 12462,
+    "answerLen": 3646,
+    "sourceCount": 20
+  },
+  {
+    "qi": 2,
+    "system": "flash",
+    "composite": 3,
+    "gateTripped": true,
+    "dimensionMeans": {
+      "grounding": 5.555555555555555,
+      "coverage": 9.777777777777779,
+      "depth": 8.555555555555555,
+      "relevance": 10
+    },
+    "ms": 11346,
+    "answerLen": 3819,
+    "sourceCount": 20
+  },
+  {
+    "qi": 0,
+    "system": "flash",
+    "composite": 7.345679012345678,
+    "gateTripped": false,
+    "dimensionMeans": {
+      "grounding": 3.888888888888889,
+      "coverage": 9.333333333333334,
+      "depth": 7.444444444444445,
+      "relevance": 9.777777777777779
+    },
+    "ms": 14984,
+    "answerLen": 3201,
+    "sourceCount": 20
+  },
+  {
+    "qi": 1,
+    "system": "flash",
+    "composite": 8.055555555555555,
+    "gateTripped": false,
+    "dimensionMeans": {
+      "grounding": 5,
+      "coverage": 9.666666666666666,
+      "depth": 8.666666666666666,
+      "relevance": 9.666666666666666
+    },
+    "ms": 11667,
+    "answerLen": 3185,
+    "sourceCount": 20
+  },
+  {
+    "qi": 3,
+    "system": "flash",
+    "composite": 9.074074074074074,
+    "gateTripped": false,
+    "dimensionMeans": {
+      "grounding": 7.888888888888889,
+      "coverage": 10,
+      "depth": 8.777777777777779,
+      "relevance": 10
+    },
+    "ms": 13171,
+    "answerLen": 4356,
+    "sourceCount": 20
+  },
+  {
+    "qi": 6,
+    "system": "flash",
+    "composite": 8.08641975308642,
+    "gateTripped": false,
+    "dimensionMeans": {
+      "grounding": 6,
+      "coverage": 9.444444444444445,
+      "depth": 8,
+      "relevance": 9.666666666666666
+    },
+    "ms": 20576,
+    "answerLen": 3780,
+    "sourceCount": 20
+  },
+  {
+    "qi": 7,
+    "system": "flash",
+    "composite": 8.24074074074074,
+    "gateTripped": false,
+    "dimensionMeans": {
+      "grounding": 6.625,
+      "coverage": 9.666666666666666,
+      "depth": 8.333333333333334,
+      "relevance": 9.666666666666666
+    },
+    "ms": 17134,
+    "answerLen": 3633,
+    "sourceCount": 20
+  },
+  {
+    "qi": 9,
+    "system": "flash",
+    "composite": 7.28395061728395,
+    "gateTripped": false,
+    "dimensionMeans": {
+      "grounding": 4.333333333333333,
+      "coverage": 8.777777777777779,
+      "depth": 7.555555555555555,
+      "relevance": 9.555555555555555
+    },
+    "ms": 13446,
+    "answerLen": 3425,
+    "sourceCount": 20
+  },
+  {
+    "qi": 8,
+    "system": "flash",
+    "composite": 7.962962962962965,
+    "gateTripped": false,
+    "dimensionMeans": {
+      "grounding": 7.555555555555555,
+      "coverage": 8,
+      "depth": 8,
+      "relevance": 9.11111111111111
+    },
+    "ms": 12910,
+    "answerLen": 2190,
+    "sourceCount": 20
+  },
+  {
+    "qi": 4,
+    "system": "flash",
+    "composite": 8.425925925925926,
+    "gateTripped": false,
+    "dimensionMeans": {
+      "grounding": 6,
+      "coverage": 9.666666666666666,
+      "depth": 8.666666666666666,
+      "relevance": 10
+    },
+    "ms": 13906,
+    "answerLen": 3853,
+    "sourceCount": 20
+  },
+  {
+    "qi": 10,
+    "system": "flash",
+    "composite": 8.518518518518517,
+    "gateTripped": false,
+    "dimensionMeans": {
+      "grounding": 7.444444444444445,
+      "coverage": 9.555555555555555,
+      "depth": 8,
+      "relevance": 9.666666666666666
+    },
+    "ms": 11917,
+    "answerLen": 3929,
+    "sourceCount": 20
+  },
+  {
+    "qi": 11,
+    "system": "flash",
+    "composite": 6.296296296296298,
+    "gateTripped": false,
+    "dimensionMeans": {
+      "grounding": 1.8888888888888888,
+      "coverage": 8.444444444444445,
+      "depth": 6.666666666666667,
+      "relevance": 9.666666666666666
+    },
+    "ms": 13647,
+    "answerLen": 3070,
+    "sourceCount": 20
+  },
+  {
+    "qi": 0,
+    "system": "flash-lite",
+    "composite": 7.160493827160493,
+    "gateTripped": false,
+    "dimensionMeans": {
+      "grounding": 3.4444444444444446,
+      "coverage": 9.222222222222221,
+      "depth": 7.666666666666667,
+      "relevance": 9.444444444444445
+    },
+    "ms": 7290,
+    "answerLen": 3067,
+    "sourceCount": 20
+  },
+  {
+    "qi": 3,
+    "system": "flash-lite",
+    "composite": 8.888888888888891,
+    "gateTripped": false,
+    "dimensionMeans": {
+      "grounding": 8.222222222222221,
+      "coverage": 9.88888888888889,
+      "depth": 7.888888888888889,
+      "relevance": 10
+    },
+    "ms": 5671,
+    "answerLen": 2427,
+    "sourceCount": 20
+  },
+  {
+    "qi": 5,
+    "system": "flash-lite",
+    "composite": 7.530864197530865,
+    "gateTripped": false,
+    "dimensionMeans": {
+      "grounding": 6,
+      "coverage": 8.666666666666666,
+      "depth": 7.111111111111111,
+      "relevance": 9.333333333333334
+    },
+    "ms": 9359,
+    "answerLen": 2752,
+    "sourceCount": 20
+  },
+  {
+    "qi": 4,
+    "system": "flash-lite",
+    "composite": 8.425925925925926,
+    "gateTripped": false,
+    "dimensionMeans": {
+      "grounding": 6.333333333333333,
+      "coverage": 9.777777777777779,
+      "depth": 8.222222222222221,
+      "relevance": 10
+    },
+    "ms": 8504,
+    "answerLen": 3057,
+    "sourceCount": 20
+  },
+  {
+    "qi": 7,
+    "system": "flash-lite",
+    "composite": 7.962962962962963,
+    "gateTripped": false,
+    "dimensionMeans": {
+      "grounding": 6.777777777777778,
+      "coverage": 8.555555555555555,
+      "depth": 7.666666666666667,
+      "relevance": 9.666666666666666
+    },
+    "ms": 7810,
+    "answerLen": 2988,
+    "sourceCount": 20
+  },
+  {
+    "qi": 8,
+    "system": "flash-lite",
+    "composite": 8.45679012345679,
+    "gateTripped": false,
+    "dimensionMeans": {
+      "grounding": 7,
+      "coverage": 9.444444444444445,
+      "depth": 8.333333333333334,
+      "relevance": 9.666666666666666
+    },
+    "ms": 8754,
+    "answerLen": 2985,
+    "sourceCount": 20
+  },
+  {
+    "qi": 9,
+    "system": "flash-lite",
+    "composite": 8.703703703703702,
+    "gateTripped": false,
+    "dimensionMeans": {
+      "grounding": 8.444444444444445,
+      "coverage": 9.11111111111111,
+      "depth": 8.11111111111111,
+      "relevance": 9.666666666666666
+    },
+    "ms": 5339,
+    "answerLen": 1874,
+    "sourceCount": 20
+  },
+  {
+    "qi": 6,
+    "system": "flash-lite",
+    "composite": 6.882716049382716,
+    "gateTripped": false,
+    "dimensionMeans": {
+      "grounding": 3.2222222222222223,
+      "coverage": 9.555555555555555,
+      "depth": 6.444444444444445,
+      "relevance": 9.555555555555555
+    },
+    "ms": 9912,
+    "answerLen": 2125,
+    "sourceCount": 20
+  },
+  {
+    "qi": 2,
+    "system": "flash-lite",
+    "composite": null,
+    "error": "Judge skeptic produced unparseable output after 3 attempts: Unbalanced JSON object in judge output.",
+    "ms": 7161
+  },
+  {
+    "qi": 1,
+    "system": "flash-lite",
+    "composite": 9.475308641975309,
+    "gateTripped": false,
+    "dimensionMeans": {
+      "grounding": 9.222222222222221,
+      "coverage": 10,
+      "depth": 9.222222222222221,
+      "relevance": 9.666666666666666
+    },
+    "ms": 6889,
+    "answerLen": 3190,
+    "sourceCount": 20
+  },
+  {
+    "qi": 11,
+    "system": "flash-lite",
+    "composite": 7.098765432098765,
+    "gateTripped": false,
+    "dimensionMeans": {
+      "grounding": 3.6666666666666665,
+      "coverage": 8.88888888888889,
+      "depth": 7.333333333333333,
+      "relevance": 9.666666666666666
+    },
+    "ms": 6982,
+    "answerLen": 3137,
+    "sourceCount": 20
+  },
+  {
+    "qi": 0,
+    "system": "inference",
+    "composite": 7.314814814814814,
+    "gateTripped": false,
+    "dimensionMeans": {
+      "grounding": 4.333333333333333,
+      "coverage": 9.222222222222221,
+      "depth": 7.111111111111111,
+      "relevance": 9.666666666666666
+    },
+    "ms": 24663,
+    "answerLen": 2279,
+    "sourceCount": 20
+  },
+  {
+    "qi": 10,
+    "system": "flash-lite",
+    "composite": 7.901234567901234,
+    "gateTripped": false,
+    "dimensionMeans": {
+      "grounding": 8.444444444444445,
+      "coverage": 8.333333333333334,
+      "depth": 6.888888888888889,
+      "relevance": 8.777777777777779
+    },
+    "ms": 6126,
+    "answerLen": 2301,
+    "sourceCount": 20
+  },
+  {
+    "qi": 3,
+    "system": "inference",
+    "composite": 8.24074074074074,
+    "gateTripped": false,
+    "dimensionMeans": {
+      "grounding": 6.444444444444445,
+      "coverage": 9,
+      "depth": 8.555555555555555,
+      "relevance": 9.666666666666666
+    },
+    "ms": 18240,
+    "answerLen": 2953,
+    "sourceCount": 17
+  },
+  {
+    "qi": 2,
+    "system": "inference",
+    "composite": 7.407407407407407,
+    "gateTripped": false,
+    "dimensionMeans": {
+      "grounding": 3.6666666666666665,
+      "coverage": 9.666666666666666,
+      "depth": 7.666666666666667,
+      "relevance": 9.666666666666666
+    },
+    "ms": 27804,
+    "answerLen": 2193,
+    "sourceCount": 20
+  },
+  {
+    "qi": 1,
+    "system": "inference",
+    "composite": 7.530864197530865,
+    "gateTripped": false,
+    "dimensionMeans": {
+      "grounding": 4.333333333333333,
+      "coverage": 9,
+      "depth": 7.777777777777778,
+      "relevance": 10
+    },
+    "ms": 31736,
+    "answerLen": 2384,
+    "sourceCount": 20
+  },
+  {
+    "qi": 4,
+    "system": "inference",
+    "composite": 8.765432098765432,
+    "gateTripped": false,
+    "dimensionMeans": {
+      "grounding": 7.222222222222222,
+      "coverage": 9.666666666666666,
+      "depth": 8.666666666666666,
+      "relevance": 10
+    },
+    "ms": 29095,
+    "answerLen": 2221,
+    "sourceCount": 20
+  },
+  {
+    "qi": 6,
+    "system": "inference",
+    "composite": 8.765432098765432,
+    "gateTripped": false,
+    "dimensionMeans": {
+      "grounding": 7.333333333333333,
+      "coverage": 9.555555555555555,
+      "depth": 8.666666666666666,
+      "relevance": 10
+    },
+    "ms": 23521,
+    "answerLen": 2274,
+    "sourceCount": 20
+  },
+  {
+    "qi": 7,
+    "system": "inference",
+    "composite": 3,
+    "gateTripped": true,
+    "dimensionMeans": {
+      "grounding": 6.888888888888889,
+      "coverage": 9.555555555555555,
+      "depth": 8.666666666666666,
+      "relevance": 10
+    },
+    "ms": 22828,
+    "answerLen": 2484,
+    "sourceCount": 20
+  },
+  {
+    "qi": 5,
+    "system": "inference",
+    "composite": 8.580246913580249,
+    "gateTripped": false,
+    "dimensionMeans": {
+      "grounding": 9.11111111111111,
+      "coverage": 8.666666666666666,
+      "depth": 7.222222222222222,
+      "relevance": 9.88888888888889
+    },
+    "ms": 19228,
+    "answerLen": 2662,
+    "sourceCount": 18
+  },
+  {
+    "qi": 8,
+    "system": "inference",
+    "composite": 8.61111111111111,
+    "gateTripped": false,
+    "dimensionMeans": {
+      "grounding": 7,
+      "coverage": 9.555555555555555,
+      "depth": 8.666666666666666,
+      "relevance": 9.777777777777779
+    },
+    "ms": 15415,
+    "answerLen": 2026,
+    "sourceCount": 20
+  },
+  {
+    "qi": 10,
+    "system": "inference",
+    "composite": 3,
+    "gateTripped": true,
+    "dimensionMeans": {
+      "grounding": 4.111111111111111,
+      "coverage": 9.333333333333334,
+      "depth": 7.666666666666667,
+      "relevance": 9.666666666666666
+    },
+    "ms": 27600,
+    "answerLen": 2436,
+    "sourceCount": 20
+  },
+  {
+    "qi": 9,
+    "system": "inference",
+    "composite": 7.098765432098766,
+    "gateTripped": false,
+    "dimensionMeans": {
+      "grounding": 4.222222222222222,
+      "coverage": 8.88888888888889,
+      "depth": 7.111111111111111,
+      "relevance": 9.333333333333334
+    },
+    "ms": 31741,
+    "answerLen": 2736,
+    "sourceCount": 20
+  },
+  {
+    "qi": 0,
+    "system": "baseline",
+    "composite": 7.839506172839506,
+    "gateTripped": false,
+    "dimensionMeans": {
+      "grounding": 5,
+      "coverage": 9.444444444444445,
+      "depth": 7.777777777777778,
+      "relevance": 10
+    },
+    "ms": null,
+    "answerLen": 3024,
+    "sourceCount": 20
+  },
+  {
+    "qi": 2,
+    "system": "baseline",
+    "composite": 9.351851851851851,
+    "gateTripped": false,
+    "dimensionMeans": {
+      "grounding": 8.666666666666666,
+      "coverage": 10,
+      "depth": 9,
+      "relevance": 10
+    },
+    "ms": null,
+    "answerLen": 3616,
+    "sourceCount": 20
+  },
+  {
+    "qi": 3,
+    "system": "baseline",
+    "composite": 9.012345679012347,
+    "gateTripped": false,
+    "dimensionMeans": {
+      "grounding": 8.11111111111111,
+      "coverage": 9.88888888888889,
+      "depth": 8.444444444444445,
+      "relevance": 10
+    },
+    "ms": null,
+    "answerLen": 2298,
+    "sourceCount": 20
+  },
+  {
+    "qi": 11,
+    "system": "inference",
+    "composite": 7.1913580246913575,
+    "gateTripped": false,
+    "dimensionMeans": {
+      "grounding": 4.333333333333333,
+      "coverage": 8.666666666666666,
+      "depth": 7.333333333333333,
+      "relevance": 9.555555555555555
+    },
+    "ms": 30045,
+    "answerLen": 2537,
+    "sourceCount": 20
+  },
+  {
+    "qi": 1,
+    "system": "baseline",
+    "composite": 9.104938271604938,
+    "gateTripped": false,
+    "dimensionMeans": {
+      "grounding": 8,
+      "coverage": 10,
+      "depth": 8.777777777777779,
+      "relevance": 10
+    },
+    "ms": null,
+    "answerLen": 2852,
+    "sourceCount": 20
+  },
+  {
+    "qi": 5,
+    "system": "baseline",
+    "composite": 6.635802469135803,
+    "gateTripped": false,
+    "dimensionMeans": {
+      "grounding": 6.222222222222222,
+      "coverage": 6.888888888888889,
+      "depth": 5.555555555555555,
+      "relevance": 9.222222222222221
+    },
+    "ms": null,
+    "answerLen": 2661,
+    "sourceCount": 19
+  },
+  {
+    "qi": 4,
+    "system": "baseline",
+    "composite": 8.981481481481481,
+    "gateTripped": false,
+    "dimensionMeans": {
+      "grounding": 7.666666666666667,
+      "coverage": 9.88888888888889,
+      "depth": 8.88888888888889,
+      "relevance": 9.88888888888889
+    },
+    "ms": null,
+    "answerLen": 2902,
+    "sourceCount": 20
+  },
+  {
+    "qi": 7,
+    "system": "baseline",
+    "composite": 8.055555555555555,
+    "gateTripped": false,
+    "dimensionMeans": {
+      "grounding": 6.666666666666667,
+      "coverage": 9,
+      "depth": 8,
+      "relevance": 9.333333333333334
+    },
+    "ms": null,
+    "answerLen": 2269,
+    "sourceCount": 20
+  },
+  {
+    "qi": 9,
+    "system": "baseline",
+    "composite": 8.981481481481481,
+    "gateTripped": false,
+    "dimensionMeans": {
+      "grounding": 8.88888888888889,
+      "coverage": 9.222222222222221,
+      "depth": 8.333333333333334,
+      "relevance": 9.88888888888889
+    },
+    "ms": null,
+    "answerLen": 2278,
+    "sourceCount": 17
+  },
+  {
+    "qi": 6,
+    "system": "baseline",
+    "composite": 7.067901234567902,
+    "gateTripped": false,
+    "dimensionMeans": {
+      "grounding": 5.777777777777778,
+      "coverage": 8.11111111111111,
+      "depth": 7.333333333333333,
+      "relevance": 8.222222222222221
+    },
+    "ms": null,
+    "answerLen": 3008,
+    "sourceCount": 20
+  },
+  {
+    "qi": 8,
+    "system": "baseline",
+    "composite": 8.271604938271606,
+    "gateTripped": false,
+    "dimensionMeans": {
+      "grounding": 6,
+      "coverage": 9.333333333333334,
+      "depth": 8.444444444444445,
+      "relevance": 10
+    },
+    "ms": null,
+    "answerLen": 2525,
+    "sourceCount": 20
+  },
+  {
+    "qi": 10,
+    "system": "baseline",
+    "composite": 8.395061728395062,
+    "gateTripped": false,
+    "dimensionMeans": {
+      "grounding": 6.888888888888889,
+      "coverage": 9.11111111111111,
+      "depth": 8.555555555555555,
+      "relevance": 9.666666666666666
+    },
+    "ms": null,
+    "answerLen": 2718,
+    "sourceCount": 20
+  },
+  {
+    "qi": 11,
+    "system": "baseline",
+    "composite": 6.975308641975309,
+    "gateTripped": false,
+    "dimensionMeans": {
+      "grounding": 3.4444444444444446,
+      "coverage": 8.777777777777779,
+      "depth": 7.111111111111111,
+      "relevance": 9.777777777777779
+    },
+    "ms": null,
+    "answerLen": 2530,
+    "sourceCount": 20
+  }
+]

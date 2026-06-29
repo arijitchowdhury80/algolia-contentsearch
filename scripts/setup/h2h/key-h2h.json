@@ -1,0 +1,62 @@
+{
+  "0": {
+    "A": "rc2",
+    "B": "ac2",
+    "question": "We're evaluating Algolia vs building search in-house on Elasticsearch — why Algolia for a B2C retail catalog?"
+  },
+  "1": {
+    "A": "ac2",
+    "B": "rc2",
+    "question": "What measurable business results do companies see from improving site search?"
+  },
+  "2": {
+    "A": "rc2",
+    "B": "ac2",
+    "question": "How does Algolia help with merchandising and personalization for a fashion brand?"
+  },
+  "3": {
+    "A": "ac2",
+    "B": "rc2",
+    "question": "Doctors search 'T2DM' or 'heart attack' but our system only matches the full term — how does Algolia handle synonyms and natural-language understanding for specialized terminology?"
+  },
+  "4": {
+    "A": "rc2",
+    "B": "ac2",
+    "question": "What's the difference between Algolia's keyword search and NeuralSearch?"
+  },
+  "5": {
+    "A": "ac2",
+    "B": "rc2",
+    "question": "How do I implement faceted search and filtering with InstantSearch?"
+  },
+  "6": {
+    "A": "rc2",
+    "B": "ac2",
+    "question": "Advisors search for investment products but results ignore client risk profile and portfolio context — how does Algolia's ranking incorporate business signals beyond text relevance?"
+  },
+  "7": {
+    "A": "ac2",
+    "B": "rc2",
+    "question": "My searches return no results after I indexed my data — what are the likely causes?"
+  },
+  "8": {
+    "A": "rc2",
+    "B": "ac2",
+    "question": "I'm getting a 403 Forbidden when indexing records — how do I fix it?"
+  },
+  "9": {
+    "A": "ac2",
+    "B": "rc2",
+    "question": "Where do I start learning to build search with Algolia as a new developer?"
+  },
+  "10": {
+    "A": "rc2",
+    "B": "ac2",
+    "question": "We run 6 brand websites with inconsistent search and no shared learnings — how does Algolia handle multi-brand search with personalized results across separate catalogs?"
+  },
+  "11": {
+    "A": "ac2",
+    "B": "rc2",
+    "question": "What successes does Algolia have in fashion and e-commerce, with proof?"
+  }
+}

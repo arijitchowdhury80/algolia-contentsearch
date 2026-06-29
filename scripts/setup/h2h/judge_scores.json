@@ -1,0 +1,338 @@
+[
+  {
+    "qi": 0,
+    "system": "rc2",
+    "composite": 5.864197530864197,
+    "gateTripped": false,
+    "dimensionMeans": {
+      "grounding": 1.5555555555555556,
+      "coverage": 9.444444444444445,
+      "depth": 4.333333333333333,
+      "relevance": 9.777777777777779
+    },
+    "sourceCount": 20,
+    "answerLen": 3024
+  },
+  {
+    "qi": 1,
+    "system": "rc2",
+    "composite": 6.1419753086419755,
+    "gateTripped": false,
+    "dimensionMeans": {
+      "grounding": 1.7777777777777777,
+      "coverage": 9.444444444444445,
+      "depth": 5.555555555555555,
+      "relevance": 9.333333333333334
+    },
+    "sourceCount": 20,
+    "answerLen": 2852
+  },
+  {
+    "qi": 2,
+    "system": "rc2",
+    "composite": 3,
+    "gateTripped": true,
+    "dimensionMeans": {
+      "grounding": 4,
+      "coverage": 9.777777777777779,
+      "depth": 7,
+      "relevance": 9.777777777777779
+    },
+    "sourceCount": 20,
+    "answerLen": 3616
+  },
+  {
+    "qi": 3,
+    "system": "rc2",
+    "composite": 7.12962962962963,
+    "gateTripped": false,
+    "dimensionMeans": {
+      "grounding": 4.777777777777778,
+      "coverage": 9.444444444444445,
+      "depth": 5.666666666666667,
+      "relevance": 9.777777777777779
+    },
+    "sourceCount": 20,
+    "answerLen": 2298
+  },
+  {
+    "qi": 4,
+    "system": "rc2",
+    "composite": 3,
+    "gateTripped": true,
+    "dimensionMeans": {
+      "grounding": 3.4444444444444446,
+      "coverage": 9.666666666666666,
+      "depth": 8,
+      "relevance": 10
+    },
+    "sourceCount": 20,
+    "answerLen": 2902
+  },
+  {
+    "qi": 5,
+    "system": "rc2",
+    "composite": 3.82716049382716,
+    "gateTripped": false,
+    "dimensionMeans": {
+      "grounding": 5.666666666666667,
+      "coverage": 3.2222222222222223,
+      "depth": 3.6666666666666665,
+      "relevance": 5.222222222222222
+    },
+    "sourceCount": 19,
+    "answerLen": 2661
+  },
+  {
+    "qi": 6,
+    "system": "rc2",
+    "composite": 3.5185185185185186,
+    "gateTripped": false,
+    "dimensionMeans": {
+      "grounding": 2.7777777777777777,
+      "coverage": 4.888888888888889,
+      "depth": 4.666666666666667,
+      "relevance": 4.333333333333333
+    },
+    "sourceCount": 20,
+    "answerLen": 3008
+  },
+  {
+    "qi": 7,
+    "system": "rc2",
+    "composite": 7.222222222222222,
+    "gateTripped": false,
+    "dimensionMeans": {
+      "grounding": 4.666666666666667,
+      "coverage": 8.88888888888889,
+      "depth": 7,
+      "relevance": 9.444444444444445
+    },
+    "sourceCount": 20,
+    "answerLen": 2269
+  },
+  {
+    "qi": 8,
+    "system": "rc2",
+    "composite": 5.95679012345679,
+    "gateTripped": false,
+    "dimensionMeans": {
+      "grounding": 1.4444444444444444,
+      "coverage": 7.666666666666667,
+      "depth": 6.444444444444445,
+      "relevance": 9.88888888888889
+    },
+    "sourceCount": 20,
+    "answerLen": 2525
+  },
+  {
+    "qi": 9,
+    "system": "rc2",
+    "composite": 8.395061728395062,
+    "gateTripped": false,
+    "dimensionMeans": {
+      "grounding": 7.666666666666667,
+      "coverage": 9.333333333333334,
+      "depth": 7.555555555555555,
+      "relevance": 9.666666666666666
+    },
+    "sourceCount": 17,
+    "answerLen": 2278
+  },
+  {
+    "qi": 10,
+    "system": "rc2",
+    "composite": 6.080246913580247,
+    "gateTripped": false,
+    "dimensionMeans": {
+      "grounding": 3,
+      "coverage": 8.222222222222221,
+      "depth": 6.111111111111111,
+      "relevance": 8.555555555555555
+    },
+    "sourceCount": 20,
+    "answerLen": 2718
+  },
+  {
+    "qi": 11,
+    "system": "rc2",
+    "composite": 4.938271604938271,
+    "gateTripped": false,
+    "dimensionMeans": {
+      "grounding": 1.6666666666666667,
+      "coverage": 6.888888888888889,
+      "depth": 4.111111111111111,
+      "relevance": 9.11111111111111
+    },
+    "sourceCount": 20,
+    "answerLen": 2530
+  },
+  {
+    "qi": 0,
+    "system": "ac2",
+    "composite": 7.376543209876542,
+    "gateTripped": false,
+    "dimensionMeans": {
+      "grounding": 3.888888888888889,
+      "coverage": 9.555555555555555,
+      "depth": 7.333333333333333,
+      "relevance": 9.777777777777779
+    },
+    "sourceCount": 7,
+    "answerLen": 2968
+  },
+  {
+    "qi": 1,
+    "system": "ac2",
+    "composite": 6.512345679012346,
+    "gateTripped": false,
+    "dimensionMeans": {
+      "grounding": 1,
+      "coverage": 10,
+      "depth": 6.444444444444445,
+      "relevance": 10
+    },
+    "sourceCount": 0,
+    "answerLen": 2945
+  },
+  {
+    "qi": 2,
+    "system": "ac2",
+    "composite": 3,
+    "gateTripped": true,
+    "dimensionMeans": {
+      "grounding": 3.6666666666666665,
+      "coverage": 9.11111111111111,
+      "depth": 6.111111111111111,
+      "relevance": 9.444444444444445
+    },
+    "sourceCount": 7,
+    "answerLen": 2706
+  },
+  {
+    "qi": 3,
+    "system": "ac2",
+    "composite": 7.901234567901234,
+    "gateTripped": false,
+    "dimensionMeans": {
+      "grounding": 3.2222222222222223,
+      "coverage": 9.777777777777779,
+      "depth": 9.444444444444445,
+      "relevance": 10
+    },
+    "sourceCount": 0,
+    "answerLen": 2587
+  },
+  {
+    "qi": 4,
+    "system": "ac2",
+    "composite": 9.506172839506172,
+    "gateTripped": false,
+    "dimensionMeans": {
+      "grounding": 9.555555555555555,
+      "coverage": 10,
+      "depth": 8.666666666666666,
+      "relevance": 10
+    },
+    "sourceCount": 7,
+    "answerLen": 1795
+  },
+  {
+    "qi": 5,
+    "system": "ac2",
+    "composite": 8.148148148148147,
+    "gateTripped": false,
+    "dimensionMeans": {
+      "grounding": 5.888888888888889,
+      "coverage": 9.222222222222221,
+      "depth": 8.222222222222221,
+      "relevance": 10
+    },
+    "sourceCount": 7,
+    "answerLen": 2536
+  },
+  {
+    "qi": 6,
+    "system": "ac2",
+    "composite": 3,
+    "gateTripped": true,
+    "dimensionMeans": {
+      "grounding": 6,
+      "coverage": 9.555555555555555,
+      "depth": 7.888888888888889,
+      "relevance": 9.88888888888889
+    },
+    "sourceCount": 7,
+    "answerLen": 2053
+  },
+  {
+    "qi": 7,
+    "system": "ac2",
+    "composite": 6.91358024691358,
+    "gateTripped": false,
+    "dimensionMeans": {
+      "grounding": 4.111111111111111,
+      "coverage": 7.555555555555555,
+      "depth": 7.555555555555555,
+      "relevance": 9.666666666666666
+    },
+    "sourceCount": 7,
+    "answerLen": 1964
+  },
+  {
+    "qi": 8,
+    "system": "ac2",
+    "composite": 2.191358024691358,
+    "gateTripped": false,
+    "dimensionMeans": {
+      "grounding": 7,
+      "coverage": 2,
+      "depth": 1,
+      "relevance": 1.8888888888888888
+    },
+    "sourceCount": 7,
+    "answerLen": 201
+  },
+  {
+    "qi": 9,
+    "system": "ac2",
+    "composite": 2.314814814814815,
+    "gateTripped": true,
+    "dimensionMeans": {
+      "grounding": 8,
+      "coverage": 2,
+      "depth": 1,
+      "relevance": 1.3333333333333333
+    },
+    "sourceCount": 7,
+    "answerLen": 201
+  },
+  {
+    "qi": 10,
+    "system": "ac2",
+    "composite": 8.549382716049381,
+    "gateTripped": false,
+    "dimensionMeans": {
+      "grounding": 5.222222222222222,
+      "coverage": 10,
+      "depth": 9.555555555555555,
+      "relevance": 10
+    },
+    "sourceCount": 0,
+    "answerLen": 3053
+  },
+  {
+    "qi": 11,
+    "system": "ac2",
+    "composite": 9.290123456790122,
+    "gateTripped": false,
+    "dimensionMeans": {
+      "grounding": 9.555555555555555,
+      "coverage": 8.88888888888889,
+      "depth": 9,
+      "relevance": 10
+    },
+    "sourceCount": 18,
+    "answerLen": 1703
+  }
+]
