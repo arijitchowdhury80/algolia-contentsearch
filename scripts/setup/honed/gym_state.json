@@ -1,0 +1,69 @@
+{
+  "_doc": "Resumable state for the autonomous honing gym (SOP docs/sop/autonomous-honing-methodology.md §6/§10). The /loop driver and gym.workflow.js read this FIRST every wake. Edit by the loop only; humans edit `gate`/`autonomy`/`goal`.",
+  "goal": "Get all 4 source specialists to beat their LIVE twin by >= targetMargin on held-out, grounded (grounding floor held), with the warm-baton multi-turn flow intact — honing ONLY on shadows, promoting winners to live in one gated batch.",
+  "doneCriteria": "For each specialist: shadow composite >= live composite + targetMargin on the held-out split for sustainRounds consecutive rounds, grounding floor never regressed, zero new flagged claims. Then E2E warm-baton judged non-regressed. Then (gated) promote.",
+  "config": {
+    "targetMargin": 1.0,
+    "minImprovement": 0.3,
+    "sustainRounds": 2,
+    "patience": 2,
+    "maxRoundsPerUnit": 4,
+    "judgeRounds": 3,
+    "groundingFloorDim": "grounding",
+    "splitRule": "first ceil(n/2) bank questions = dev, remainder = held-out"
+  },
+  "autonomy": {
+    "free": ["clone_shadow", "baton_eval", "judge", "diagnose", "propose", "deploy_to_shadow", "re_eval", "keep_or_rollback", "write_state"],
+    "gated": ["promote_to_live", "spend_over_budget"],
+    "judgeTrust": "INDICATIVE — P2b human-rank calibration NOT done; judge scores are directional only. Real keep/rollback decisions require a human spot-check gate every `gateEveryRounds` rounds until P2b passes (Spearman >= 0.7).",
+    "gateEveryRounds": 1,
+    "deploySafetyInvariant": "deploy() MUST refuse any agent whose name does not end in '-shadow'. Live ac2-*-neural is the gated PROMOTE target only."
+  },
+  "blockers": [
+    "P2b judge calibration (Spearman >= 0.7 vs Arijit's blind ranking) is NOT done — the gym's fitness function is unproven. Per SOP §8, do NOT run the autonomous optimization loop in trust mode until P2b passes. Until then: run in spot-check-gated mode (human approves each kept patch) or only smoke-test the mechanics."
+  ],
+  "units": {
+    "support": {
+      "live": "ac2-support-neural",
+      "liveId": "979bbb4b-37a5-4e9a-a5bc-98d573052675",
+      "shadow": "ac2-support-shadow",
+      "shadowId": "bbdbf943-6ff9-4406-9ce1-d225bab52af2",
+      "bank": "support_question_bank.json",
+      "instructions": "instructions_support.md",
+      "status": "shadow-created; eval-path-proven (smoke)",
+      "baseline": {
+        "kind": "SMOKE (SUP-1 only, on shadow) — NOT the full-bank baseline",
+        "composite": 8.21,
+        "dims": { "grounding": 6.33, "coverage": 8.44, "depth": 8.78, "relevance": 10.0 },
+        "gateTripped": false,
+        "judgeRounds": 3,
+        "measuredOn": "ac2-support-shadow"
+      },
+      "rounds": [],
+      "triedRejected": [],
+      "nextAction": "Measure the FULL support bank baseline on BOTH ac2-support-shadow (ours) and ac2-support-neural (live floor), split dev/held-out, before round 1."
+    },
+    "tech": {
+      "live": "ac2-tech-neural", "liveId": "c1c425b1-0216-4d11-9c31-c7fcbe5bae01",
+      "shadow": "ac2-tech-shadow", "shadowId": null,
+      "bank": "technical_question_bank.json", "instructions": "instructions_technical.md",
+      "status": "not-started", "rounds": [], "triedRejected": [],
+      "nextAction": "node clone_shadow.mjs tech, then measure baseline."
+    },
+    "academy": {
+      "live": "ac2-academy-neural", "liveId": "74ebd5ef-4adc-487f-886e-33c9a2abf3d2",
+      "shadow": "ac2-academy-shadow", "shadowId": null,
+      "bank": "academy_question_bank.json", "instructions": "instructions_academy.md",
+      "status": "not-started", "rounds": [], "triedRejected": [],
+      "nextAction": "node clone_shadow.mjs academy, then measure baseline."
+    },
+    "marketer": {
+      "live": "ac2-marketer-neural", "liveId": "4af0897c-02e1-4107-a881-1bbacc610908",
+      "shadow": "ac2-marketer-shadow", "shadowId": null,
+      "bank": "marketer_question_bank.json", "instructions": "instructions_marketer.md",
+      "status": "not-started", "rounds": [], "triedRejected": [],
+      "nextAction": "node clone_shadow.mjs marketer, then measure baseline."
+    }
+  },
+  "nextAction": "BLOCKED on P2b (judge calibration). When unblocked: run gym.workflow.js (or /loop with gym_driver.md) starting at unit=support. Until then the mechanics are proven (shadow + eval path) and the loop is authored but not run in trust mode."
+}

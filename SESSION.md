@@ -1,53 +1,79 @@
 # SESSION.md — Algolia-Central2
 
-_Last updated: 2026-06-28 PM. This session = content-source multi-agent routing SPIKE → verdict KILL on scoping; data-hardened the corpus; drafted honed specialist prompts + warm-baton design. Mid-stream on the honed-prompt phase._
+_Last updated: 2026-06-29 (session 3). Diagnosed RC2 slowness, ran a 4-way model eval, switched live RC2 to **flash-lite primary + flash fallback**, caused+recovered a prod streaming incident, committed the eval harness, discarded the broken cross-provider fallback._
 
 ## ▶ STATUS (one line)
-**Content-source SCOPING = KILLED** (no answer-quality lift over one all-source neural agent on a FAIR baseline: oracle ΔBA **+0.25**, within ±0.3 noise). Depth ceiling is the DATA (corpus = titles+summaries+facets; deep content only in **Support** + **"Other"**). **Now mid-stream on Path 1: honed purpose-built prompts + warm baton — about to push Support live and smoke-test it.** Working tree DIRTY (uncommitted). Prior milestones (Judge build, Backlog A, B) are on `main` `03e9184`.
+**Live RC2 = flash-lite primary + flash fallback, stable. Eval harness committed.** Session-4 DONE: (1) 5 Central2 commits PUSHED → origin/main `7d3ae03`; (2) RC2 feat tree CLEANED (cross-provider WIP → `stash@{0}` + scratchpad patch); (3) HUD flash-lite fix SHIPPED to prod (`main` `e1e80739`, verified live); (4) **GYM #25 BUILT + eval-path PROVEN** (gym scaffold authored; autonomous RUN gated on P2b). Open: P2b calibration (the gate that unblocks the gym + everything judge-trusting).
+
+## ▶ GYM #25 — what's built (session 4)
+- **Shadow capability:** `scripts/setup/honed/clone_shadow.mjs` — config-faithful clone of live specialist → `ac2-<role>-shadow`. **`ac2-support-shadow` (`bbdbf943-…`) created + verified** (model/instructions/source-scoped tools all == live). Autonomy boundary: hone on shadow, promote to live is gated.
+- **Eval primitive + PROVEN path:** `scripts/setup/honed/baton_eval.mjs` (warm-baton → judge-ready request WITH source bodies) | `judge:cli` rounds=3 → SUP-1 composite **8.21**, gate clean, on the shadow. (the §11.6 path-proof.)
+- **Executor (authored, NOT run):** `scripts/setup/honed/gym.workflow.js` — Workflow script: per-unit evaluator-optimizer (diagnose/propose Opus → deploy-to-SHADOW Haiku → re-eval → keep/rollback), E2E synthesize, gated promote. Parses clean.
+- **Resumable state + driver:** `gym_state.json` (SOP §6/§10 backbone, support baseline seeded) + `gym_driver.md` (/loop runbook, modes smoke/spotcheck/trust, hard invariants).
+- **⛔ HARD GATE (SOP §8):** judge is UNCALIBRATED (P2b not done) → running the loop in *trust* mode = Goodhart. Gym is built + path proven; real optimization run waits on P2b. NEW FILES UNCOMMITTED on Central2 main.
 
 ## ▶ RESUME — first actions next session
-1. Read this file. Then **continue the honed-prompt phase** (Arijit approved Path 1 + "Full fidelity" + "update live agents, snapshot first"). The immediate next step is item 2.
-2. **PUSH SUPPORT + ADHERENCE SMOKE (the concrete next action):**
-   a. **Snapshot** the 4 live specialists' current instructions to a file (reversible restore). Use the Agent Studio GET (`GET /agent-studio/1/agents/{id}` — instructions field) via a small script or `scripts/setup/agent_admin.mjs`. App = CENTRAL `0EXRPAXB56`, key = `ALGOLIA_ADMIN_API_KEY`. **List API paginates at 10 → use `?limit=100`.**
-   b. **Push** the honed Support prompt (`scripts/setup/honed/instructions_support.md`, with `[[SHARED_GROUNDING]]` substituted from `_shared_grounding.md`) to `ac2-support-neural` via PUT/update + publish.
-   c. **Smoke:** run 3–4 support questions (e.g. S1 "403 on indexing", 8.5, a billing/error Q) through `ac2-support-neural` and EYEBALL: does it follow the resolver doctrine (symptom→ranked causes→numbered fix→verify→escalation)? Does it leak JSON (like tech did on 1.3)? 
-   d. **If adherent →** push the other 3 honed prompts, build the warm-baton multi-turn harness, run A/B vs `ac2-allsource-neural`. **If not →** fix adherence once, cheaply, before the full run.
-3. Honest expectation to hold: Support (+ Marketer-on-"Other") may show real lift; Technical/Academy likely tie the baseline (their depth ceiling is the DATA, not the prompt). A tie there is a valid finding, not a failure.
-4. Then decide **Path 2** (enrich the index with chunked full doc/lesson bodies) — the real unlock for deep Technical/Academy answers — only if the data ceiling visibly bites.
+1. Read this file. Two repos in play:
+   - **RC2 app** (the live site work): `~/Dropbox/AI-Development/RAG/AlgoliaRAG-Google/rc2-algolia` (dev branch `feat/gold-capture`); live deploys from branch **`main`** via the worktree at `/private/tmp/rc2-main-docs`.
+   - **Central2** (this repo, eval harness + AC2): `~/Dropbox/AI-Development/RAG/Algolia-Central2`.
+2. **Nothing is broken or pending-blocking.** Live RC2 is stable. Only loose end = whether to `git push` the 5 local commits on Central2 `main`.
+3. If asked about RC2 speed/fallback: it's DONE — flash-lite primary + flash fallback, live, native `streamWithRetry` (no custom wrapper).
 
-## ▶ WHAT HAPPENED THIS SESSION (the spike + data work)
-- **Reframed the question:** AC2 is already single-specialist routing (fan-out retired). RC2 routes on persona/intent, NOT content-source — Arijit's "support→support agent" is a distinct, legitimate architecture. The 4 content-source specialists already exist on the app but were never wired.
-- **A/B/C spike** (4-dim judge, 32 v3 Qs + 6 stress, 3 rounds): A=baseline, B=oracle-routed specialist, C=real-router specialist. Harness `lab/server/src/experiments/sourceRoutingAb.ts` + `sourceRouting/{labels,extraQuestions,classifier,routingAgg}.ts` (18 unit tests, full suite 127 green, tsc clean).
-- **The flip = the lesson.** First run baseline = 6-source incumbent Maverick → +0.76 "multi-agent wins." That baseline is BLIND to Academy/Support (charter excludes them), so specialists won by default. Re-ran with a FAIR all-source baseline (`ac2-allsource-neural`, same MULTI_NEURAL index, NO source filter) → **+0.25 = KILL.** The +0.51 swing was pure baseline-blindness confound. [[feedback-ab-baseline-same-information-set]]
-- **Data-hardening (n=1,000/source)** — Arijit insisted, correctly. Findings: corpus has NO full-body field; `description` depth varies hugely. **Support median 626 chars (70% deep); "Other" median 6,503 (55% deep); Documentation median 60 (96% stubs); Academy/Blog/Developers catalog-grade.** Corrected two of my own n=2 errors: Customer Stories 85% usable (not corrupted; 15% Oh Polly dup bug); "Other" is deep (not 1-line). **Facets reach the model** (verified via live tool-result dump: `facet1` industry + `facet6` features present in the agent's search results).
-- **Honed prompts (data-realistic v3)** drafted: Support = deep resolver (data supports it); Technical = precise router + customer-story evidence; Academy = course curator; Marketer = value-frame + long-form on "Other"/Resources. Each + a shared grounding + warm-baton block.
-- **Warm baton designed** (RC2-style): on handoff the specialist gets history + a dossier preamble (industry/product/stack/original ask) — never repeat. Baton = framing/retrieval context, NOT a grounding source (Algolia facts still must trace to hits).
+## ▶ WHAT HAPPENED THIS SESSION
+### A. Started: "wire RC2 cross-provider fallback (Gemini→Algolia inference)"
+- Built `FallbackProvider` in rc2-algolia (lib/llm/fallback.ts + config/index). Unit test 7/7. Local live failover proof passed (broke Gemini key → Algolia US inference answered).
+- User renamed env to clean `ALGOLIA_INFERENCE_*` (purged "minimax"); code updated to match. Found+fixed a real bug in rc2 `.env.local` (BASE_URL and API_KEY were on ONE line → dotenv never set the key).
+
+### B. Diagnosed RC2 slowness (user noticed it)
+- **Root cause: prod `LLM_MODEL=gemini-2.5-flash`** (heavy thinking model, set ~5d ago). NOT the fallback work, NOT the new Gemini key. Proven: flash TTFT 2.6s vs flash-lite 0.4s on identical prompts (raw Gemini local).
+
+### C. 4-way eval (12 Qs, judge rounds=3) — committed as the harness
+- Captured flash / flash-lite / inference(gemma) / baseline via local dev-server per LLM config. Judged with fast judge (gemini-2.5-flash), rounds=3.
+- **Verdict: flash-lite 8.04 @ 7.5s (local) WINS** > flash 7.57 @ 13.9s (1 grounding gate) > gemma-inference 7.13 (2 gates, 25s). flash-lite better quality AND faster.
+
+### D. PROD INCIDENT (caused + recovered) — the key lesson
+- Deployed flash-lite + the custom cross-provider `FallbackProvider` to live → **~50% of queries errored `Failed to parse stream`** (Vercel streaming broke).
+- **Root cause: the FallbackProvider wrapper manually re-drives the async iterator (`it.next()` then relay) → breaks streaming on Vercel serverless.** Local node tolerates it; Vercel doesn't. Isolated: old code (no wrapper) 6/6 clean · flash-lite WITHOUT wrapper 6/6 clean · raw Gemini 5/5 clean. Wrapper = sole cause.
+- Recovered: `vercel promote` the previous stable deploy. Memory: [[feedback-stream-wrapper-vercel-passthrough]].
+
+### E. Resolution (user's call): flash-lite primary + flash fallback
+- Native `streamWithRetry` already composes `[LLM_MODEL, LLM_FALLBACK_MODEL]` and is Vercel-safe (no custom wrapper). So: `LLM_MODEL=gemini-2.5-flash-lite` + `LLM_FALLBACK_MODEL=gemini-2.5-flash`. **Env-only change, live-read, no redeploy. 5/5 clean.** Better than gemma fallback (flash quality 7.57 > gemma 7.13, and stable).
+
+### F. Cleanup
+- Discarded the 2 cross-provider commits (RC2 main worktree `git reset --hard 53c41ca0`).
+- Removed stray `rc2-main-docs` Vercel project (a wrong-target deploy I created). Removed unused `ALGOLIA_INFERENCE_*` prod env vars.
+- Committed eval harness to Central2 (`7d3ae03`).
+
+## ▶ LIVE RC2 STATE (exact — read before touching)
+- Site `algolia-central.vercel.app` = Vercel project **`algoliacentral`** (prj_5V4H7a0Z2Yb6L8lHlBHZlN1wbOMk). Serves the `rc2-algolia` codebase, deploys from branch `main`.
+- **Env (live-read — changing it needs NO redeploy):** `LLM_MODEL=gemini-2.5-flash-lite` · `LLM_FALLBACK_MODEL=gemini-2.5-flash` · `GEMINI_API_KEY`=the `AQ.Ab8RN6Lm…` key · NO `ALGOLIA_INFERENCE_*`.
+- Current live deploy = the pre-session stable build (promoted `hc34uh55g`); model controlled purely by env.
+- Honest note: **prod flash-lite is ~12–14s** (network/pipeline-bound), NOT the 7.5s seen locally. Modest prod speed gain over flash; quality edge holds.
 
 ## ▶ DECISIONS LOCKED THIS SESSION
-1. Content-source SCOPING (cordon + same prompt) = no lift → KILLED. (Vault ADR `2026-06-28-content-source-routing-spike-verdict.md`, supersedes-in-part `2026-06-18-content-source-multi-agent`.)
-2. Depth is DATA-bound; honing can only help where content is deep (Support, "Other").
-3. Path 1 chosen: hone within data limits + warm baton, then test. (Path 2 = enrich index, deferred.)
-4. Baseline for any fairness test = `ac2-allsource-neural` (same index, no filter), NOT the 6-source Maverick.
-5. Customer Stories proof = text (85% ok) + facet1/facet6; never invented metrics.
+1. RC2 primary = **gemini-2.5-flash-lite**; fallback = **gemini-2.5-flash** (Gemini→Gemini via native streamWithRetry). Cross-provider gemma fallback **dropped**.
+2. NEVER ship a streaming wrapper that re-drives `.next()` — breaks Vercel. Pass native stream through, or fail over at request level. Test stream wrappers ON Vercel, not just local.
+3. Judge/eval rounds≥3 always (rounds<3 = noise) — re-confirmed.
+4. HUD model-label fix = LEFT as-is (cosmetic; runtime correct via env).
 
-## ▶ FILES WRITTEN THIS SESSION (all UNCOMMITTED)
-- **Spike harness:** `lab/server/src/experiments/sourceRoutingAb.ts` + `sourceRouting/{labels.ts,extraQuestions.ts,classifier.ts,routingAgg.ts}` + 3 `.test.ts`. `lab/server/package.json` (`expt:sourcerouting` script).
-- **Honed prompts:** `scripts/setup/honed/instructions_{support,technical,academy,marketer}.md` + `_shared_grounding.md`.
-- **Baseline agent creator:** `scripts/setup/create_allsource_agent.mjs` (already RUN — `ac2-allsource-neural` live, id `26712546-8a6b-4a17-bd7d-18f7a7621746`).
-- **Verdict doc:** `docs/experiment/2026-06-28-content-source-routing-verdict.md` + `source-routing-ab-{results.json,summary.md}`.
-- **Lessons log:** `docs/sop/lessons-log.md` (+1 entry: A/B baseline-blindness confound).
-- **Vault:** ADR + dev-log + open-questions + index + log under `Projects/algolia-central2/`.
-- **Memory:** [[project-content-source-routing-killed]], [[feedback-ab-baseline-same-information-set]], [[project-ac2-agent-inventory-reality]], updated [[feedback-verify-facts-against-live-system]], session_pointer, MEMORY.md.
+## ▶ REPO STATE
+- **RC2** (`rc2-algolia`): main worktree (`/private/tmp/rc2-main-docs`) clean @ `53c41ca0` (= live). Dev branch `feat/gold-capture` working tree still DIRTY with superseded cross-provider WIP + `eval/h2h-variant.ts` (harmless; not deployed). Not cleaned (user didn't ask).
+- **Central2** (this repo): main @ `7d3ae03`. **5 commits un-pushed** (4 from prior session + this eval harness). Working tree: only `SESSION.md` modified.
 
-## ▶ WHAT HAS NOT BEEN DONE (no false-completion)
-- Honed prompts NOT pushed live (drafts on disk only). NOT tested against any agent — adherence unproven (Agent Studio agents can mis-format, e.g. tech leaked JSON on 1.3).
-- Warm-baton harness NOT built (designed only). Multi-turn A/B NOT run.
-- Nothing committed to git this session (Arijit commits on request only). `ac2-allsource-neural` IS live on the app but NOT in `.env.local` (resolved by name).
-- Customer Stories 15% dup bug NOT fixed.
-- P2b human-rank judge calibration still open (the judge scoring all this is uncalibrated — treat scores as indicative).
+## ▶ WHAT HAS NOT BEEN DONE (no false completion)
+- Central2 5 commits NOT pushed (awaiting user go).
+- Cross-provider fallback NOT shipped (dropped; code only in discarded RC2 commits + dirty feat tree).
+- HUD label fix NOT deployed (cosmetic).
+- RC2 `feat/gold-capture` working tree NOT cleaned of cross-provider WIP.
+- Prior-session pending still open: P2b human-rank calibration (blind sheet ready), gym #25, E2E warm-baton.
 
-## ▶ KEY FACTS / GOTCHAS
-- App = CENTRAL `0EXRPAXB56`; keys in `.env.local` (read by scripts, not bash — secrets guard). `.env.local` is STALE for specialist ids → resolve agents BY NAME from `GET /agent-studio/1/agents?limit=100`.
-- Index `AC2_WWW_MULTI_NEURAL` = the specialists' shared index (source-filtered per agent). `ac2-allsource-neural` = same index, no filter.
-- Judge is INDICATIVE here: agent stream → harness keeps only `{title,url}` (no body), so grounding dim is directional; trust composite/coverage/depth deltas (symmetric). Flash-judge drops ~1–5 rows/run to JSON noise (excluded).
-- Tests: `cd lab/server && npm test` (127 green) · `npm run typecheck` (clean).
+## ▶ KEY FILES THIS SESSION
+- RC2: `lib/llm/adapters/gemini.ts` (streamWithRetry uses `[LLM_MODEL, LLM_FALLBACK_MODEL]`), `dev-server.mjs` (local API :3005), `eval/h2h-variant.ts` (param capture runner).
+- Central2 (committed `7d3ae03`): `lab/server/src/judge/variantJudge.ts`, `scripts/setup/h2h/runs/{capture-all.sh,build-table.mjs,*_answers.json,variant_scores.json}`, `lab/server/src/judge/h2hJudge.ts`.
+- Memory: [[feedback-stream-wrapper-vercel-passthrough]], [[project-rc2-deploy-and-keys]] (updated).
+
+## ▶ OPEN QUESTIONS FOR ARIJIT
+1. Push the 5 Central2 commits to origin/main?
+2. Clean the RC2 `feat/gold-capture` working tree of the dropped cross-provider WIP?
+3. Ship the HUD label fix later (flash-lite name/price) via a wrapper-free build?
+4. Resume prior backlog: P2b human ranking / gym #25 / E2E warm-baton?
